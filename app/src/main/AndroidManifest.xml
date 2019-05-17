@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="payment.sdk.android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name="payment.sdk.android.demo.App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
+        tools:ignore="GoogleAppIndexingWarning"
+        tools:targetApi="m">
+
+        <meta-data
+            android:name="debug_mode"
+            android:value="Y" />
+        <meta-data
+            android:name="spay_debug_api_key"
+            android:value="c7b3339e42d54b4397be6ad63167e102" />
+        <meta-data
+            android:name="spay_sdk_api_level"
+            android:value="2.4" />
+
+        <activity
+            android:name="payment.sdk.android.demo.home.HomeActivity"
+            android:configChanges="locale"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_home">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="payment.sdk.android.demo.product_detail.ProductDetailActivity"
+            android:configChanges="locale" />
+    </application>
+
+</manifest>
