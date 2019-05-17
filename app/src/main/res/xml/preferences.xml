@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/fragment_title_settings">
+    <PreferenceCategory android:title="General">
+        <SwitchPreference
+            android:icon="@drawable/ic_money"
+            android:key="price_in_aed"
+            android:title="@string/prices_in_aed" />
+
+        <SwitchPreference
+            android:icon="@drawable/ic_language"
+            android:key="language_in_arabic"
+            android:title="@string/product_details_in_arabic" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
