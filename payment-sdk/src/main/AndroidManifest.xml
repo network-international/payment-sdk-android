@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="payment.sdk.android.sdk">
+
+    <application>
+        <activity
+            android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
+            android:screenOrientation="behind"
+            android:theme="@style/SdkTheme.Translucent"
+            android:windowSoftInputMode="adjustResize|stateUnchanged" />
+
+        <activity
+            android:name="payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+    </application>
+
+</manifest>

@@ -1,0 +1,76 @@
+<resources>
+    <string name="placeholder_card_number" translatable="false">0000 0000 0000 0000</string>
+    <string name="placeholder_expire_date" translatable="false">MM/YY</string>
+    <string name="placeholder_cvv" translatable="false">000</string>
+    <string name="placeholder_long_cvv" translatable="false">0000</string>
+
+    <string name="mask_expire_date" translatable="false">##/##</string>
+    <string name="mask_card_number" translatable="false">#### #### #### ####</string>
+    <string name="mask_cvv" translatable="false">###</string>
+
+    <string name="expires_end_label" translatable="false">EXPIRES\nEND</string>
+
+    <!-- Dialog text to notify 3d secure page is opening -->
+    <string name="launching_3d_secure">Launching 3D Secure&#8230;</string>
+
+    <!-- Dialog message to notify payment is being submitted -->
+    <string name="submitting_payment">Submitting payment&#8230;</string>
+
+    <!-- Button used to cancel the payment process and close(dismiss) the payment view.. -->
+    <string name="cancel_button">Cancel</string>
+
+    <!-- Button used to complete the payment, once all card details have been added to the form. -->
+    <string name="pay_button_title">Pay</string>
+
+    <!-- The title of the label shown above the card number text field. The field used to enter the
+    Credit or Debit card number. -->
+    <string name="card_number_label_title">Card number</string>
+
+    <!-- The title of the label shown above the card expiry date text field. The field used to enter
+    the Credit or Debit card expiry date. -->
+    <string name="card_expiry_date_label_title">Expiry date</string>
+
+    <!-- The title of the label shown above the card CVV field. The field used to enter the Credit or
+    Debit CVV number. -->
+    <string name="card_cvv_label_title">CVV</string>
+
+    <!-- The placeholder for the cardholder name, used to show what goes into the cardholder field in
+    the card details form if no text is added to it. -->
+    <string name="cardholder_field_hint">CARDHOLDER NAME</string>
+
+    <!-- The placeholder text to show on card -->
+    <string name="cardholder_label_title">CARDHOLDER NAME</string>
+
+    <!-- The title of the label shown above the cardholder text field. The field used to enter the
+    Credit or Debit card cardholder name. -->
+    <string name="card_cardholder_label_title">Cardholder name</string>
+
+    <!-- Error Message. The credit card number is not valid. Please check the number on the card. -->
+    <string name="error_message_pan_invalid">The credit card number is not valid. Please check the number on the card</string>
+
+    <!-- Error Message. The card end date is not valid. -->
+    <string name="error_message_card_end_date_invalid">The card expiry date is not valid</string>
+
+    <!-- Error Message. The card CVV is not valid. -->
+    <string name="error_message_card_cvv_invalid">The card CVV is not valid</string>
+
+    <!-- Error Message. The cardholder name is not valid. -->
+    <string name="error_message_cardholder_name_invalid">The cardholder name is not valid</string>
+
+    <!-- Error Message. Used when subclass does not implement a custom message. -->
+    <string name="error_message_default_generic">The field content is not valid</string>
+
+    <!-- Error Message. More than one card number field is invalid. -->
+    <string name="error_message_card_numbers_multiple">Multiple card details are not valid</string>
+
+    <!-- Error Message. Card is not supported for this transaction -->
+    <string name="error_card_not_supported">Card is not supported for this transaction</string>
+
+    <!-- Progress Message when authorizing payment url -->
+    <string name="message_authorizing">Authorizing…</string>
+
+    <!-- Progress Message when loading order details -->
+    <string name="message_loading_order_details">Loading order details…</string>
+
+
+</resources>

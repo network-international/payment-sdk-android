@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<payment.sdk.android.cardpayment.widget.HorizontalViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/view_flipper"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginStart="12dp"
+    android:layout_marginTop="16dp">
+
+    <include layout="@layout/view_card_preview_front" />
+
+    <ViewStub
+        android:id="@+id/card_back_face_view_stub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inflatedId="@+id/card_back_face"
+        android:layout="@layout/view_card_preview_back"
+        android:visibility="gone" />
+
+</payment.sdk.android.cardpayment.widget.HorizontalViewFlipper>

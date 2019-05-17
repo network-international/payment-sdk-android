@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_front_face"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layoutDirection="ltr">
+
+    <View
+        android:id="@+id/card_front_face_bg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/card_background"
+        android:contentDescription="@null"
+        app:layout_constraintDimensionRatio="1.584" />
+
+    <ImageView
+        android:id="@+id/logo_view"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="8dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent=".2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="RtlHardcoded" />
+
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:alpha="0.8"
+        android:lines="2"
+        android:text="@string/expires_end_label"
+        android:textColor="@color/white"
+        android:textSize="7sp"
+        app:layout_constraintBottom_toBottomOf="@+id/card_front_face_bg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.38"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/card_front_face_bg"
+        app:layout_constraintVertical_bias="0.75"
+        tools:ignore="SmallSp" />
+
+    <payment.sdk.android.cardpayment.widget.PreviewTextView
+        android:id="@+id/card_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layoutDirection="ltr"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="@string/placeholder_card_number"
+        android:textSize="@dimen/preview_text_font_size"
+        app:layout_constraintBottom_toBottomOf="@+id/card_front_face_bg"
+        app:layout_constraintEnd_toEndOf="@+id/card_front_face_bg"
+        app:layout_constraintStart_toStartOf="@+id/card_front_face_bg"
+        app:layout_constraintTop_toTopOf="@+id/card_front_face_bg"
+        app:layout_constraintVertical_bias="0.53"
+        tools:text="0000 0000 0000 0000" />
+
+    <payment.sdk.android.cardpayment.widget.PreviewTextView
+        android:id="@+id/card_expire_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="8dp"
+        android:layoutDirection="ltr"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="@string/placeholder_expire_date"
+        android:textSize="@dimen/preview_text_font_size"
+        app:layout_constraintBottom_toBottomOf="@+id/textView"
+        app:layout_constraintStart_toEndOf="@+id/textView"
+        tools:text="MM/YY" />
+
+
+    <payment.sdk.android.cardpayment.widget.PreviewTextView
+        android:id="@+id/card_holder_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layoutDirection="ltr"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="@string/cardholder_label_title"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/card_front_face_bg"
+        app:layout_constraintStart_toStartOf="@+id/card_number"
+        app:layout_constraintTop_toBottomOf="@+id/card_number"
+        app:layout_constraintVertical_bias="0.85" />
+
+    <TextView
+        android:id="@+id/card_front_cvv_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="24dp"
+        android:padding="8dp"
+        android:text="@string/placeholder_long_cvv"
+        android:textColor="@color/white"
+        android:textSize="@dimen/preview_text_font_size"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/card_number"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:id="@+id/card_front_cvv_indicator"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ic_cvv_location_indicator"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/card_front_cvv_guide"
+        app:layout_constraintEnd_toEndOf="@+id/card_front_cvv_guide"
+        app:layout_constraintStart_toStartOf="@+id/card_front_cvv_guide"
+        app:layout_constraintTop_toTopOf="@+id/card_front_cvv_guide" />
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,24 @@
+<resources>
+
+    <style name="SdkTheme" />
+
+    <style name="SdkTheme.Translucent" parent="Theme.AppCompat.Light.Dialog">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowBackground">@drawable/bottom_sheet_background</item>
+        <item name="android:windowAnimationStyle">@style/Animation.Design.BottomSheetDialog</item>
+        <item name="colorAccent">@color/blue</item>
+    </style>
+
+    <style name="SdkTheme.ThreeDSecure" parent="Theme.AppCompat.Light.NoActionBar" >
+        <item name="colorAccent">@color/blue</item>
+    </style>
+
+    <style name="SdkTheme.PayButton" parent="Base.Widget.AppCompat.Button.Colored">
+        <item name="colorButtonNormal">@color/blue</item>
+        <item name="colorControlHighlight">@color/dark_blue</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+
+</resources>

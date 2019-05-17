@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_marginTop="8dp"
+    android:background="@color/white"
+    tools:showIn="@layout/view_bottom_sheet">
+
+    <payment.sdk.android.cardpayment.widget.NumericMaskedEditText
+        android:id="@+id/edit_card_number"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="12dp"
+        android:textDirection="ltr"
+        app:layout_constraintStart_toStartOf="parent"
+        app:mask="@string/mask_card_number">
+
+        <include layout="@layout/view_masked_edit_text" />
+    </payment.sdk.android.cardpayment.widget.NumericMaskedEditText>
+
+
+    <payment.sdk.android.cardpayment.widget.ExpireDateEditText
+        android:id="@+id/edit_expire_date"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="8dp"
+        android:textDirection="ltr"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toStartOf="@+id/edit_cvv"
+        app:layout_constraintStart_toEndOf="@+id/edit_card_number"
+        app:mask="@string/mask_expire_date"
+        app:placeHolder="@string/placeholder_expire_date"
+        tools:ignore="TextFields">
+
+        <include layout="@layout/view_masked_edit_text" />
+    </payment.sdk.android.cardpayment.widget.ExpireDateEditText>
+
+    <payment.sdk.android.cardpayment.widget.NumericMaskedEditText
+        android:id="@+id/edit_cvv"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:textDirection="ltr"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:mask="@string/mask_cvv">
+
+        <include layout="@layout/view_masked_edit_text" />
+    </payment.sdk.android.cardpayment.widget.NumericMaskedEditText>
+
+</android.support.constraint.ConstraintLayout>
