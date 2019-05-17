@@ -1,0 +1,67 @@
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:orientation="vertical"
+    tools:context=".demo.products.ProductsFragment">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/price_in_aed_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/prices_in_aed"
+            android:textColor="#444"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@+id/price_in_aed_switch"
+            app:layout_constraintStart_toEndOf="@+id/price_in_aed_switch"
+            app:layout_constraintTop_toTopOf="@+id/price_in_aed_switch" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/product_details_in_arabic_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/product_details_in_arabic"
+            android:textColor="#444"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@+id/product_details_in_arabic_switch"
+            app:layout_constraintStart_toEndOf="@+id/product_details_in_arabic_switch"
+            app:layout_constraintTop_toTopOf="@+id/product_details_in_arabic_switch" />
+
+    </android.support.constraint.ConstraintLayout>
+
+
+</android.support.v7.widget.LinearLayoutCompat>

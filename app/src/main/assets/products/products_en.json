@@ -1,0 +1,214 @@
+{
+  "products": [
+    {
+      "id": "p00001",
+      "info": {
+        "locale": "en",
+        "productDescription": "A beautiful yellow sofa for the whole family to enjoy.",
+        "name": "Yellow Sofa",
+        "images": [
+          {
+            "url": "/images/products/01.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 1215,
+          "tax": 250,
+          "currency": "USD"
+        },
+        {
+          "total": 6000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00002",
+      "info": {
+        "locale": "en",
+        "productDescription": "A spectacular green sofa for the whole family to enjoy.",
+        "name": "Green Sofa",
+        "images": [
+          {
+            "url": "/images/products/02.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 1000,
+          "tax": 200,
+          "currency": "USD"
+        },
+        {
+          "total": 5000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00003",
+      "info": {
+        "locale": "en",
+        "productDescription": "A spectacular red sofa for the whole family to enjoy.",
+        "name": "Red Sofa",
+        "images": [
+          {
+            "url": "/images/products/03.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 1400,
+          "tax": 280,
+          "currency": "USD"
+        },
+        {
+          "total": 6500,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00004",
+      "info": {
+        "locale": "en",
+        "productDescription": "A spectacular turquoise sofa for the whole family to enjoy.",
+        "name": "Turquoise Sofa",
+        "images": [
+          {
+            "url": "/images/products/04.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 1200,
+          "tax": 240,
+          "currency": "USD"
+        },
+        {
+          "total": 6000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00005",
+      "info": {
+        "locale": "en",
+        "productDescription": "A spectacular pair of turquoise sofas for the whole family to enjoy.",
+        "name": "Two Turquoise Sofas",
+        "images": [
+          {
+            "url": "/images/products/05.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 2000,
+          "tax": 400,
+          "currency": "USD"
+        },
+        {
+          "total": 8000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00006",
+      "info": {
+        "locale": "en",
+        "productDescription": "A spectacular pair of red and orange sofas for the whole family to enjoy.",
+        "name": "Pair of Red and Orange Sofas",
+        "images": [
+          {
+            "url": "/images/products/06.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 2000,
+          "tax": 400,
+          "currency": "USD"
+        },
+        {
+          "total": 8000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    },
+    {
+      "id": "p00007",
+      "info": {
+        "locale": "en",
+        "productDescription": "All repairs and alteration for half price for 24 months.",
+        "name": "24 month Sofa Care plan",
+        "images": [
+          {
+            "url": "/images/products/07.jpg",
+            "size": {
+              "width": 460,
+              "dpi": 72,
+              "height": 276
+            }
+          }
+        ]
+      },
+      "prices": [
+        {
+          "total": 3000,
+          "tax": 600,
+          "currency": "USD"
+        },
+        {
+          "total": 12000,
+          "tax": 0,
+          "currency": "AED"
+        }
+      ]
+    }
+  ]
+}

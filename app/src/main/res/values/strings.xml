@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Furniture App</string>
+
+    <string name="title_activity_home">Home</string>
+    <string name="title_activity_product_details">Product Details</string>
+
+    <string name="navigation_label_furniture">Furniture</string>
+    <string name="navigation_label_basket">Basket</string>
+    <string name="navigation_label_more">More</string>
+
+    <string name="fragment_title_furniture">Furniture</string>
+    <string name="fragment_title_basket">Basket</string>
+    <string name="fragment_title_settings">Settings</string>
+
+    <string name="label_add_to_basket">Add To Basket</string>
+    <string name="label_card_payment">Pay with Card</string>
+    <string name="empty_basket_message">Your basket is empty</string>
+    <string name="label_add">+</string>
+    <string name="label_remove">-</string>
+    <string name="label_delete">Delete</string>
+    <string name="subtotal">Total:</string>
+    <string name="prices_in_aed">Prices in AED</string>
+    <string name="product_details_in_arabic">Product details in Arabic</string>
+    <string name="product_in_basket">This product is your basket</string>
+    <string name="order_successful">Order successful</string>
+    <string name="continue_shopping">Continue Shopping</string>
+    <string name="pay_with_samsung_pay">Pay with Samsung Pay</string>
+</resources>

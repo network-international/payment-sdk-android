@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Furniture App</string>
+
+    <string name="title_activity_home">منزل</string>
+    <string name="title_activity_product_details">تفاصيل المنتج</string>
+
+    <string name="navigation_label_furniture">أثاث المنزل</string>
+    <string name="navigation_label_basket">سلة</string>
+    <string name="navigation_label_more">أكثر من</string>
+
+    <string name="fragment_title_furniture">أثاث المنزل</string>
+    <string name="fragment_title_basket">سلة</string>
+    <string name="fragment_title_settings">إعدادات</string>
+
+    <string name="label_add_to_basket">اضف الى السلة</string>
+    <string name="label_card_payment">Pay with Card</string>
+    <string name="empty_basket_message">أنت سلة فارغة</string>
+    <string name="label_add">+</string>
+    <string name="label_remove">-</string>
+    <string name="label_delete">حذف</string>
+    <string name="subtotal">مجموع:</string>
+    <string name="prices_in_aed">الأسعار بالدرهم</string>
+    <string name="product_details_in_arabic">تفاصيل المنتج باللغة العربية</string>
+    <string name="product_in_basket">هذا المنتج هو سلة الخاص بك</string>
+    <string name="order_successful">أمر ناجح</string>
+    <string name="continue_shopping">مواصلة التسوق</string>
+    <string name="pay_with_samsung_pay">ادفع مع Samsung Pay</string>
+</resources>
