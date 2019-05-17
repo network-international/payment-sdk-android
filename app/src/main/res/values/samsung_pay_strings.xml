@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="spay_address_in_payment_sheet_values">
+        <item>DO_NOT_SHOW</item>
+        <item>NEED_BILLING_SPAY</item>
+        <item>NEED_SHIPPING_SPAY"</item>
+        <item>SEND_SHIPPING"</item>
+        <item>NEED_BILLING_SEND_SHIPPING"</item>
+        <item>NEED_BILLING_AND_SHIPPING"</item>
+    </string-array>
+
+    <string-array name="spay_show_delivery_method_values">
+        <item>Yes</item>
+        <item>No</item>
+    </string-array>
+
+    <string-array name="spay_delivery_method_entries">
+        <item>Free Delivery (3–5 Days)</item>
+        <item>1-Day Delivery - £4</item>
+        <item>2-Days Delivery - £2</item>
+    </string-array>
+
+    <string-array name="spay_delivery_method_values">
+        <item>0</item>
+        <item>4</item>
+        <item>2</item>
+    </string-array>
+
+</resources>
