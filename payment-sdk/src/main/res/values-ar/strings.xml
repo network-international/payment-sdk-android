@@ -1,0 +1,65 @@
+<resources>
+
+    <!-- Dialog text to notify 3d secure page is opening -->
+    <string name="launching_3d_secure">إطلاق 3D الآمنة&#8230;</string>
+
+    <!-- Dialog message to notify payment is being submitted -->
+    <string name="submitting_payment">تقديم الدفع&#8230;</string>
+
+    <!-- Button used to cancel the payment process and close(dismiss) the payment view -->
+    <string name="cancel_button">إلغا</string>
+
+    <!-- Button used to complete the payment. -->
+    <string name="pay_button_title">قم بالدفعإلغا</string>
+
+    <!-- The title of the label shown above the card number text field. The field used to enter the
+    Credit or Debit card number. -->
+    <string name="card_number_label_title">رقم بطاقة الدفعإلغ</string>
+
+    <!-- The title of the label shown above the card expiry date text field. The field used to enter
+     the Credit or Debit card expiry date. -->
+    <string name="card_expiry_date_label_title">تاريخ الانتهاء</string>
+
+    <!-- The title of the label shown above the card CVV field. The field used to enter the Credit
+    or Debit CVV number. -->
+    <string name="card_cvv_label_title">رقم cvv</string>
+
+    <!-- The placeholder for the cardholder name, used to show what goes into the cardholder field
+    in the card details form if no text is added to it. -->
+    <string name="cardholder_field_hint">إسم صاحب البطاقة</string>
+
+    <!-- The placeholder text to show on card -->
+    <string name="cardholder_label_title">CARDHOLDER NAME</string>
+
+    <!-- The title of the label shown above the cardholder text field. The field used to enter the
+    Credit or Debit e-card cardholder name. -->
+    <string name="card_cardholder_label_title">إسم صاحب البطاقة</string>
+
+    <!-- Error Message. The creditcard number is not valid. Please check the number on the card. -->
+    <string name="error_message_pan_invalid">رقم بطاقة الائتمان غير صالح. يرجى التحقق من الرقم الموجود على البطاقة</string>
+
+    <!-- Error Message. The card end date is not valid. -->
+    <string name="error_message_card_end_date_invalid">تاريخ انتهاء البطاقة غير صالح</string>
+
+    <!-- Error Message. The card CVV is not valid. -->
+    <string name="error_message_card_cvv_invalid">رمز بطاقة CVV غير صالح</string>
+
+    <!-- Error Message. The cardholder name is not valid. -->
+    <string name="error_message_cardholder_name_invalid">اسم حامل البطاقة غير صالح</string>
+
+    <!-- Error Message. Used when subclass does not implement a custom message. -->
+    <string name="error_message_default_generic">محتوى الحقل غير صالح</string>
+
+    <!-- Error Message. More than one card number field is invalid. -->
+    <string name="error_message_card_numbers_multiple">تفاصيل بطاقة متعددة غير صالحة</string>
+
+    <!-- Error Message. Card is not supported for this transaction -->
+    <string name="error_card_not_supported">البطاقة غير مدعومة لهذه المعاملة</string>
+
+    <!-- Progress Message when authorizing payment url -->
+    <string name="message_authorizing">يجيز …</string>
+
+    <!-- Progress Message when loading order details -->
+    <string name="message_loading_order_details">جارٍ تحميل تفاصيل الطلب …</string>
+
+</resources>

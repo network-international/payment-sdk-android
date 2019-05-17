@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="preview_text_font_size">18sp</dimen>
+    <dimen name="input_text_font_size">17sp</dimen>
+    <dimen name="error_text_font_size">15sp</dimen>
+</resources>
