@@ -2,6 +2,7 @@
 
 ![Banner](assets/banner.jpg)
 
+[![Build Status](https://travis-ci.com/network-international/payment-sdk-android.svg?branch=master)](https://travis-ci.com/network-international/payment-sdk-android)
 [![](https://jitpack.io/v/network-international/payment-sdk-android.svg)](https://jitpack.io/#network-international/payment-sdk-android)
 
 ## Specifications
@@ -106,3 +107,24 @@ Every possible result code is checked, and an appropriate action is taken:
 - STATUS_PAYMENT_AUTHORIZED shows order creation with “AUTH” action parameter is successful.
 - STATUS_PAYMENT_FAILED shows payment is not successful on payment gateway.
 - STATUS_GENERIC_ERROR: shows possible issues on the client side, for instance, network is not accessible or an unexpected error occurs.
+
+## Samsung pay integration
+Just like card, Samsung pay integration is also very simple.
+
+Build samsung pay request:
+```kotlin
+SamsungPayRequest.builder()
+  .merchantId(merchantId = String)
+  .merchantName(merchantName = String)
+  .orderNumber(orderNumber = String)
+  .supportedCards(supportedCards = Set<CardType>)
+  .addressInPaymentSheet(addressInPaymentSheet = SamsungPayRequest.AddressInPaymentSheet)
+  .addAmountBoxControl(amountBoxControl = AmountBoxControl)
+  .build()
+```
+And pass the above request as:
+```kotlin
+PaymentClient.launchSamsungPay(request: SamsungPayRequest)
+```
+
+For more details please refer to sample app integration [`SamsungPayPresenter.kt`](https://github.com/network-international/payment-sdk-android/blob/master/app/src/main/java/payment/sdk/android/demo/basket/SamsungPayPresenter.kt#L39)
