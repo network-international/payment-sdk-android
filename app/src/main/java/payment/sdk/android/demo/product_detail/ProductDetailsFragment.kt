@@ -2,7 +2,6 @@ package payment.sdk.android.demo.product_detail
 
 
 import payment.sdk.android.demo.App
-import payment.sdk.android.R
 import payment.sdk.android.demo.products.data.ProductDomain
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -14,9 +13,11 @@ import android.widget.TextView
 import butterknife.BindView
 import butterknife.ButterKnife
 import butterknife.OnClick
-import com.bumptech.glide.Glide
 import org.parceler.Parcels
 import javax.inject.Inject
+import com.bumptech.glide.Glide
+import payment.sdk.android.R
+
 
 class ProductDetailsFragment : Fragment(), ProductDetailsFragmentContract.View {
 

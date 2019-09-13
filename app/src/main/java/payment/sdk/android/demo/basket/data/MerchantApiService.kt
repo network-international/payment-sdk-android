@@ -14,8 +14,6 @@ interface MerchantApiService {
     @POST(value = "api/update_delivery_method")
     fun updateDeliveryMethod(@Body deliveryMethodRequest: DeliveryMethodRequestDto): Single<FeeResponseDto>
 
-    @POST(value = "api/create_payment_order")
-    fun createPaymentOrder(@Body createPaymentOrderRequest: CreatePaymentOrderRequestDto): Single<CreatePaymentOrderResponseDto>
-
-
+    @POST(value = "api/createOrder")
+    fun createPaymentOrder(@Body createPaymentOrderRequest: CreatePaymentOrderRequestDto): Single<CreateOrderResponseDto>
 }
