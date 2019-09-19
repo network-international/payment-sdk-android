@@ -32,10 +32,10 @@ class PaymentOrderApiInteractor @Inject constructor(
                         )
                         return@flatMap merchantApiService.createPaymentOrder(request).map { dto ->
                             CreatePaymentOrderResponseDomain(
-                                    orderReference = dto.orderReference,
-                                    paymentAuthorizationUrl = dto.paymentAuthorizationUrl,
-                                    code = dto.code,
-                                    supportedCards = CardMapping.mapSupportedCards(dto.supportedCards))
+                                    orderReference = dto.reference,
+                                    paymentAuthorizationUrl = dto.paymentLinks.paymentAuthorization.href,
+                                    code = dto.paymentLinks.payment.href.split("=").get(1),
+                                    supportedCards = CardMapping.mapSupportedCards(dto.paymentMethods.card))
                         }
                     }
 
