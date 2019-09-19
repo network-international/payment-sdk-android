@@ -5,7 +5,7 @@ android:
     - android-28
     - extra
 script:
-  - ./gradlew build connectedCheck
+  # - ./gradlew build connectedCheck
   - ./gradlew clean test
 
 
