@@ -10,7 +10,7 @@
     <string name="cancel_button">إلغا</string>
 
     <!-- Button used to complete the payment. -->
-    <string name="pay_button_title">قم بالدفعإلغا</string>
+    <string name="pay_button_title">%1s قم بالدفعإلغا</string>
 
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->
