@@ -20,7 +20,7 @@
     <string name="cancel_button">Cancel</string>
 
     <!-- Button used to complete the payment, once all card details have been added to the form. -->
-    <string name="pay_button_title">Pay</string>
+    <string name="pay_button_title">Pay %1$s</string>
 
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->

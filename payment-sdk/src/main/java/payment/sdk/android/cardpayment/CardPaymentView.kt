@@ -7,6 +7,7 @@ import android.support.v7.widget.AppCompatTextView
 import android.text.Editable
 import android.view.View
 import android.widget.*
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.widget.*
 
 
@@ -49,6 +50,17 @@ internal class CardPaymentView constructor(
         root.findViewById<Button>(R.id.pay_button).apply {
             setOnClickListener {
                 presenter.onPayClicked()
+            }
+            if(SDKConfig.showOrderAmount) {
+                text = root.context.getString(
+                        R.string.pay_button_title,
+                        presenter.getOrderInfo().formattedCurrencyString()
+                )
+            } else {
+                text = root.context.getString(
+                        R.string.pay_button_title,
+                        ""
+                )
             }
         }
     }
