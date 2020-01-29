@@ -9,6 +9,8 @@ fun JSONArray.at(index: Int): JSONObject = getJSONObject(index)
 
 fun JSONObject.int(key: String?): Int? = getOrNull(key) { getInt(key) }
 
+fun JSONObject.double(key: String?): Double? = getOrNull(key) { getDouble(key) }
+
 fun JSONObject.string(key: String?): String? = getOrNull(key) { getString(key) }
 
 fun JSONObject.json(key: String?): JSONObject? = getOrNull(key) { getJSONObject(key) }

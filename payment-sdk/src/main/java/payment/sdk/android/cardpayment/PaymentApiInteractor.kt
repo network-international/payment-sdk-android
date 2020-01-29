@@ -1,6 +1,7 @@
 package payment.sdk.android.cardpayment
 
 import payment.sdk.android.core.CardType
+import payment.sdk.android.core.OrderAmount
 import org.json.JSONObject
 
 interface PaymentApiInteractor {
@@ -14,7 +15,7 @@ interface PaymentApiInteractor {
     fun getOrder(
             orderUrl: String,
             paymentCookie: String,
-            success: (String, String, Set<CardType>) -> Unit,
+            success: (String, String, Set<CardType>, OrderAmount) -> Unit,
             error: (Exception) -> Unit)
 
     fun doPayment(
