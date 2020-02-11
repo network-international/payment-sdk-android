@@ -1,6 +1,7 @@
 package payment.sdk.android.cardpayment
 
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
+import payment.sdk.android.core.OrderAmount
 
 
 interface CardPaymentContract {
@@ -83,6 +84,8 @@ interface CardPaymentContract {
         fun onPayClicked()
 
         fun onHandle3DSecurePaymentSate(state: String)
+
+        fun getOrderInfo(): OrderAmount
     }
 
     interface Interactions {
