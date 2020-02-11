@@ -25,6 +25,7 @@ import org.mockito.ArgumentMatchers.anyString
 
 import org.mockito.Mockito.*
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.core.OrderAmount
 
 @RunWith(JUnitParamsRunner::class)
 class CardPaymentPresenterTest {
@@ -566,7 +567,7 @@ class CardPaymentPresenterTest {
         val fixtCookie = fixture.create(String::class.java)
         whenever(mockPaymentApiInteractor.getOrder(
                 anyString(), anyString(), anyObject(), anyObject())).then {
-            it.getArgument<((String, String, Set<CardType>) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress))
+            it.getArgument<((String, String, Set<CardType>, OrderAmount) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"))
         }
         whenever(mockPaymentApiInteractor.doPayment(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {
