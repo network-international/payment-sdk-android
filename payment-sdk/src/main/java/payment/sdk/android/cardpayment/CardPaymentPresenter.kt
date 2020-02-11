@@ -15,6 +15,7 @@ import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.core.OrderAmount
 
 internal class CardPaymentPresenter(
         private val url: String,
@@ -30,6 +31,7 @@ internal class CardPaymentPresenter(
     private lateinit var orderReference: String
     private lateinit var paymentUrl: String
     private lateinit var paymentCookie: String
+    private lateinit var orderAmount: OrderAmount
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -203,12 +205,13 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.getOrder(
                 orderUrl = orderUrl,
                 paymentCookie = paymentCookie,
-                success = { orderReference, paymentUrl, supportedCards ->
+                success = { orderReference, paymentUrl, supportedCards, orderAmount ->
                     view.showProgress(false)
                     view.focusInCardNumber()
                     this.orderReference = orderReference
                     this.paymentUrl = paymentUrl
                     this.supportedCards = supportedCards
+                    this.orderAmount = orderAmount
                 },
                 error = {
                     view.showProgress(false)
@@ -244,6 +247,10 @@ internal class CardPaymentPresenter(
 
     override fun onHandle3DSecurePaymentSate(state: String) {
         handleCardPaymentResponse(state)
+    }
+
+    override fun getOrderInfo(): OrderAmount {
+        return this.orderAmount
     }
 
     private fun handleCardPaymentResponse(state: String, response: JSONObject? = null) {
