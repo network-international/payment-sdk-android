@@ -7,6 +7,7 @@ import payment.sdk.android.demo.dependency.configuration.Configuration
 import android.support.multidex.MultiDexApplication
 import android.support.v7.app.AppCompatDelegate
 import com.facebook.stetho.Stetho
+import payment.sdk.android.SDKConfig
 import javax.inject.Inject
 
 class App : MultiDexApplication() {
@@ -20,7 +21,7 @@ class App : MultiDexApplication() {
         super.onCreate()
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-
+        SDKConfig.shouldShowOrderAmount(true)
 
         Stetho.initializeWithDefaults(this)
 
