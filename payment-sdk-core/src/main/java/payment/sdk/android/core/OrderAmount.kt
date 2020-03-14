@@ -17,6 +17,8 @@ class OrderAmount {
         val format = NumberFormat.getCurrencyInstance()
         format.currency = Currency.getInstance(this.currencyCode)
         val minorUnit: Int = Currency.getInstance(currencyCode).defaultFractionDigits
-        return format.format(orderValue / 10.00.pow(minorUnit))
+        val orderAmount = orderValue / 10.00.pow(minorUnit)
+        return "$orderAmount $currencyCode"
+//        return format.format()
     }
 }
