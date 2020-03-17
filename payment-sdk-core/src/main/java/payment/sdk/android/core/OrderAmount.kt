@@ -13,12 +13,12 @@ class OrderAmount {
         this.currencyCode = currencyCode
     }
 
-    fun formattedCurrencyString(): String {
+    fun formattedCurrencyString(isLTR: Boolean): String {
         val format = NumberFormat.getCurrencyInstance()
         format.currency = Currency.getInstance(this.currencyCode)
         val minorUnit: Int = Currency.getInstance(currencyCode).defaultFractionDigits
         val orderAmount = orderValue / 10.00.pow(minorUnit)
-        return "$orderAmount $currencyCode"
+        return if(isLTR) "$orderAmount $currencyCode" else "$currencyCode $orderAmount"
 //        return format.format()
     }
 }

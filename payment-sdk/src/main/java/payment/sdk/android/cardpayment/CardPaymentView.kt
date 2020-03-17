@@ -3,12 +3,15 @@ package payment.sdk.android.cardpayment
 import payment.sdk.android.sdk.R
 import android.app.AlertDialog
 import android.support.v4.content.ContextCompat
+import android.support.v4.text.TextUtilsCompat
+import android.support.v4.view.ViewCompat
 import android.support.v7.widget.AppCompatTextView
 import android.text.Editable
 import android.view.View
 import android.widget.*
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.widget.*
+import java.util.*
 
 
 internal class CardPaymentView constructor(
@@ -52,9 +55,10 @@ internal class CardPaymentView constructor(
                 presenter.onPayClicked()
             }
             if(SDKConfig.showOrderAmount) {
+                val isLTR = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
                 text = root.context.getString(
                         R.string.pay_button_title,
-                        presenter.getOrderInfo().formattedCurrencyString()
+                        presenter.getOrderInfo().formattedCurrencyString(isLTR)
                 )
             } else {
                 text = root.context.getString(
