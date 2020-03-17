@@ -8,7 +8,10 @@ class OrderAmountTest {
     @Test
     fun getFormattedCurrency() {
         val orderAmount = OrderAmount(2000.00, "AED")
-        val formattedCurrency = orderAmount.formattedCurrencyString()
-        assertThat(formattedCurrency, StringContains("20.0 AED"))
+        val formattedCurrencyLTR = orderAmount.formattedCurrencyString(true)
+        assertThat(formattedCurrencyLTR, StringContains("20.0 AED"))
+
+        val formattedCurrencyRTL = orderAmount.formattedCurrencyString(false)
+        assertThat(formattedCurrencyRTL, StringContains("AED 20.0"))
     }
 }
