@@ -10,6 +10,9 @@
 
     <string name="expires_end_label" translatable="false">EXPIRES\nEND</string>
 
+    <!-- Title name in payment page -->
+    <string name="make_payment">Make Payment</string>
+
     <!-- Dialog text to notify 3d secure page is opening -->
     <string name="launching_3d_secure">Launching 3D Secure&#8230;</string>
 
