@@ -12,6 +12,9 @@
     <!-- Button used to complete the payment. -->
     <string name="pay_button_title">%1s إدفع</string>
 
+    <!-- Title name in payment page -->
+    <string name="make_payment">الدفع</string>
+
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->
     <string name="card_number_label_title">رقم بطاقة الدفعإلغ</string>
