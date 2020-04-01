@@ -8,8 +8,10 @@ import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.support.v7.widget.Toolbar
 import android.view.ViewGroup
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
@@ -20,6 +22,8 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_card_payment)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+
+        setToolBar()
 
         presenter = CardPaymentPresenter(
                 url = intent.getStringExtra(URL_KEY),
@@ -69,6 +73,17 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
             }
         }
     }
+
+    private fun setToolBar() {
+        val toolbar = findViewById<Toolbar>(R.id.toolbar3)
+        toolbar.setNavigationIcon(R.drawable.ic_back_button)
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
+        toolbar.setTitle(R.string.make_payment)
+        toolbar.setTitleTextColor(Color.WHITE)
+    }
+
 
     private fun finishWithData(cardPaymentData: CardPaymentData) {
         val intent = Intent().apply {
