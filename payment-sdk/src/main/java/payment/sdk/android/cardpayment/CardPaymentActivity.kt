@@ -1,7 +1,7 @@
 package payment.sdk.android.cardpayment
 
 import payment.sdk.android.sdk.R
-import payment.sdk.android.cardpayment.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
@@ -119,6 +119,5 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
                     putExtra(CODE, code)
 
                 }
-
     }
 }

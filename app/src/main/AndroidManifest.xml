@@ -22,10 +22,10 @@
             android:value="Y" />
         <meta-data
             android:name="spay_debug_api_key"
-            android:value="***REMOVED***" />
+            android:value="" />
         <meta-data
             android:name="spay_sdk_api_level"
-            android:value="2.4" />
+            android:value="2.12" />
 
         <activity
             android:name="payment.sdk.android.demo.home.HomeActivity"
