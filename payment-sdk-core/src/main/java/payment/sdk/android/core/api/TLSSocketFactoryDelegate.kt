@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.api
+package payment.sdk.android.core.api
 
 import java.net.InetAddress
 import java.net.Socket

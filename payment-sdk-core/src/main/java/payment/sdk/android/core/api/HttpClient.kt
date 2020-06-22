@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.api
+package payment.sdk.android.core.api
 
 import org.json.JSONObject
 
