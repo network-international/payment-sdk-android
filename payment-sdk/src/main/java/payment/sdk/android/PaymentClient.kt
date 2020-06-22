@@ -1,18 +1,24 @@
 package payment.sdk.android
 
+import android.app.Activity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentRequest
-import android.app.Activity
-import kotlinx.coroutines.*
+import payment.sdk.android.core.Order
+import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.samsungpay.SamsungPayClient
-import payment.sdk.android.samsungpay.SamsungPayRequest
+import payment.sdk.android.samsungpay.SamsungPayResponse
+
 
 class PaymentClient(
-        private val context: Activity
+        private val context: Activity,
+        val serviceId: String
 ) {
 
     private val samsungPayClient: SamsungPayClient by lazy {
-        SamsungPayClient(context, "1a7ef7ddf6924777a8676d") //TODO
+        SamsungPayClient(context, serviceId, CoroutinesGatewayHttpClient())
     }
 
     fun getSupportedPaymentMethods(listener: SupportedPaymentTypesListener) {
@@ -36,16 +42,11 @@ class PaymentClient(
         ), requestCode)
     }
 
-    fun launchSamsungPay(request: SamsungPayRequest) {
+    fun launchSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {
         samsungPayClient.startSamsungPay(
-                merchantId = request.merchantId,
-                merchantName = request.merchantName,
-                orderNumber = request.orderNumber,
-                supportedCards = request.supportedCards,
-                addressInPaymentSheet = request.addressInPaymentSheet,
-                controls = request.controls,
-                transactionListener = request.transactionListener
-        )
+                order = order,
+                merchantName = merchantName,
+                samsungPayResponse = samsungPayResponse)
     }
 
     interface SupportedPaymentTypesListener {

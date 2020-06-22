@@ -6,23 +6,12 @@ import payment.sdk.android.core.CardType
 class SamsungPayCardMapper {
 
     companion object {
-
-        fun mapNativeToSdk(samsungCardType: SpaySdk.Brand): CardType? =
-                when (samsungCardType) {
-                    SpaySdk.Brand.VISA -> CardType.Visa
-                    SpaySdk.Brand.MASTERCARD -> CardType.MasterCard
-                    SpaySdk.Brand.AMERICANEXPRESS -> CardType.AmericanExpress
-                    SpaySdk.Brand.DISCOVER -> CardType.Discover
-                    else -> null
-                }
-
-
-        fun mapSdkToNative(cardType: CardType) =
+        fun stringToSamsungPaySdk(cardType: String) =
                 when (cardType) {
-                    CardType.Visa -> SpaySdk.Brand.VISA
-                    CardType.MasterCard -> SpaySdk.Brand.MASTERCARD
-                    CardType.AmericanExpress -> SpaySdk.Brand.AMERICANEXPRESS
-                    CardType.Discover -> SpaySdk.Brand.DISCOVER
+                    "VISA" -> SpaySdk.Brand.VISA
+                    "MASTERCARD" -> SpaySdk.Brand.MASTERCARD
+                    "AMERICAN_EXPRESS" -> SpaySdk.Brand.AMERICANEXPRESS
+                    "DISCOVER" -> SpaySdk.Brand.DISCOVER
                     else -> null
                 }
     }
