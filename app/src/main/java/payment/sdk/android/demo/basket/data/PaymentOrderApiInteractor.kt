@@ -4,6 +4,7 @@ import payment.sdk.android.demo.dependency.configuration.Configuration
 import payment.sdk.android.core.CardMapping
 import io.reactivex.Single
 import payment.sdk.android.core.CardType
+import payment.sdk.android.core.Order
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -36,6 +37,19 @@ class PaymentOrderApiInteractor @Inject constructor(
                                     paymentAuthorizationUrl = dto.paymentLinks.paymentAuthorization.href,
                                     code = dto.paymentLinks.payment.href.split("=").get(1),
                                     supportedCards = CardMapping.mapSupportedCards(dto.paymentMethods.card))
+                        }
+                    }
+
+    fun createOrder(action: String, amount: BigDecimal, currency: String): Single<Order> =
+            Single.just(configuration.locale.language)
+                    .flatMap { language ->
+                        val request = CreatePaymentOrderRequestDto(
+                                action = action,
+                                amount = PaymentOrderAmountDto(mapToGatewayAmount(amount), currency),
+                                language = language
+                        )
+                        return@flatMap merchantApiService.createOrder(request).map { order ->
+                            order
                         }
                     }
 
