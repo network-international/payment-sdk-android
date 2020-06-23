@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.api
+package payment.sdk.android.core.api
 
 import android.support.annotation.UiThread
 import kotlinx.coroutines.*
@@ -13,7 +13,7 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSocketFactory
 
-internal class CoroutinesGatewayHttpClient : HttpClient {
+class CoroutinesGatewayHttpClient : HttpClient {
 
     private val sslSocketFactoryDelegate: SSLSocketFactory by lazy {
         TLSSocketFactoryDelegate()

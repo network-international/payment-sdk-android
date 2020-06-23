@@ -1,8 +1,7 @@
 package payment.sdk.android.cardpayment
 
-import payment.sdk.android.cardpayment.api.Body
-import payment.sdk.android.cardpayment.api.HttpClient
-import android.net.Uri
+import payment.sdk.android.core.api.Body
+import payment.sdk.android.core.api.HttpClient
 import android.support.annotation.VisibleForTesting
 import org.json.JSONObject
 import payment.sdk.android.core.*
