@@ -1,9 +1,9 @@
-package payment.sdk.android.cardpayment.api
+package payment.sdk.android.core.api
 
 import org.json.JSONObject
-import java.lang.StringBuilder
 import java.net.URLEncoder
 
+// Very bad design of a http client. Needs to be rethought :(
 abstract class Body(protected val parameters: Map<String, String>) {
 
     abstract fun encode(): String
@@ -26,6 +26,16 @@ abstract class Body(protected val parameters: Map<String, String>) {
                     }
                     deleteCharAt(length - 1)
                 }.toString()
+    }
+
+    // Doing this hack to get things running
+    class JsonStr(parameters: Map<String, String>) : Body(parameters) {
+        override fun encode(): String {
+            for (element in parameters.values) {
+                return element
+            }
+            return ""
+        }
     }
 
     class Empty : Body(emptyMap()) {
