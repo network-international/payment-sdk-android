@@ -77,7 +77,6 @@ internal class NumericMaskInputFilter(
 
     private fun removeSpace(builder: StringBuilder) {
         for ((index, char) in builder.withIndex()) {
-//            if (char == ' ' && index != builder.length - 1) {
             if (char == ' ') {
                 builder.deleteCharAt(index)
             }
@@ -86,16 +85,6 @@ internal class NumericMaskInputFilter(
 
     private fun nextMaskCharPosition(@IntRange(from = 0) start: Int): Int {
         return mask.indexOf(MASK_CHAR, start)
-    }
-
-    private inline fun dropLastUntil(builder: StringBuilder, predicate: (Int) -> Boolean) {
-        loop@ for (index in builder.lastIndex downTo 0) {
-            if (predicate(index)) {
-                break@loop
-            } else {
-                builder.deleteCharAt(builder.lastIndex)
-            }
-        }
     }
 
     private fun appendEnd(builder: StringBuilder, @IntRange(from = 0) start: Int, source: CharSequence): Int {
