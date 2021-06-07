@@ -38,43 +38,21 @@ internal class NumericMaskInputFilter(
         val cursorPosition: Int
 
         if (source.isNotEmpty()) {
-            val nextMaskPosition = nextMaskCharPosition(start)
-
-            if (nextMaskPosition >= builder.length) {
+            if (start >= builder.length) {
                 // Append
-                cursorPosition = appendEnd(builder, nextMaskPosition, source)
+                cursorPosition = appendEnd(builder, start, source)
             } else {
                 // Insert + Shift Right
-                val keep = builder.substring(nextMaskPosition)
-
-                builder.replace(nextMaskPosition, nextMaskPosition + source.length, source.toString())
-                builder.delete(nextMaskPosition + source.length, builder.length)
-
-                var lastAvailableIndex = nextMaskCharPosition(nextMaskPosition + 1)
-                for ((index, chr) in keep.withIndex()) {
-                    if (isMaskChar(nextMaskPosition + index)) {
-                        lastAvailableIndex = appendEnd(builder, lastAvailableIndex, chr)
-                    }
-                }
-                cursorPosition = nextMaskPosition + source.length
+                builder.replace(start, end, source.toString())
+                cursorPosition = if (mask[start] == ' ') start + 2 else start + 1
             }
         } else {
             // Delete + Shift Left
-            val keep = builder.substring(end, builder.length)
-            builder.delete(start, builder.length)
-            dropLastUntil(builder) { index ->
-                mask[index] == MASK_CHAR
-            }
-
-            var lastAvailableIndex = builder.length
-            for ((index, chr) in keep.withIndex()) {
-                if (isMaskChar(end + index)) {
-                    lastAvailableIndex = appendEnd(builder, lastAvailableIndex, chr)
-                }
-            }
-            cursorPosition = lastAvailableIndex
+            builder.delete(start, end)
+            cursorPosition = if (mask[start - 1] == ' ') start - 1 else start
         }
-
+        removeSpace(builder)
+        addSpacing(builder)
         listener.onNewText(getRawText(builder), builder.toString(), cursorPosition)
 
         return NO_TEXT_UPDATE
@@ -89,18 +67,24 @@ internal class NumericMaskInputFilter(
         return rawBuilder.toString()
     }
 
-    private fun nextMaskCharPosition(@IntRange(from = 0) start: Int): Int {
-        return mask.indexOf(MASK_CHAR, start)
-    }
-
-    private inline fun dropLastUntil(builder: StringBuilder, predicate: (Int) -> Boolean) {
-        loop@ for (index in builder.lastIndex downTo 0) {
-            if (predicate(index)) {
-                break@loop
-            } else {
-                builder.deleteCharAt(builder.lastIndex)
+    private fun addSpacing(builder: StringBuilder) {
+        for ((index, char) in builder.withIndex()) {
+            if (index > 0 && mask[index] == ' ' && char != ' ') {
+                builder.insert(index, " ")
             }
         }
+    }
+
+    private fun removeSpace(builder: StringBuilder) {
+        for ((index, char) in builder.withIndex()) {
+            if (char == ' ') {
+                builder.deleteCharAt(index)
+            }
+        }
+    }
+
+    private fun nextMaskCharPosition(@IntRange(from = 0) start: Int): Int {
+        return mask.indexOf(MASK_CHAR, start)
     }
 
     private fun appendEnd(builder: StringBuilder, @IntRange(from = 0) start: Int, source: CharSequence): Int {
