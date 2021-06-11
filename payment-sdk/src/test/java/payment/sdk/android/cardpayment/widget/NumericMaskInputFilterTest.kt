@@ -73,4 +73,14 @@ class NumericMaskInputFilterTest {
 
         verify(mockMaskListener).onNewText("13445", "1344 5", 2)
     }
+
+    @Test
+    fun shouldMaintainCursorPositionAtFirstPositionOnDeletingAllText() {
+        whenever(mockSpannableStringBuilder.toString()).thenReturn("1")
+
+        numericMaskInputFilter.filter("", 0, 0,
+            mockSpannableStringBuilder, 0, 1)
+
+        verify(mockMaskListener).onNewText("", "", 0)
+    }
 }
