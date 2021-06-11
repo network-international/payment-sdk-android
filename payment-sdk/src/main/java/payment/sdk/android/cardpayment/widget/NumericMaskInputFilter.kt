@@ -49,7 +49,7 @@ internal class NumericMaskInputFilter(
         } else {
             // Delete + Shift Left
             builder.delete(start, end)
-            cursorPosition = if (mask[start - 1] == ' ') start - 1 else start
+            cursorPosition = if (start > 0 && mask[start - 1] == ' ') start - 1 else start
         }
         removeSpace(builder)
         addSpacing(builder)
