@@ -83,4 +83,14 @@ class NumericMaskInputFilterTest {
 
         verify(mockMaskListener).onNewText("", "", 0)
     }
+
+    @Test
+    fun shouldAllowReplaceOfCharactersWhenAllTextHasBeenEntred() {
+        whenever(mockSpannableStringBuilder.toString()).thenReturn("1344 2341 2324 4322")
+
+        numericMaskInputFilter.filter("4", 0, 0,
+            mockSpannableStringBuilder, 5, 9)
+
+        verify(mockMaskListener).onNewText("1344423244322", "1344 4232 4432 2", 6)
+    }
 }
