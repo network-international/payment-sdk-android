@@ -24,10 +24,6 @@ internal class NumericMaskInputFilter(
             return null
         }
 
-        if (destinationSpanned.length >= mask.length && source.isNotEmpty()) {
-            return NO_TEXT_UPDATE
-        }
-
         if (!source.all { chr -> chr.isDigit() }) {
             return NO_TEXT_UPDATE
         }
@@ -43,13 +39,19 @@ internal class NumericMaskInputFilter(
                 cursorPosition = appendEnd(builder, start, source)
             } else {
                 // Insert + Shift Right
+                val newText = StringBuilder()
+                newText.append(destinationSpanned.toString())
+                newText.replace(start, end, source.toString())
+                if (newText.length > mask.length) {
+                     return NO_TEXT_UPDATE
+                }
                 builder.replace(start, end, source.toString())
-                cursorPosition = if (mask[start] == ' ') start + 2 else start + 1
+                cursorPosition = if (mask[start] == ' ' || mask[start] == '/') start + 2 else start + 1
             }
         } else {
             // Delete + Shift Left
             builder.delete(start, end)
-            cursorPosition = if (start > 0 && mask[start - 1] == ' ') start - 1 else start
+            cursorPosition = if (start > 0 && (mask[start - 1] == ' ' || mask[start - 1] == '/')) start - 1 else start
         }
         removeSpace(builder)
         addSpacing(builder)
@@ -69,15 +71,15 @@ internal class NumericMaskInputFilter(
 
     private fun addSpacing(builder: StringBuilder) {
         for ((index, char) in builder.withIndex()) {
-            if (index > 0 && mask[index] == ' ' && char != ' ') {
-                builder.insert(index, " ")
+            if (index > 0 && mask[index] != MASK_CHAR && char != mask[index]) {
+                builder.insert(index, mask[index])
             }
         }
     }
 
     private fun removeSpace(builder: StringBuilder) {
         for ((index, char) in builder.withIndex()) {
-            if (char == ' ') {
+            if (char == ' ' || char == '/') {
                 builder.deleteCharAt(index)
             }
         }
