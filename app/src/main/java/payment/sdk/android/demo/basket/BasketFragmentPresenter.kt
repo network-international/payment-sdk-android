@@ -87,6 +87,7 @@ class BasketFragmentPresenter @Inject constructor(
     override fun onCardPaymentResponse(data: CardPaymentData) {
         when (data.code) {
             CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
+            CardPaymentData.STATUS_PAYMENT_PURCHASED,
             CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
                 repository.removeAll()
                         .subscribeOn(scheduler.io())

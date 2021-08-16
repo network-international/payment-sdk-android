@@ -534,6 +534,13 @@ class CardPaymentPresenterTest {
     }
 
     @Test
+    fun `onHandle3DSecurePaymentSate when 3d secure state purchased`() {
+        sut.onHandle3DSecurePaymentSate("PURCHASED")
+
+        verify(mockInteractions).onPaymentPurchased()
+    }
+
+    @Test
     fun `onHandle3DSecurePaymentSate when 3d secure state auth`() {
         sut.onHandle3DSecurePaymentSate("AUTHORISED")
 
