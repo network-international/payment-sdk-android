@@ -93,6 +93,8 @@ interface CardPaymentContract {
 
         fun onPaymentAuthorized()
 
+        fun onPaymentPurchased()
+
         fun onPaymentCaptured()
 
         fun onPaymentFailed()

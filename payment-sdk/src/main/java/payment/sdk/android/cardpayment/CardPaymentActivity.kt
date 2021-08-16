@@ -52,6 +52,10 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
     }
 
+    override fun onPaymentPurchased() {
+        finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
+    }
+
     override fun onPaymentCaptured() {
         finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
     }
