@@ -87,6 +87,7 @@ View the following code snippet to see how merchant app handles result code in `
 override fun onCardPaymentResponse(data: CardPaymentData) {
   when (data.code) {
     CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
+    CardPaymentData.STATUS_PAYMENT_PURCHASED,
     CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
       view.showOrderSuccessful()
     }
@@ -105,6 +106,7 @@ Result Codes
 Every possible result code is checked, and an appropriate action is taken:
 - STATUS_PAYMENT_CAPTURED shows order creation with “SALE” action parameter is successful.
 - STATUS_PAYMENT_AUTHORIZED shows order creation with “AUTH” action parameter is successful.
+- STATUS_PAYMENT_PURCHASED shows order creation with “PURCHASE” action parameter is successful.
 - STATUS_PAYMENT_FAILED shows payment is not successful on payment gateway.
 - STATUS_GENERIC_ERROR: shows possible issues on the client side, for instance, network is not accessible or an unexpected error occurs.
 
