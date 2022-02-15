@@ -25,7 +25,7 @@ class CardPaymentData constructor(
         const val STATUS_GENERIC_ERROR: Int = -1
         const val STATUS_PAYMENT_FAILED: Int = 0
         const val STATUS_PAYMENT_AUTHORIZED: Int = 1
-        const val STATUS_PAYMENT_PURCHASED: Int = 1
+        const val STATUS_PAYMENT_PURCHASED: Int = 3
         const val STATUS_PAYMENT_CAPTURED: Int = 2
 
         internal const val INTENT_DATA_KEY = "data"
