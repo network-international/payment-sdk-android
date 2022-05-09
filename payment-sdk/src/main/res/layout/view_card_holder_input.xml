@@ -26,6 +26,7 @@
         android:paddingBottom="6dp"
         android:textDirection="locale"
         android:textSize="@dimen/input_text_font_size"
-        android:imeOptions="flagForceAscii"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
         app:layout_constraintTop_toBottomOf="@+id/edit_card_number" />
 </FrameLayout>
