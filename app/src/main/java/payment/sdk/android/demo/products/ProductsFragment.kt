@@ -5,9 +5,9 @@ import payment.sdk.android.demo.App
 import payment.sdk.android.R
 import payment.sdk.android.demo.products.data.ProductDomain
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v7.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +17,7 @@ import butterknife.BindView
 import butterknife.ButterKnife
 import javax.inject.Inject
 
-class ProductsFragment : Fragment(), ProductsFragmentContract.View {
+class ProductsFragment : androidx.fragment.app.Fragment(), ProductsFragmentContract.View {
 
     @BindView(R.id.progress)
     internal lateinit var progressView: ProgressBar
@@ -35,7 +35,7 @@ class ProductsFragment : Fragment(), ProductsFragmentContract.View {
 
         createProductsComponent(this).inject(this)
 
-        val productsView: RecyclerView = view.findViewById(R.id.products)
+        val productsView: androidx.recyclerview.widget.RecyclerView = view.findViewById(R.id.products)
         productsView.adapter = adapter
 
         presenter.init()

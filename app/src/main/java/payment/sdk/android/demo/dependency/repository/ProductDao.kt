@@ -1,6 +1,6 @@
 package payment.sdk.android.demo.dependency.repository
 
-import android.arch.persistence.room.*
+import androidx.room.*
 import io.reactivex.Flowable
 import io.reactivex.Single
 

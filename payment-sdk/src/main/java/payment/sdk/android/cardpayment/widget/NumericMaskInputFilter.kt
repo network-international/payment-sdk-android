@@ -1,6 +1,6 @@
 package payment.sdk.android.cardpayment.widget
 
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.text.InputFilter
 import android.text.SpannableStringBuilder
 import android.text.Spanned

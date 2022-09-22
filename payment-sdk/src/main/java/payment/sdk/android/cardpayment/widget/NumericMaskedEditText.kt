@@ -5,9 +5,9 @@ import payment.sdk.android.cardpayment.CardPaymentContract
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Parcelable
-import android.support.constraint.ConstraintLayout
-import android.support.v7.widget.AppCompatEditText
-import android.support.v7.widget.AppCompatTextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.appcompat.widget.AppCompatEditText
+import androidx.appcompat.widget.AppCompatTextView
 import android.text.InputType
 import android.util.AttributeSet
 import android.view.View

@@ -9,7 +9,7 @@ import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_CARD_HOLDER
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.core.CardType
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
