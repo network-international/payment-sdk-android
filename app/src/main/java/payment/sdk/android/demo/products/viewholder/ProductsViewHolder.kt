@@ -4,7 +4,7 @@ import payment.sdk.android.R
 import payment.sdk.android.demo.dependency.formatter.Formatter
 import payment.sdk.android.demo.product_detail.ProductDetailActivity
 import payment.sdk.android.demo.products.data.ProductDomain
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class ProductsViewHolder @Inject constructor(
         itemView: View,
         private val formatter: Formatter
-) : RecyclerView.ViewHolder(itemView) {
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
 
     @BindView(R.id.basket_product_image)
     lateinit var productImageView: ImageView

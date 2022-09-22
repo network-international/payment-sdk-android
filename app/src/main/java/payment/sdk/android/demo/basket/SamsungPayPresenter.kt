@@ -1,6 +1,6 @@
 package payment.sdk.android.demo.basket
 
-import android.support.annotation.WorkerThread
+import androidx.annotation.WorkerThread
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import payment.sdk.android.PaymentClient

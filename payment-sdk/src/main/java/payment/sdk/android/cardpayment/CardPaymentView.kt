@@ -2,10 +2,10 @@ package payment.sdk.android.cardpayment
 
 import payment.sdk.android.sdk.R
 import android.app.AlertDialog
-import android.support.v4.content.ContextCompat
-import android.support.v4.text.TextUtilsCompat
-import android.support.v4.view.ViewCompat
-import android.support.v7.widget.AppCompatTextView
+import androidx.core.content.ContextCompat
+import androidx.core.text.TextUtilsCompat
+import androidx.core.view.ViewCompat
+import androidx.appcompat.widget.AppCompatTextView
 import android.text.Editable
 import android.view.View
 import android.widget.*

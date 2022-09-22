@@ -1,6 +1,6 @@
 package payment.sdk.android.core.api
 
-import android.support.annotation.UiThread
+import androidx.annotation.UiThread
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.BufferedReader

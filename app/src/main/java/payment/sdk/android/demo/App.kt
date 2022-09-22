@@ -4,8 +4,8 @@ import payment.sdk.android.demo.dependency.AppComponent
 import payment.sdk.android.demo.dependency.BaseComponent
 import payment.sdk.android.demo.dependency.DaggerAppComponent
 import payment.sdk.android.demo.dependency.configuration.Configuration
-import android.support.multidex.MultiDexApplication
-import android.support.v7.app.AppCompatDelegate
+import androidx.multidex.MultiDexApplication
+import androidx.appcompat.app.AppCompatDelegate
 import com.facebook.stetho.Stetho
 import payment.sdk.android.SDKConfig
 import javax.inject.Inject

@@ -4,8 +4,8 @@ import payment.sdk.android.demo.dependency.configuration.Configuration.Configura
 import payment.sdk.android.demo.dependency.preference.Preferences
 import android.content.Context
 import android.content.SharedPreferences
-import android.support.annotation.WorkerThread
-import android.support.v7.preference.PreferenceManager
+import androidx.annotation.WorkerThread
+import androidx.preference.PreferenceManager
 import java.util.*
 import javax.inject.Inject
 
