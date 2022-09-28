@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
+import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
@@ -48,6 +49,22 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         )
     }
 
+    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest,
+                                    directoryServerID: String, threeDSMessageVersion: String,
+                                    paymentCookie: String, threeDSTwoAuthenticationURL: String,
+                                    threeDSTwoChallengeResponseURL: String) {
+        startActivityForResult(
+            ThreeDSecureTwoActivity.getIntent(
+                context = this,
+                directoryServerID = directoryServerID,
+                threeDSMessageVersion = threeDSMessageVersion,
+                paymentCookie = paymentCookie,
+                threeDSTwoAuthenticationURL= threeDSTwoAuthenticationURL,
+                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL),
+            THREE_D_SECURE_TWO_REQUEST_KEY
+        )
+    }
+
     override fun onPaymentAuthorized() {
         finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
     }
@@ -69,7 +86,8 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == THREE_D_SECURE_REQUEST_KEY) {
+        if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
+            requestCode == THREE_D_SECURE_TWO_REQUEST_KEY) {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 presenter.onHandle3DSecurePaymentSate(data.getStringExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE))
             } else {
@@ -112,6 +130,7 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
     companion object {
 
         private const val THREE_D_SECURE_REQUEST_KEY: Int = 100
+        private const val THREE_D_SECURE_TWO_REQUEST_KEY: Int = 110
 
         private const val URL_KEY = "gateway-payment-url"
         private const val CODE = "code"
@@ -121,7 +140,6 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
                 Intent(context, CardPaymentActivity::class.java).apply {
                     putExtra(URL_KEY, url)
                     putExtra(CODE, code)
-
                 }
     }
 }

@@ -3,6 +3,8 @@ package payment.sdk.android.cardpayment
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
 import org.json.JSONObject
+import payment.sdk.android.cardpayment.threedsecuretwo.DeviceRenderOptions
+import payment.sdk.android.cardpayment.threedsecuretwo.SDKEphemPubKey
 
 interface PaymentApiInteractor {
 
@@ -27,4 +29,25 @@ interface PaymentApiInteractor {
             cardHolder: String,
             success: (state: String, response: JSONObject) -> Unit,
             error: (Exception) -> Unit)
+
+    fun postThreeDSTwoAuthentications(
+            sdkAppID: String,
+            sdkEncData: String,
+            sdkEphemPubKey: SDKEphemPubKey,
+            sdkMaxTimeout: Int,
+            sdkReferenceNumber: String,
+            sdkTransID: String,
+            deviceRenderOptions: DeviceRenderOptions,
+            threeDSAuthenticationsUrl: String,
+            paymentCookie: String,
+            success: (state: String, response: JSONObject) -> Unit,
+            error: (Exception) -> Unit
+    )
+
+    fun postThreeDSTwoChallengeResponse(
+            threeDSTwoChallengeResponseURL: String,
+            paymentCookie: String,
+            success: (state: String, response: JSONObject) -> Unit,
+            error: (Exception) -> Unit
+    )
 }
