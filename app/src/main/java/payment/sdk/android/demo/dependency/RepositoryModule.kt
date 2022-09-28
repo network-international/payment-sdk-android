@@ -4,7 +4,7 @@ import payment.sdk.android.demo.dependency.repository.ProductDao
 import payment.sdk.android.demo.dependency.repository.ProductDatabase
 import payment.sdk.android.demo.dependency.repository.ProductRepository
 import android.app.Application
-import android.arch.persistence.room.Room
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton

@@ -68,6 +68,6 @@ abstract class BasketFragmentModule {
         @JvmStatic
         @Provides
         @FragmentViewScope
-        fun providePaymentClient(context: Activity) = PaymentClient(context, "")
+        fun providePaymentClient(context: Activity) = PaymentClient(context, "DEMO_VAL")
     }
 }

@@ -1,7 +1,7 @@
 package payment.sdk.android.demo.basket.viewholder
 
 import payment.sdk.android.demo.dependency.scope.ViewHolderScope
-import android.support.annotation.LayoutRes
+import androidx.annotation.LayoutRes
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

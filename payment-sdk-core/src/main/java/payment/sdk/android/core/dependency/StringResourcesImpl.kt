@@ -1,7 +1,7 @@
 package payment.sdk.android.core.dependency
 
 import android.content.Context
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 
 class StringResourcesImpl constructor(private val context: Context) : StringResources {
 

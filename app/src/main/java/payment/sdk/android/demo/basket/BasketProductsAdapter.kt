@@ -4,14 +4,14 @@ package payment.sdk.android.demo.basket
 import payment.sdk.android.demo.basket.data.BasketProductDomain
 import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderFactory
 import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderView
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
 
 
 class BasketProductsAdapter(
         private val viewHolderFactoryBuilder: BasketProductViewHolderFactory.Builder,
         private val interactions: BasketFragmentContract.Interactions
-) : RecyclerView.Adapter<BasketProductViewHolderView>() {
+) : androidx.recyclerview.widget.RecyclerView.Adapter<BasketProductViewHolderView>() {
 
     private var data = emptyList<BasketProductDomain>()
 

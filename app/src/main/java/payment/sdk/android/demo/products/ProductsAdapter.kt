@@ -5,7 +5,7 @@ import payment.sdk.android.R
 import payment.sdk.android.demo.dependency.formatter.Formatter
 import payment.sdk.android.demo.products.data.ProductDomain
 import payment.sdk.android.demo.products.viewholder.ProductsViewHolder
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import javax.inject.Inject
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 class ProductsAdapter @Inject constructor(
         private val formatter: Formatter
-): RecyclerView.Adapter<ProductsViewHolder>() {
+): androidx.recyclerview.widget.RecyclerView.Adapter<ProductsViewHolder>() {
 
     private var data = emptyList<ProductDomain>()
 

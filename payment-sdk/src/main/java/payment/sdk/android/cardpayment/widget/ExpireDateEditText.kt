@@ -1,7 +1,7 @@
 package payment.sdk.android.cardpayment.widget
 
 import android.content.Context
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import android.util.AttributeSet
 import java.util.*
 
