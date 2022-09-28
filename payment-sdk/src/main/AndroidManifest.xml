@@ -4,11 +4,13 @@
 
     <application>
         <activity
+            android:name="payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity"
+            android:exported="false" />
+        <activity
             android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
             android:screenOrientation="behind"
             android:theme="@style/SdkTheme.Translucent"
             android:windowSoftInputMode="adjustResize|stateUnchanged" />
-
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity"
             android:theme="@style/SdkTheme.ThreeDSecure" />
