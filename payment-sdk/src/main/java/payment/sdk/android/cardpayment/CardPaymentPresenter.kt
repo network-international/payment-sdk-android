@@ -9,7 +9,7 @@ import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_CARD_HOLDER
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.core.CardType
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
@@ -270,7 +270,18 @@ internal class CardPaymentPresenter(
 
     private fun run3DSecure(threeDSecureRequest: ThreeDSecureRequest) {
         view.showProgressTimeOut(text = stringResources.getString(MESSAGE_LAUNCHING_3DS), timeout = {
-            interactions.onStart3dSecure(threeDSecureRequest)
+            if (threeDSecureRequest.threeDSTwo?.directoryServerID != null &&
+                    threeDSecureRequest.threeDSTwo.threeDSMessageVersion != null &&
+                threeDSecureRequest.threeDSTwoAuthenticationURL != null &&
+                threeDSecureRequest.threeDSTwoChallengeResponseURL != null) {
+                interactions.onStart3dSecureTwo(threeDSecureRequest,
+                    threeDSecureRequest.threeDSTwo.directoryServerID,
+                    threeDSecureRequest.threeDSTwo.threeDSMessageVersion, paymentCookie,
+                    threeDSecureRequest.threeDSTwoAuthenticationURL,
+                    threeDSecureRequest.threeDSTwoChallengeResponseURL)
+            } else {
+                interactions.onStart3dSecure(threeDSecureRequest)
+            }
         })
     }
 

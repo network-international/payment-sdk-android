@@ -1,6 +1,6 @@
 package payment.sdk.android.core.dependency
 
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 
 interface StringResources {
 

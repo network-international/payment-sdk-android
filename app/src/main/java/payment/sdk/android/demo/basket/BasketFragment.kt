@@ -10,24 +10,24 @@ import payment.sdk.android.cardpayment.CardPaymentData
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v7.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import butterknife.BindView
 import butterknife.ButterKnife
 import javax.inject.Inject
-import android.support.v7.widget.DividerItemDecoration
+import androidx.recyclerview.widget.DividerItemDecoration
 import android.widget.ProgressBar
 import android.widget.TextView
 import butterknife.OnClick
 
 
-class BasketFragment : Fragment(), BasketFragmentContract.View {
+class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.View {
     @BindView(R.id.basket_products)
-    lateinit var basketProductsView: RecyclerView
+    lateinit var basketProductsView: androidx.recyclerview.widget.RecyclerView
 
     @BindView(R.id.pay_button_layout)
     lateinit var payButtonLayout: View
@@ -76,7 +76,12 @@ class BasketFragment : Fragment(), BasketFragmentContract.View {
 
         adapter = BasketProductsAdapter(viewHolderFactoryBuilder, interactions)
         basketProductsView.adapter = adapter
-        basketProductsView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.HORIZONTAL))
+        basketProductsView.addItemDecoration(
+            androidx.recyclerview.widget.DividerItemDecoration(
+                context,
+                androidx.recyclerview.widget.DividerItemDecoration.HORIZONTAL
+            )
+        )
         presenter.init()
 
         return view

@@ -1,7 +1,7 @@
 package payment.sdk.android.demo.dependency.repository
 
 import payment.sdk.android.demo.products.data.Price
-import android.arch.persistence.room.TypeConverter
+import androidx.room.TypeConverter
 import com.google.gson.GsonBuilder
 
 object PriceListTypeConverter {

@@ -4,7 +4,7 @@ import payment.sdk.android.R
 import payment.sdk.android.demo.basket.BasketFragmentContract
 import payment.sdk.android.demo.basket.data.BasketProductDomain
 import android.annotation.SuppressLint
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class BasketProductViewHolderView @Inject constructor(
         itemView: View,
         private val interactions: BasketFragmentContract.Interactions
-) : RecyclerView.ViewHolder(itemView) {
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
 
     @BindView(R.id.basket_product_image)
     lateinit var basketProductImage: ImageView

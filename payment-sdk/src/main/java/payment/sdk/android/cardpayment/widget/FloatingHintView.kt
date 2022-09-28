@@ -2,8 +2,8 @@ package payment.sdk.android.cardpayment.widget
 
 import payment.sdk.android.sdk.R
 import android.content.Context
-import android.support.design.widget.CoordinatorLayout
-import android.support.v4.content.ContextCompat
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import android.util.AttributeSet
 import android.util.LayoutDirection
 import android.view.View
@@ -13,7 +13,7 @@ internal class FloatingHintView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttrs: Int = 0
-) : CoordinatorLayout(context, attrs, defStyleAttrs) {
+) : androidx.coordinatorlayout.widget.CoordinatorLayout(context, attrs, defStyleAttrs) {
 
     private val hint: TextView = TextView(context).apply {
         setTextColor(ContextCompat.getColor(context, R.color.blue))
