@@ -20,10 +20,27 @@ import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.sdk.R
 import java.lang.Exception
 
+enum class NGeniusEnvironments {
+    UAT,
+    DEV,
+    PROD,
+}
+
 
 class ThreeDSecureTwoActivity : AppCompatActivity() {
 
-    private fun getConfigParam() : ConfigParameters {
+    private fun getEnv(stringVal: String): NGeniusEnvironments {
+        if(stringVal.contains("-uat", true) ||
+            stringVal.contains("sandbox", true)) {
+            return NGeniusEnvironments.UAT
+        }
+        if(stringVal.contains("-dev", true)) {
+            return NGeniusEnvironments.DEV
+        }
+        return NGeniusEnvironments.PROD
+    }
+
+    private fun getConfigParam(threeDSAuthenticationsUrl: String) : ConfigParameters {
 
         val directoryServer = DirectoryServer(MTFDirectoryServers.MC_MTF_DIRECTORY_SERVER_ID,
             MTFDirectoryServers.MC_MTF_DIRECTORY_SERVER_KEY_ID,
@@ -32,8 +49,11 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
             MTFDirectoryServers.MC_DIRECTORY_SERVER_PROVIDER_NAME)
 
         val configParameters = ConfigParameters()
-        configParameters.addDirectoryServer(directoryServer)
 
+        if(getEnv(threeDSAuthenticationsUrl) == NGeniusEnvironments.PROD) {
+            return configParameters
+        }
+        configParameters.addDirectoryServer(directoryServer)
         return configParameters
     }
 
@@ -43,14 +63,15 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
 
         val service: ThreeDS2Service = UsdkThreeDS2ServiceImpl();
 
-        // Prepare ConfigParameters
-        val configParams = getConfigParam();
-
         val paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient())
+        val directoryServerID = intent.getStringExtra(DIRECTORY_SERVER_ID_KEY)
         val messageVersion = intent.getStringExtra(THREE_DS_MESSAGE_VERSION_KEY)
         val threeDSAuthenticationsUrl = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
         val threeDSTwoChallengeResponseURL = intent.getStringExtra(THREE_DS_CHALLENGE_URL_KEY)
         val paymentCookie = intent.getStringExtra(PAYMENT_COOKIE_KEY)
+
+        // Prepare ConfigParameters
+        val configParams = getConfigParam(threeDSAuthenticationsUrl);
 
         val listener: BroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -67,7 +88,10 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                     )
                 }
                 // TODO: dynamic for production
-                val directoryServerId = "SANDBOX_DS"
+                var directoryServerId = "SANDBOX_DS"
+                if (getEnv(threeDSAuthenticationsUrl) == NGeniusEnvironments.PROD) {
+                    directoryServerId = directoryServerID
+                }
                 val transaction: Transaction =
                     service.createTransaction(directoryServerId, messageVersion)
                 val authenticationRequestParameters = transaction.authenticationRequestParameters
