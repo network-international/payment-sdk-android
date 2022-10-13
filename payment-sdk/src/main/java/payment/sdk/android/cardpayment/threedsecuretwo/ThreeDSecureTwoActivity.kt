@@ -1,11 +1,13 @@
 package payment.sdk.android.cardpayment.threedsecuretwo
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
@@ -28,6 +30,8 @@ enum class NGeniusEnvironments {
 
 
 class ThreeDSecureTwoActivity : AppCompatActivity() {
+
+    private var progressDialog: AlertDialog? = null
 
     private fun getEnv(stringVal: String): NGeniusEnvironments {
         if(stringVal.contains("-uat", true) ||
@@ -60,6 +64,7 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_three_dsecure_two)
+        showProgress(true)
 
         val service: ThreeDS2Service = UsdkThreeDS2ServiceImpl();
 
@@ -81,6 +86,7 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                         false
                     )
                 ) {
+                    showProgress(false)
                     throw RuntimeException(
                         "Failed to initialize SDK" +
                                 ", code: " + intent.getStringExtra(UsdkThreeDS2ServiceImpl.INITIALIZATION_ACTION_EXTRA_ERROR_CODE) +
@@ -122,6 +128,7 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                             exception ->
                         error(exception)
                         println(exception)
+                        showProgress(false)
                     }
                 )
             }
@@ -134,6 +141,23 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
 
         // Initialize the SDK
         service.initialize(this, configParams, "en_US", UiCustomization());
+    }
+
+    fun showProgress(show: Boolean) {
+        progressDialog = if (show) {
+            progressDialog?.dismiss()
+            AlertDialog.Builder(this)
+                .setTitle(null)
+                .setCancelable(false)
+                .create().apply {
+                    show()
+                    setContentView(R.layout.view_progress_dialog)
+                    findViewById<TextView>(R.id.text).setText(R.string.message_authorizing)
+                }
+        } else {
+            progressDialog?.dismiss()
+            null
+        }
     }
 
     internal fun handleOnFrictionlessResponse(
@@ -208,6 +232,7 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                                 exception ->
                             error(exception)
                             println(exception)
+                            showProgress(false)
                         }
 
                     )
@@ -224,6 +249,7 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
     }
 
     private fun finishWithResult(state: String? = "FAILED") {
+        showProgress(false)
         state?.let {
             val intent = Intent().apply {
                 putExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE, it)
