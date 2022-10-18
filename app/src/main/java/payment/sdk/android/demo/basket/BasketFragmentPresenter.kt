@@ -84,6 +84,10 @@ class BasketFragmentPresenter @Inject constructor(
         samsungPayPresenter.launchSamsungPay()
     }
 
+    override fun onPayWithSavedCard() {
+        cardPaymentPresenter.makeSavedCardPayment()
+    }
+
     override fun onCardPaymentResponse(data: CardPaymentData) {
         when (data.code) {
             CardPaymentData.STATUS_PAYMENT_AUTHORIZED,

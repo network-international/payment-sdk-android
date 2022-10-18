@@ -171,6 +171,7 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
     companion object {
 
         internal const val CARD_PAYMENT_REQUEST_CODE: Int = 0
+        internal const val THREE_DS_TWO_REQUEST_CODE: Int = 2
 
         private fun createBasketComponent(fragment: BasketFragment, context: Activity)
                 : BasketFragmentComponent {

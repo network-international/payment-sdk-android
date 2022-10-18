@@ -127,4 +127,37 @@ And pass the above request as:
 PaymentClient.launchSamsungPay(request: SamsungPayRequest)
 ```
 
+## Attempt threeDSTwo on a payment
+```kotlin
+paymentClient.executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int)
+
+override fun onActivityResult(
+    requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == CARD_PAYMENT_REQUEST_CODE) {
+        when (resultCode) {
+            Activity.RESULT_OK -> onCardPaymentResponse(CardPaymentData.getFromIntent(data!!))
+            Activity.RESULT_CANCELED -> onCardPaymentCancelled()
+        }
+    }
+}
+```
+
+Use the above method to execute threeDS frictionless or challenge for a paymentResponse. 
+Once the threeDS operation is completed, the `onActivityResult` method is called with the requestedCode and a CardPaymentResponse object is passed as the data element in the third argument.
+Use the same flow as handling a card response to assert the state of the payment for the order as shown in the previous section.
+
+## Debugging build issues in your app
+
+#### Payment failure after card information is submitted
+Ensure your merchant account has EMV 3DS 2.0 enabled. Get in touch with our support to enable.
+
+#### Missing required architecture x86_64 in file...
+You need to coimpile and execute the project on a real device. The SDK is not compatible to be run on a simulator
+
+#### Duplicate class issue
+If you see the following error
+`Duplicate class com.nimbusds.jose.jwk.KeyOperation found in modules jetified-ni-three-ds-two-android-sdk-1.0-runtime`
+You need to identify another dependency in your app that has the same `com.nimbusds.jose` library and remove the duplicate copy
+
 For more details please refer to sample app integration [`SamsungPayPresenter.kt`](https://github.com/network-international/payment-sdk-android/blob/master/app/src/main/java/payment/sdk/android/demo/basket/SamsungPayPresenter.kt#L39)

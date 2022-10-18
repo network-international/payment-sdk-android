@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment.threedsecuretwo
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
@@ -17,6 +18,8 @@ import org.emvco.threeds.core.ui.UiCustomization
 import org.json.JSONException
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
+import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.CardPaymentPresenter
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.sdk.R
@@ -93,7 +96,6 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                                 ", type: " + intent.getStringExtra(UsdkThreeDS2ServiceImpl.INITIALIZATION_ACTION_EXTRA_ERROR_TYPE)
                     )
                 }
-                // TODO: dynamic for production
                 var directoryServerId = "SANDBOX_DS"
                 if (getEnv(threeDSAuthenticationsUrl) == NGeniusEnvironments.PROD) {
                     directoryServerId = directoryServerID
@@ -126,9 +128,9 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                     },
                     error = {
                             exception ->
-                        error(exception)
                         println(exception)
                         showProgress(false)
+                        error(exception)
                     }
                 )
             }
@@ -230,9 +232,9 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
                         },
                         error = {
                                 exception ->
-                            error(exception)
                             println(exception)
                             showProgress(false)
+                            error(exception)
                         }
 
                     )
@@ -248,11 +250,29 @@ class ThreeDSecureTwoActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("VisibleForTests")
+    private fun getCardPaymentDataState(state: String): CardPaymentData {
+        when (state) {
+            CardPaymentPresenter.STATUS_PAYMENT_AUTHORISED ->
+                return CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED)
+            CardPaymentPresenter.STATUS_PAYMENT_PURCHASED ->
+                return CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED)
+            CardPaymentPresenter.STATUS_PAYMENT_CAPTURED -> {
+                return CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
+            }
+            CardPaymentPresenter.STATUS_PAYMENT_FAILED ->
+                return CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+            else ->
+                return CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+        }
+    }
+
     private fun finishWithResult(state: String? = "FAILED") {
         showProgress(false)
         state?.let {
             val intent = Intent().apply {
                 putExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE, it)
+                putExtra(CardPaymentData.INTENT_DATA_KEY, getCardPaymentDataState(it))
             }
             setResult(Activity.RESULT_OK, intent)
         }

@@ -130,7 +130,8 @@ class HomeActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == BasketFragment.CARD_PAYMENT_REQUEST_CODE) {
+        if (requestCode == BasketFragment.CARD_PAYMENT_REQUEST_CODE ||
+            requestCode == BasketFragment.THREE_DS_TWO_REQUEST_CODE) {
             when (resultCode) {
                 Activity.RESULT_OK -> basketFragment?.onCardPaymentResponse(
                         CardPaymentData.getFromIntent(data!!)

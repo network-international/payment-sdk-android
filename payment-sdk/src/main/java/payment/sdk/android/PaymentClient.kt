@@ -6,10 +6,15 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
 import payment.sdk.android.core.Order
+import payment.sdk.android.core.PaymentResponse
+import payment.sdk.android.core.TransactionServiceHttpAdapter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.samsungpay.SamsungPayClient
 import payment.sdk.android.samsungpay.SamsungPayResponse
+import java.net.URI
 
 
 class PaymentClient(
@@ -47,6 +52,39 @@ class PaymentClient(
                 order = order,
                 merchantName = merchantName,
                 samsungPayResponse = samsungPayResponse)
+    }
+
+    fun executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int) {
+        val threeDSecureTwoConfig = ThreeDSecureTwoConfig.buildFromPaymentResponse(paymentResponse)
+        if (threeDSecureTwoConfig.directoryServerID != null &&
+            threeDSecureTwoConfig.threeDSMessageVersion != null &&
+            threeDSecureTwoConfig.threeDSTwoAuthenticationURL != null &&
+            threeDSecureTwoConfig.threeDSTwoChallengeResponseURL != null) {
+
+            val threedsAuthUri = URI(threeDSecureTwoConfig.threeDSTwoAuthenticationURL)
+            val authUrl = "https://${threedsAuthUri.host}/transactions/paymentAuthorization"
+            val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
+            transactionServiceHttpAdapter.getAuthTokenFromCode(
+                url = authUrl,
+                code = threeDSecureTwoConfig.authenticationCode ?: "",
+                success = { cookies, _ ->
+                    val paymentCookie = cookies.first { it.startsWith("payment-token") }
+                    context.startActivityForResult(
+                        ThreeDSecureTwoActivity.getIntent(
+                            context = context,
+                            directoryServerID = threeDSecureTwoConfig.directoryServerID,
+                            threeDSMessageVersion = threeDSecureTwoConfig.threeDSMessageVersion,
+                            paymentCookie = paymentCookie,
+                            threeDSTwoAuthenticationURL= threeDSecureTwoConfig.threeDSTwoAuthenticationURL,
+                            threeDSTwoChallengeResponseURL = threeDSecureTwoConfig.threeDSTwoChallengeResponseURL),
+                        requestCode
+                    )
+                },
+                error = {
+                    println(it)
+                }
+            )
+        }
     }
 
     interface SupportedPaymentTypesListener {
