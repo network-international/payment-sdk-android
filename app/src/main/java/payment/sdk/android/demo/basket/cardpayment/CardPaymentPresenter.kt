@@ -46,6 +46,29 @@ class CardPaymentPresenter @Inject constructor(
                         }))
     }
 
+    @SuppressLint("CheckResult")
+    fun makeSavedCardPayment() {
+        view.showProgress(true)
+        subscriptions.add(
+            orderApiInteractor.createSavedCardOrder(
+                action = PaymentOrderAction.SALE,
+                amount = totalAmount(),
+                currency = amountDetails.getCurrency().currencyCode)
+                .subscribeOn(scheduler.io())
+                .observeOn(scheduler.main())
+                .subscribe({ paymentResponse ->
+                    view.showProgress(false)
+                    println("Payment Order Info $paymentResponse")
+                    paymentClient.executeThreeDS(
+                        paymentResponse = paymentResponse,
+                        requestCode = BasketFragment.THREE_DS_TWO_REQUEST_CODE
+                    )
+                }, { error ->
+                    view.showProgress(false)
+                    view.showSnackBar(error.message)
+                }))
+    }
+
     private fun totalAmount() =
             amountDetails.getItems().map { it.amount }.fold(BigDecimal.ZERO) { acc, e -> acc + e }
 
