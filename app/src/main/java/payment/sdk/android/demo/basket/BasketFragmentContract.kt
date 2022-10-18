@@ -45,6 +45,8 @@ interface BasketFragmentContract {
 
         fun onPayWithCard()
 
+        fun onPayWithSavedCard()
+
         fun onCardPaymentResponse(data: CardPaymentData)
 
         fun onCardPaymentCancelled()

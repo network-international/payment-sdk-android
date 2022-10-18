@@ -1,7 +1,6 @@
 package payment.sdk.android.core
 
 import android.net.Uri
-import com.google.gson.Gson
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.HttpClient
@@ -10,6 +9,27 @@ import kotlin.collections.HashMap
 
 class TransactionServiceHttpAdapter : TransactionService {
     val httpClient: HttpClient = CoroutinesGatewayHttpClient()
+
+    override fun getAuthTokenFromCode(url: String, code: String, success: (List<String>, String) -> Unit, error: (Exception) -> Unit) {
+        httpClient.post(
+            url = url,
+            headers = mapOf(
+                HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
+                HEADER_CONTENT_TYPE to "application/x-www-form-urlencoded"
+            ),
+            body = Body.Form(mapOf(
+                "code" to code
+            )),
+            success = { (headers, response) ->
+                val cookies = headers[HEADER_SET_COOKIE]
+                val orderUrl = response.json("_links")?.json("cnp:order")
+                    ?.string("href")
+                success(cookies!!, orderUrl!!)
+            },
+            error = { exception ->
+                error(exception)
+            })
+    }
 
     override fun authorizePayment(order: Order, onResponse: (authTokens: HashMap<String, String>?, error: Exception?) -> Unit) {
         val authUrl = order?.links?.paymentAuthorizationUrl?.href
