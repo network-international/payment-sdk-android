@@ -153,7 +153,7 @@ Use the same flow as handling a card response to assert the state of the payment
 Ensure your merchant account has EMV 3DS 2.0 enabled. Get in touch with our support to enable.
 
 #### Missing required architecture x86_64 in file...
-You need to coimpile and execute the project on a real device. The SDK is not compatible to be run on a simulator
+You need to compile and execute the project on a real device. The SDK is not compatible to be run on a simulator
 
 #### Duplicate class issue
 If you see the following error
