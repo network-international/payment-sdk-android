@@ -1,4 +1,4 @@
-:warning: Whilst we make some improvements to our mobile experiences, we’ve temporarily removed the EMV 3DS SDK. Please contact ecom-reintegration@network.global to obtain the files you need
+:warning: Whilst we make some improvements to our mobile experiences, we’ve temporarily removed the EMV 3DS SDK. Please contact ecom-reintegration@network.global to obtain the files you need.
 
 # Payment SDK for Android
 
