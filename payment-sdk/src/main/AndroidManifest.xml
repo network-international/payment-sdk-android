@@ -14,6 +14,9 @@
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity"
             android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
     </application>
 
 </manifest>

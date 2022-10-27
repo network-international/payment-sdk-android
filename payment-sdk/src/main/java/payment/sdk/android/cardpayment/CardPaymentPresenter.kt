@@ -274,11 +274,7 @@ internal class CardPaymentPresenter(
                     threeDSecureRequest.threeDSTwo.threeDSMessageVersion != null &&
                 threeDSecureRequest.threeDSTwoAuthenticationURL != null &&
                 threeDSecureRequest.threeDSTwoChallengeResponseURL != null) {
-                interactions.onStart3dSecureTwo(threeDSecureRequest,
-                    threeDSecureRequest.threeDSTwo.directoryServerID,
-                    threeDSecureRequest.threeDSTwo.threeDSMessageVersion, paymentCookie,
-                    threeDSecureRequest.threeDSTwoAuthenticationURL,
-                    threeDSecureRequest.threeDSTwoChallengeResponseURL)
+                interactions.onStart3dSecureTwo(threeDSecureRequest)
             } else {
                 interactions.onStart3dSecure(threeDSecureRequest)
             }

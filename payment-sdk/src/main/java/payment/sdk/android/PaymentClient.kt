@@ -1,6 +1,7 @@
 package payment.sdk.android
 
 import android.app.Activity
+import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,6 +53,10 @@ class PaymentClient(
                 order = order,
                 merchantName = merchantName,
                 samsungPayResponse = samsungPayResponse)
+    }
+
+    fun isSamsungPayAvailable(statusListener: StatusListener) {
+        samsungPayClient.isSamsungPayAvailable(statusListener)
     }
 
     fun executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int) {
