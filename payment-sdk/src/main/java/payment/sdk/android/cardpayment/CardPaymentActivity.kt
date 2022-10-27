@@ -11,9 +11,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
@@ -49,20 +51,32 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         )
     }
 
-    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest,
-                                    directoryServerID: String, threeDSMessageVersion: String,
-                                    paymentCookie: String, threeDSTwoAuthenticationURL: String,
-                                    threeDSTwoChallengeResponseURL: String) {
-        startActivityForResult(
-            ThreeDSecureTwoActivity.getIntent(
-                context = this,
-                directoryServerID = directoryServerID,
-                threeDSMessageVersion = threeDSMessageVersion,
-                paymentCookie = paymentCookie,
-                threeDSTwoAuthenticationURL= threeDSTwoAuthenticationURL,
-                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL),
-            THREE_D_SECURE_TWO_REQUEST_KEY
-        )
+    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest) {
+        if(threeDSecureRequest.threeDSTwo?.threeDSMethodData != null &&
+            threeDSecureRequest.threeDSTwo.threeDSMethodNotificationURL != null &&
+            threeDSecureRequest.threeDSTwo.threeDSMethodURL != null &&
+            threeDSecureRequest.threeDSTwo.threeDSServerTransID != null) {
+            startActivityForResult(
+                ThreeDSecureTwoWebViewActivity.getIntent(
+                    context = this,
+                    threeDSMethodData = threeDSecureRequest.threeDSTwo.threeDSMethodData,
+                    threeDSMethodNotificationURL = threeDSecureRequest.threeDSTwo.threeDSMethodNotificationURL,
+                    threeDSMethodURL = threeDSecureRequest.threeDSTwo.threeDSMethodURL,
+                    threeDSServerTransID = threeDSecureRequest.threeDSTwo.threeDSServerTransID
+                ),
+//            ThreeDSecureTwoActivity.getIntent(
+//                context = this,
+//                directoryServerID = directoryServerID,
+//                threeDSMessageVersion = threeDSMessageVersion,
+//                paymentCookie = paymentCookie,
+//                threeDSTwoAuthenticationURL= threeDSTwoAuthenticationURL,
+//                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL),
+                THREE_D_SECURE_TWO_REQUEST_KEY
+            )
+        } else {
+            Log.e("CardPaymentActivity", "Failed to init 3ds2 due to missing data in versions response")
+            onPaymentFailed()
+        }
     }
 
     override fun onPaymentAuthorized() {
