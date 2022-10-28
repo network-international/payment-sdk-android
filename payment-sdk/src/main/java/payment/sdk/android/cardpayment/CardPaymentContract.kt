@@ -91,7 +91,11 @@ interface CardPaymentContract {
     interface Interactions {
         fun onStart3dSecure(threeDSecureRequest: ThreeDSecureRequest)
 
-        fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest)
+        fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest,
+                               directoryServerID: String, threeDSMessageVersion: String,
+                               paymentCookie: String, threeDSTwoAuthenticationURL: String,
+                               threeDSTwoChallengeResponseURL: String, outletRef: String,
+                               orderRef: String, orderUrl: String)
 
         fun onPaymentAuthorized()
 

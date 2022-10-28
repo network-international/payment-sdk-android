@@ -29,9 +29,11 @@ internal class CardPaymentPresenter(
     private var paymentCard: PaymentCard? = null
 
     private lateinit var orderReference: String
+    private lateinit var outletRef: String
     private lateinit var paymentUrl: String
     private lateinit var paymentCookie: String
     private lateinit var orderAmount: OrderAmount
+    private lateinit var orderUrl: String
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -180,9 +182,10 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.authorizePayment(
                 url = url,
                 code = code,
-                success = { cookies, orderUrl ->
+                success = { cookies, getOrderUrl ->
                     view.showProgress(false)
-                    onHandlePaymentAuthorization(cookies, orderUrl)
+                    orderUrl = getOrderUrl
+                    onHandlePaymentAuthorization(cookies, getOrderUrl)
                 },
                 error = {
                     view.showProgress(false)
@@ -205,10 +208,11 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.getOrder(
                 orderUrl = orderUrl,
                 paymentCookie = paymentCookie,
-                success = { orderReference, paymentUrl, supportedCards, orderAmount ->
+                success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, _ ->
                     view.showProgress(false)
                     view.focusInCardNumber()
                     this.orderReference = orderReference
+                    this.outletRef = outletRef
                     this.paymentUrl = paymentUrl
                     this.supportedCards = supportedCards
                     this.orderAmount = orderAmount
@@ -274,7 +278,17 @@ internal class CardPaymentPresenter(
                     threeDSecureRequest.threeDSTwo.threeDSMessageVersion != null &&
                 threeDSecureRequest.threeDSTwoAuthenticationURL != null &&
                 threeDSecureRequest.threeDSTwoChallengeResponseURL != null) {
-                interactions.onStart3dSecureTwo(threeDSecureRequest)
+                interactions.onStart3dSecureTwo(
+                    threeDSecureRequest = threeDSecureRequest,
+                    paymentCookie = paymentCookie,
+                    threeDSMessageVersion = threeDSecureRequest.threeDSTwo.threeDSMessageVersion,
+                    directoryServerID = threeDSecureRequest.threeDSTwo.directoryServerID,
+                    threeDSTwoAuthenticationURL = threeDSecureRequest.threeDSTwoAuthenticationURL,
+                    threeDSTwoChallengeResponseURL = threeDSecureRequest.threeDSTwoChallengeResponseURL,
+                    outletRef = outletRef,
+                    orderRef = orderReference,
+                    orderUrl = orderUrl
+                )
             } else {
                 interactions.onStart3dSecure(threeDSecureRequest)
             }
