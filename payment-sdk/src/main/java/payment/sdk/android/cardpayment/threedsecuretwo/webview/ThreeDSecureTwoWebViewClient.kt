@@ -1,7 +1,6 @@
 package payment.sdk.android.cardpayment.threedsecuretwo.webview
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.net.http.SslError
 import android.webkit.*
 
@@ -10,12 +9,10 @@ class ThreeDSecureTwoWebViewClient(
 ) : WebViewClient() {
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-        val endOf3ds = url?.contains("3ds_status=") == true && url.contains("state=")
-        if (endOf3ds) {
+        val endOf3dsTwoFingerPrinting = url?.contains("/3ds2/method/notification") == true
+        if (endOf3dsTwoFingerPrinting) {
             view?.stopLoading()
-            Uri.parse(url).getQueryParameter("state")?.let { value ->
-                on3dSecureCallback(value)
-            } ?: activity.finishWithResult() // no state in the url
+            activity.handleThreeDS2StageCompletion()
         }
     }
 
@@ -23,6 +20,7 @@ class ThreeDSecureTwoWebViewClient(
         view?.title?.let { activity.setTitle(it) }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
         view?.stopLoading()
         activity.finishWithResult()
@@ -32,9 +30,5 @@ class ThreeDSecureTwoWebViewClient(
         sslErrorHandler?.cancel()
         view?.stopLoading()
         activity.finishWithResult()
-    }
-
-    private fun on3dSecureCallback(state: String) {
-        activity.finishWithResult(state = state)
     }
 }

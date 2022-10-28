@@ -14,7 +14,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
-import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
@@ -51,7 +50,11 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         )
     }
 
-    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest) {
+    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest,
+                                    directoryServerID: String, threeDSMessageVersion: String,
+                                    paymentCookie: String, threeDSTwoAuthenticationURL: String,
+                                    threeDSTwoChallengeResponseURL: String, outletRef: String,
+                                    orderRef: String, orderUrl: String) {
         if(threeDSecureRequest.threeDSTwo?.threeDSMethodData != null &&
             threeDSecureRequest.threeDSTwo.threeDSMethodNotificationURL != null &&
             threeDSecureRequest.threeDSTwo.threeDSMethodURL != null &&
@@ -62,15 +65,16 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
                     threeDSMethodData = threeDSecureRequest.threeDSTwo.threeDSMethodData,
                     threeDSMethodNotificationURL = threeDSecureRequest.threeDSTwo.threeDSMethodNotificationURL,
                     threeDSMethodURL = threeDSecureRequest.threeDSTwo.threeDSMethodURL,
-                    threeDSServerTransID = threeDSecureRequest.threeDSTwo.threeDSServerTransID
+                    threeDSServerTransID = threeDSecureRequest.threeDSTwo.threeDSServerTransID,
+                    paymentCookie = paymentCookie,
+                    threeDSAuthenticationsUrl = threeDSTwoAuthenticationURL,
+                    directoryServerID = directoryServerID,
+                    threeDSMessageVersion = threeDSMessageVersion,
+                    threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL,
+                    outletRef = outletRef,
+                    orderRef = orderRef,
+                    orderUrl = orderUrl
                 ),
-//            ThreeDSecureTwoActivity.getIntent(
-//                context = this,
-//                directoryServerID = directoryServerID,
-//                threeDSMessageVersion = threeDSMessageVersion,
-//                paymentCookie = paymentCookie,
-//                threeDSTwoAuthenticationURL= threeDSTwoAuthenticationURL,
-//                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL),
                 THREE_D_SECURE_TWO_REQUEST_KEY
             )
         } else {
