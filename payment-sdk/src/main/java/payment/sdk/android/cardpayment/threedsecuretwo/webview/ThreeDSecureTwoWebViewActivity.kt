@@ -23,7 +23,7 @@ import java.util.*
 open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private fun getIpUrl(stringVal: String, outletRef: String, orderRef: String): String {
         val slug =
-            "/api/outlets/$outletRef/orders/$orderRef/payments/{paymentRef}/3ds2/payer-ip-address"
+            "/api/outlets/$outletRef/orders/$orderRef/payments/{paymentRef}/3ds2/requester-ip"
         if (stringVal.contains("-uat", true) ||
             stringVal.contains("sandbox", true)
         ) {
@@ -227,7 +227,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                         postAuthentications(browserData, threeDSCompInd);
                         Log.e(
                             "ThreeDSTwoWebActivity",
-                            "Unable to obtain IP Address. GOin with null IP"
+                            "Unable to obtain IP Address. Going with default IP"
                         )
                     }
                 )

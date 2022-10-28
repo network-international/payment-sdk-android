@@ -4,8 +4,6 @@ import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import androidx.annotation.VisibleForTesting
 import org.json.JSONObject
-import payment.sdk.android.cardpayment.threedsecuretwo.DeviceRenderOptions
-import payment.sdk.android.cardpayment.threedsecuretwo.SDKEphemPubKey
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
 
@@ -119,60 +117,6 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
             },
             error = { exception ->
                     error(exception)
-            })
-    }
-
-    override fun postThreeDSTwoAuthentications(
-        sdkAppID: String,
-        sdkEncData: String,
-        sdkEphemPubKey: SDKEphemPubKey,
-        sdkMaxTimeout: Int,
-        sdkReferenceNumber: String,
-        sdkTransID: String,
-        deviceRenderOptions: DeviceRenderOptions,
-        threeDSAuthenticationsUrl: String,
-        paymentCookie: String,
-        success: (state: String, response: JSONObject) -> Unit,
-        error: (Exception) -> Unit
-    ) {
-        val sdkInfo = HashMap<String, Any>()
-        sdkInfo["sdkAppID"] = sdkAppID
-        sdkInfo["sdkEncData"] = sdkEncData
-
-        val sdkEphemPubKeyMap = HashMap<String, String?>()
-        sdkEphemPubKeyMap["kty"] = sdkEphemPubKey.kty
-        sdkEphemPubKeyMap["crv"] = sdkEphemPubKey.crv
-        sdkEphemPubKeyMap["x"] = sdkEphemPubKey.x
-        sdkEphemPubKeyMap["y"] = sdkEphemPubKey.y
-
-        sdkInfo["sdkEphemPubKey"] = sdkEphemPubKeyMap
-
-        sdkInfo["sdkMaxTimeout"] = sdkMaxTimeout
-        sdkInfo["sdkReferenceNumber"] = sdkReferenceNumber
-        sdkInfo["sdkTransID"] = sdkTransID
-
-        val deviceRenderOptionsMap = HashMap<String, Any>()
-        deviceRenderOptionsMap["sdkInterface"] = deviceRenderOptions.sdkInterface
-        deviceRenderOptionsMap["sdkUiType"] = deviceRenderOptions.sdkUiType
-
-        sdkInfo["deviceRenderOptions"] = deviceRenderOptionsMap
-        
-        httpClient.post(
-            url = threeDSAuthenticationsUrl,
-            headers = mapOf(
-                HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
-                HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                HEADER_COOKIE to paymentCookie
-            ),
-            body = Body.Json(mapOf(
-                DEVICE_CHANNEL_KEY to "APP",
-                SDK_INFO_KEY to sdkInfo
-            )),
-            success = { (_, response) ->
-                success(response.string("state")!!, response)
-            },
-            error = { exception ->
-                error(exception)
             })
     }
 
