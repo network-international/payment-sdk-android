@@ -3,6 +3,7 @@ package payment.sdk.android.cardpayment.threedsecuretwo.webview
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.webkit.*
+import payment.sdk.android.sdk.R
 
 class ThreeDSecureTwoWebViewClient(
         private val activity: ThreeDSecureTwoWebViewActivity
@@ -17,7 +18,7 @@ class ThreeDSecureTwoWebViewClient(
     }
 
     override fun onPageFinished(view: WebView?, url: String?) {
-        view?.title?.let { activity.setTitle(it) }
+        view?.title?.let { activity.setWebViewToolbarTitle(AUTHENTICATING_3DS_TRANSACTION) }
     }
 
     @Deprecated("Deprecated in Java")
@@ -30,5 +31,9 @@ class ThreeDSecureTwoWebViewClient(
         sslErrorHandler?.cancel()
         view?.stopLoading()
         activity.finishWithResult()
+    }
+
+    companion object {
+        private val AUTHENTICATING_3DS_TRANSACTION: Int = R.string.authenticating_three_ds_two
     }
 }

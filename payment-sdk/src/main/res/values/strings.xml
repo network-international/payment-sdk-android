@@ -75,5 +75,7 @@
     <!-- Progress Message when loading order details -->
     <string name="message_loading_order_details">Loading order details…</string>
 
+    <string name="authenticating_three_ds_two">Authenticating using 3DS</string>
+
 
 </resources>
