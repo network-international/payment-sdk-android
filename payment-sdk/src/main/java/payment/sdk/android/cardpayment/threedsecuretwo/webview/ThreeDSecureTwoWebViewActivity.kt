@@ -2,6 +2,7 @@ package payment.sdk.android.cardpayment.threedsecuretwo.webview
 
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,11 +11,15 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
+import payment.sdk.android.cardpayment.CardPaymentPresenter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.dependency.StringResources
+import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R
 import java.net.URLEncoder
 import java.util.*
@@ -35,6 +40,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         return return "https://paypage.ngenius-payments.com$slug"
     }
 
+    private var progressDialog: AlertDialog? = null
+
     private val toolbar: Toolbar by lazy {
         findViewById<Toolbar>(R.id.toolbar)
     }
@@ -43,6 +50,10 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
     private val progressView: ProgressBar by lazy {
         findViewById<ProgressBar>(R.id.progress)
+    }
+
+    private val stringResources: StringResources by lazy {
+        StringResourcesImpl(this)
     }
 
     private val paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient())
@@ -73,6 +84,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         orderRef = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
         threeDSTwoChallengeResponseURL = intent.getStringExtra(THREE_DS_CHALLENGE_URL_KEY)
         orderUrl = intent.getStringExtra(ORDER_URL)
+
+        showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
 
         val webView = ThreeDSecureTwoWebView(this)
         webView.init(this)
@@ -117,6 +130,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
         webView.postUrl(acsURL, params.toString().toByteArray())
         pushNewWebView(webView)
+        showProgress(false, null)
     }
 
     private fun postAuthentications(browserData: BrowserData, threeDSCompInd: String) {
@@ -131,11 +145,13 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 val threeDSData = authResponse.getJSONObject("3ds2")
                 if (state != "FAILED") {
                     val transStatus = threeDSData.getString("transStatus")
+                    if (transStatus == "C") {
                     val base64EncodedCReq = threeDSData.getString("base64EncodedCReq")
                     val acsURL = threeDSData.getString("acsURL")
-                    if (transStatus == "C") {
                         // Open Challenge
                         openChallenge(base64EncodedCReq, acsURL)
+                    } else {
+                        finishWithResult(state)
                     }
                 } else {
                     finishWithResult(state)
@@ -153,6 +169,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             onCompleteFingerPrint("Y")
         } else {
             // Challenge is completed.
+            val currentWebView = threeDSecureWebViews.last()
+            currentWebView.visibility = View.GONE
+            showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
             paymentApiInteractor.postThreeDSTwoChallengeResponse(
                 threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL!!,
                 paymentCookie = paymentCookie!!,
@@ -161,7 +180,6 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                         orderUrl = orderUrl!!,
                         paymentCookie = paymentCookie!!,
                         success = { _, _, _, _, _, order ->
-//                    view.showProgress(false)
                             val orderState: String? = order
                                 .getJSONObject("_embedded")
                                 ?.getJSONArray("payment")
@@ -170,7 +188,6 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                             finishWithResult(orderState)
                         },
                         error = {
-//                    view.showProgress(false)
                             finishWithResult()
                         }
                     )
@@ -184,6 +201,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
 
     fun onCompleteFingerPrint(threeDSCompInd: String) {
         val currentWebView = threeDSecureWebViews.last()
+        currentWebView.visibility = View.GONE
         val browserDataJS = "browserLanguage: window.navigator.language," +
                 "browserJavaEnabled: window.navigator.javaEnabled ? window.navigator.javaEnabled() : false," +
                 "browserColorDepth: window.screen.colorDepth.toString()," +
@@ -242,6 +260,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             }
             setResult(Activity.RESULT_OK, intent)
         }
+        showProgress(false, null)
         finish()
     }
 
@@ -253,8 +272,25 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
     }
 
-    fun setTitle(title: String) {
-        toolbar.title = title
+    fun setWebViewToolbarTitle(title: Int) {
+        toolbar.setTitle(title)
+    }
+
+    fun showProgress(show: Boolean, text: String?) {
+        progressDialog = if (show) {
+            progressDialog?.dismiss()
+            AlertDialog.Builder(this, R.style.OpaqueDialogTheme)
+                .setTitle(null)
+                .setCancelable(false)
+                .create().apply {
+                    show()
+                    setContentView(R.layout.view_progress_dialog)
+                    findViewById<TextView>(R.id.text).text = text
+                }
+        } else {
+            progressDialog?.dismiss()
+            null
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -281,6 +317,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val OUTLET_REF = "outletRef"
         internal const val ORDER_REF = "orderRef"
         internal const val ORDER_URL = "orderUrl"
+
+        private val AUTHENTICATING_3DS_TRANSACTION: Int = R.string.authenticating_three_ds_two
 
         fun getIntent(
             context: Context,
