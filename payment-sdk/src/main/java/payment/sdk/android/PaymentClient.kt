@@ -91,6 +91,11 @@ class PaymentClient(
                 finishWithError("Order reference not found")
                 return
             }
+            val paymentReference = paymentResponse.reference
+            if(paymentReference == null) {
+                finishWithError("Payment reference not found")
+                return
+            }
             val threeDSTwoChallengeResponseURL = paymentResponse.links?.threeDSChallengeResponseUrl?.href
             if(threeDSTwoChallengeResponseURL == null) {
                 finishWithError("3ds challenge response url not found")
@@ -112,26 +117,10 @@ class PaymentClient(
                 return
             }
             val threeDSServerTransID = paymentResponse.threeDSTwo?.threeDSServerTransID
-            if(threeDSServerTransID == null) {
-                finishWithError("threeDSServerTransID not found")
-                return
-            }
-            val threeDSMethodURL = paymentResponse?.threeDSTwo?.threeDSMethodURL
-            if(threeDSMethodURL == null) {
-                finishWithError("threeDSMethodURL not found")
-                return
-            }
+            val threeDSMethodURL = paymentResponse.threeDSTwo?.threeDSMethodURL
             val threeDSecureRequest = ThreeDSecureTwoRequest.buildFromPaymentResponse(paymentResponse)
             val threeDSMethodNotificationURL = threeDSecureRequest.threeDSMethodNotificationURL
-            if(threeDSMethodNotificationURL == null) {
-                finishWithError("threeDSMethodNotificationURL not found")
-                return
-            }
             val threeDSMethodData = threeDSecureRequest.threeDSMethodData
-            if(threeDSMethodData == null) {
-                finishWithError("threeDSMethodData not found")
-                return
-            }
             transactionServiceHttpAdapter.getAuthTokenFromCode(
                 url = authUrl,
                 code = threeDSecureTwoConfig.authenticationCode ?: "",
@@ -151,7 +140,8 @@ class PaymentClient(
                             threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL,
                             outletRef = outletRef,
                             orderRef = orderRef,
-                            orderUrl = orderUrl
+                            orderUrl = orderUrl,
+                            paymentRef = paymentReference
                         ),
                         requestCode
                     )
