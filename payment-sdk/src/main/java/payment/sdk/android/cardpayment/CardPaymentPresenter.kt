@@ -10,11 +10,13 @@ import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_C
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.core.CardType
 import androidx.annotation.VisibleForTesting
+import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 
 internal class CardPaymentPresenter(
@@ -29,9 +31,12 @@ internal class CardPaymentPresenter(
     private var paymentCard: PaymentCard? = null
 
     private lateinit var orderReference: String
+    private lateinit var outletRef: String
     private lateinit var paymentUrl: String
     private lateinit var paymentCookie: String
     private lateinit var orderAmount: OrderAmount
+    private lateinit var orderUrl: String
+    private lateinit var paymentRef: String
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -180,9 +185,10 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.authorizePayment(
                 url = url,
                 code = code,
-                success = { cookies, orderUrl ->
+                success = { cookies, getOrderUrl ->
                     view.showProgress(false)
-                    onHandlePaymentAuthorization(cookies, orderUrl)
+                    orderUrl = getOrderUrl
+                    onHandlePaymentAuthorization(cookies, getOrderUrl)
                 },
                 error = {
                     view.showProgress(false)
@@ -205,13 +211,20 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.getOrder(
                 orderUrl = orderUrl,
                 paymentCookie = paymentCookie,
-                success = { orderReference, paymentUrl, supportedCards, orderAmount ->
+                success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, orderJson ->
+                    var paymentRef = ""
+                    try {
+                        val order = Gson().fromJson(orderJson.toString(), Order::class.java)
+                        paymentRef = order?.embedded?.payment?.get(0)?.reference ?: ""
+                    } catch (e: Exception) { }
                     view.showProgress(false)
                     view.focusInCardNumber()
                     this.orderReference = orderReference
+                    this.outletRef = outletRef
                     this.paymentUrl = paymentUrl
                     this.supportedCards = supportedCards
                     this.orderAmount = orderAmount
+                    this.paymentRef = paymentRef
                 },
                 error = {
                     view.showProgress(false)
@@ -274,11 +287,18 @@ internal class CardPaymentPresenter(
                     threeDSecureRequest.threeDSTwo.threeDSMessageVersion != null &&
                 threeDSecureRequest.threeDSTwoAuthenticationURL != null &&
                 threeDSecureRequest.threeDSTwoChallengeResponseURL != null) {
-                interactions.onStart3dSecureTwo(threeDSecureRequest,
-                    threeDSecureRequest.threeDSTwo.directoryServerID,
-                    threeDSecureRequest.threeDSTwo.threeDSMessageVersion, paymentCookie,
-                    threeDSecureRequest.threeDSTwoAuthenticationURL,
-                    threeDSecureRequest.threeDSTwoChallengeResponseURL)
+                interactions.onStart3dSecureTwo(
+                    threeDSecureRequest = threeDSecureRequest,
+                    paymentCookie = paymentCookie,
+                    threeDSMessageVersion = threeDSecureRequest.threeDSTwo.threeDSMessageVersion,
+                    directoryServerID = threeDSecureRequest.threeDSTwo.directoryServerID,
+                    threeDSTwoAuthenticationURL = threeDSecureRequest.threeDSTwoAuthenticationURL,
+                    threeDSTwoChallengeResponseURL = threeDSecureRequest.threeDSTwoChallengeResponseURL,
+                    outletRef = outletRef,
+                    orderRef = orderReference,
+                    orderUrl = orderUrl,
+                    paymentRef = paymentRef
+                )
             } else {
                 interactions.onStart3dSecure(threeDSecureRequest)
             }

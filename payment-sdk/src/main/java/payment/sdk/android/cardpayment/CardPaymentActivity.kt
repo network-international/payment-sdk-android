@@ -13,7 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
-import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
@@ -27,40 +27,53 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         setToolBar()
 
         presenter = CardPaymentPresenter(
-                url = intent.getStringExtra(URL_KEY),
-                code = intent.getStringExtra(CODE),
-                view = CardPaymentView(findViewById(R.id.bottom_sheet)),
-                interactions = this,
-                paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient()),
-                stringResources = StringResourcesImpl(this)
+            url = intent.getStringExtra(URL_KEY),
+            code = intent.getStringExtra(CODE),
+            view = CardPaymentView(findViewById(R.id.bottom_sheet)),
+            interactions = this,
+            paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient()),
+            stringResources = StringResourcesImpl(this)
         )
         presenter.init()
     }
 
     override fun onStart3dSecure(threeDSecureRequest: ThreeDSecureRequest) {
         startActivityForResult(
-                ThreeDSecureWebViewActivity.getIntent(
-                        context = this,
-                        acsUrl = threeDSecureRequest.acsUrl,
-                        acsPaReq = threeDSecureRequest.acsPaReq,
-                        acsMd = threeDSecureRequest.acsMd,
-                        gatewayUrl = threeDSecureRequest.gatewayUrl),
-                THREE_D_SECURE_REQUEST_KEY
+            ThreeDSecureWebViewActivity.getIntent(
+                context = this,
+                acsUrl = threeDSecureRequest.acsUrl,
+                acsPaReq = threeDSecureRequest.acsPaReq,
+                acsMd = threeDSecureRequest.acsMd,
+                gatewayUrl = threeDSecureRequest.gatewayUrl
+            ),
+            THREE_D_SECURE_REQUEST_KEY
         )
     }
 
-    override fun onStart3dSecureTwo(threeDSecureRequest: ThreeDSecureRequest,
-                                    directoryServerID: String, threeDSMessageVersion: String,
-                                    paymentCookie: String, threeDSTwoAuthenticationURL: String,
-                                    threeDSTwoChallengeResponseURL: String) {
+    override fun onStart3dSecureTwo(
+        threeDSecureRequest: ThreeDSecureRequest,
+        directoryServerID: String, threeDSMessageVersion: String,
+        paymentCookie: String, threeDSTwoAuthenticationURL: String,
+        threeDSTwoChallengeResponseURL: String, outletRef: String,
+        orderRef: String, orderUrl: String, paymentRef: String
+    ) {
         startActivityForResult(
-            ThreeDSecureTwoActivity.getIntent(
+            ThreeDSecureTwoWebViewActivity.getIntent(
                 context = this,
+                threeDSMethodData = threeDSecureRequest.threeDSTwo?.threeDSMethodData,
+                threeDSMethodNotificationURL = threeDSecureRequest.threeDSTwo?.threeDSMethodNotificationURL,
+                threeDSMethodURL = threeDSecureRequest.threeDSTwo?.threeDSMethodURL,
+                threeDSServerTransID = threeDSecureRequest.threeDSTwo?.threeDSServerTransID,
+                paymentCookie = paymentCookie,
+                threeDSAuthenticationsUrl = threeDSTwoAuthenticationURL,
                 directoryServerID = directoryServerID,
                 threeDSMessageVersion = threeDSMessageVersion,
-                paymentCookie = paymentCookie,
-                threeDSTwoAuthenticationURL= threeDSTwoAuthenticationURL,
-                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL),
+                threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL,
+                outletRef = outletRef,
+                orderRef = orderRef,
+                orderUrl = orderUrl,
+                paymentRef = paymentRef
+            ),
             THREE_D_SECURE_TWO_REQUEST_KEY
         )
     }
@@ -87,9 +100,14 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
-            requestCode == THREE_D_SECURE_TWO_REQUEST_KEY) {
+            requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
+        ) {
             if (resultCode == Activity.RESULT_OK && data != null) {
-                presenter.onHandle3DSecurePaymentSate(data.getStringExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE))
+                presenter.onHandle3DSecurePaymentSate(
+                    data.getStringExtra(
+                        ThreeDSecureWebViewActivity.KEY_3DS_STATE
+                    )
+                )
             } else {
                 onPaymentFailed()
             }
@@ -137,9 +155,9 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
 
         fun getIntent(context: Context, url: String, code: String) =
-                Intent(context, CardPaymentActivity::class.java).apply {
-                    putExtra(URL_KEY, url)
-                    putExtra(CODE, code)
-                }
+            Intent(context, CardPaymentActivity::class.java).apply {
+                putExtra(URL_KEY, url)
+                putExtra(CODE, code)
+            }
     }
 }

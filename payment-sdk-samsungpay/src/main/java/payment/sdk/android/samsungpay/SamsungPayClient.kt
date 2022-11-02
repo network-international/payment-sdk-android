@@ -22,9 +22,9 @@ import kotlin.coroutines.suspendCoroutine
 
 
 class SamsungPayClient(
-        private val context: Context,
-        samsungPayServiceId: String,
-        private val httpClient: HttpClient
+    private val context: Context,
+    samsungPayServiceId: String,
+    private val httpClient: HttpClient
 ) {
 
     private val partnerInfo = PartnerInfo(samsungPayServiceId, Bundle().apply {
@@ -58,7 +58,15 @@ class SamsungPayClient(
         }
     }
 
-    fun startSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {
+    fun isSamsungPayAvailable(statusListener: StatusListener) {
+        samsungPay.getSamsungPayStatus(statusListener)
+    }
+
+    fun startSamsungPay(
+        order: Order,
+        merchantName: String,
+        samsungPayResponse: SamsungPayResponse
+    ) {
         if (order.outletId == null) {
             samsungPayResponse.onFailure("Outlet ID is null in order")
             return
@@ -95,9 +103,17 @@ class SamsungPayClient(
                 samsungPayResponse.onFailure("Could not authorize payment")
             } else {
                 val paymentToken = authTokens["payment-token"]!!
-                val samsungPayTransactionListener = SamsungPayTransactionListener(samsungPayResponse, samsungPaylink, paymentToken) { card: CardInfo?, customSheet: CustomSheet? ->
-                    val amountBoxControl: AmountBoxControl = customSheet?.getSheetControl(AMOUNT_CONTROL_ID) as AmountBoxControl
-                    amountBoxControl.setAmountTotal(order.amount!!.value!!.toDouble() / 100, AmountConstants.FORMAT_TOTAL_PRICE_ONLY) // grand total
+                val samsungPayTransactionListener = SamsungPayTransactionListener(
+                    samsungPayResponse,
+                    samsungPaylink,
+                    paymentToken
+                ) { card: CardInfo?, customSheet: CustomSheet? ->
+                    val amountBoxControl: AmountBoxControl =
+                        customSheet?.getSheetControl(AMOUNT_CONTROL_ID) as AmountBoxControl
+                    amountBoxControl.setAmountTotal(
+                        order.amount!!.value!!.toDouble() / 100,
+                        AmountConstants.FORMAT_TOTAL_PRICE_ONLY
+                    ) // grand total
 
                     customSheet.updateControl(amountBoxControl)
                     try {
@@ -110,26 +126,34 @@ class SamsungPayClient(
                 }
 
                 // Notice that some cards are not supported by Samsung Pay that are already supported by Payment Gateway
-                val allowedCards = order.paymentMethods!!.card!!.mapNotNull { cardType -> SamsungPayCardMapper.stringToSamsungPaySdk(cardType) }
+                val allowedCards = order.paymentMethods!!.card!!.mapNotNull { cardType ->
+                    SamsungPayCardMapper.stringToSamsungPaySdk(cardType)
+                }
 
                 val paymentInfo = CustomSheetPaymentInfo.Builder()
-                        .setMerchantId(order.outletId)
-                        .setMerchantName(merchantName)
-                        .setOrderNumber(order.reference)
-                        .setAllowedCardBrands(allowedCards)
-                        .setCardHolderNameEnabled(true)
-                        .setRecurringEnabled(false)
-                        .setCustomSheet(customSheet)
-                        .build()
+                    .setMerchantId(order.outletId)
+                    .setMerchantName(merchantName)
+                    .setOrderNumber(order.reference)
+                    .setAllowedCardBrands(allowedCards)
+                    .setCardHolderNameEnabled(true)
+                    .setRecurringEnabled(false)
+                    .setCustomSheet(customSheet)
+                    .build()
 
-                paymentManager.startInAppPayWithCustomSheet(paymentInfo, samsungPayTransactionListener)
+                paymentManager.startInAppPayWithCustomSheet(
+                    paymentInfo,
+                    samsungPayTransactionListener
+                )
             }
         }
     }
 
     private fun makeAmountControl(amount: Order.Amount): AmountBoxControl? {
         val amountBoxControl = AmountBoxControl(AMOUNT_CONTROL_ID, amount.currencyCode)
-        amountBoxControl.setAmountTotal(amount.value!!.toDouble(), AmountConstants.FORMAT_TOTAL_PRICE_ONLY)
+        amountBoxControl.setAmountTotal(
+            amount.value!!.toDouble(),
+            AmountConstants.FORMAT_TOTAL_PRICE_ONLY
+        )
         return amountBoxControl
     }
 

@@ -35,6 +35,7 @@ class Order {
     class Payment {
         @SerializedName(value = "_links")
         var links: PaymentLinks? = null
+        var reference: String? = null
     }
 
     class PaymentLinks {
