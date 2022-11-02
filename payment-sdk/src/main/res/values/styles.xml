@@ -10,6 +10,10 @@
         <item name="colorAccent">@color/blue</item>
     </style>
 
+    <style name="OpaqueDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
     <style name="SdkTheme.ThreeDSecure" parent="Theme.AppCompat.Light.NoActionBar" >
         <item name="colorAccent">@color/blue</item>
     </style>

@@ -24,10 +24,6 @@ allprojects {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
-        flatDir {
-            dirs 'libs'
-            dirs project(':payment-sdk').file('libs')
-        }
         jcenter()
     }
 }

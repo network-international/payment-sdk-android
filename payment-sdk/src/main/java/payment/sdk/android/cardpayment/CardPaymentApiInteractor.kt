@@ -4,8 +4,7 @@ import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import androidx.annotation.VisibleForTesting
 import org.json.JSONObject
-import payment.sdk.android.cardpayment.threedsecuretwo.DeviceRenderOptions
-import payment.sdk.android.cardpayment.threedsecuretwo.SDKEphemPubKey
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
 
 internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : PaymentApiInteractor {
@@ -31,7 +30,9 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                 })
     }
 
-    override fun getOrder(orderUrl: String, paymentCookie: String, success: (String, String, Set<CardType>, orderAmount: OrderAmount) -> Unit,
+    override fun getOrder(orderUrl: String,
+                          paymentCookie: String,
+                          success: (String, String, Set<CardType>, orderAmount: OrderAmount, String, JSONObject) -> Unit,
                           error: (Exception) -> Unit) {
         httpClient.get(
                 url = orderUrl,
@@ -42,16 +43,23 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                     val orderReference = response.string("reference")
                     val paymentUrl = response.json("_embedded")
                             ?.array("payment")?.at(0)
-                            ?.json("_links")?.json("payment:card")?.string("href")
+                            ?.json("_links")?.json("payment:card")?.string("href") ?: ""
                     val supportedCards = response.json("paymentMethods")
                             ?.array("card")?.toList<String>()
 
                     val orderValue = response.json("amount")!!.double("value")!!
                     val currencyCode = response.json("amount")!!.string("currencyCode")!!
+                    val outletRef = response.string("outletId")
 
                     val orderAmount = OrderAmount(orderValue, currencyCode)
 
-                    success(orderReference!!, paymentUrl!!, CardMapping.mapSupportedCards(supportedCards!!), orderAmount)
+                    success(orderReference!!,
+                        paymentUrl,
+                        CardMapping.mapSupportedCards(supportedCards!!),
+                        orderAmount,
+                        outletRef!!,
+                        response
+                    )
                 },
                 error = { exception ->
                     error(exception)
@@ -82,41 +90,15 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                 })
     }
 
-    override fun postThreeDSTwoAuthentications(
-        sdkAppID: String,
-        sdkEncData: String,
-        sdkEphemPubKey: SDKEphemPubKey,
-        sdkMaxTimeout: Int,
-        sdkReferenceNumber: String,
-        sdkTransID: String,
-        deviceRenderOptions: DeviceRenderOptions,
+    override fun postThreeDSTwoBrowserAuthentications(
+        browserData: BrowserData,
+        threeDSCompInd: String,
         threeDSAuthenticationsUrl: String,
         paymentCookie: String,
-        success: (state: String, response: JSONObject) -> Unit,
+        notificationUrl: String,
+        success: (response: JSONObject) -> Unit,
         error: (Exception) -> Unit
     ) {
-        val sdkInfo = HashMap<String, Any>()
-        sdkInfo["sdkAppID"] = sdkAppID
-        sdkInfo["sdkEncData"] = sdkEncData
-
-        val sdkEphemPubKeyMap = HashMap<String, String?>()
-        sdkEphemPubKeyMap["kty"] = sdkEphemPubKey.kty
-        sdkEphemPubKeyMap["crv"] = sdkEphemPubKey.crv
-        sdkEphemPubKeyMap["x"] = sdkEphemPubKey.x
-        sdkEphemPubKeyMap["y"] = sdkEphemPubKey.y
-
-        sdkInfo["sdkEphemPubKey"] = sdkEphemPubKeyMap
-
-        sdkInfo["sdkMaxTimeout"] = sdkMaxTimeout
-        sdkInfo["sdkReferenceNumber"] = sdkReferenceNumber
-        sdkInfo["sdkTransID"] = sdkTransID
-
-        val deviceRenderOptionsMap = HashMap<String, Any>()
-        deviceRenderOptionsMap["sdkInterface"] = deviceRenderOptions.sdkInterface
-        deviceRenderOptionsMap["sdkUiType"] = deviceRenderOptions.sdkUiType
-
-        sdkInfo["deviceRenderOptions"] = deviceRenderOptionsMap
-        
         httpClient.post(
             url = threeDSAuthenticationsUrl,
             headers = mapOf(
@@ -125,14 +107,16 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                 HEADER_COOKIE to paymentCookie
             ),
             body = Body.Json(mapOf(
-                DEVICE_CHANNEL_KEY to "APP",
-                SDK_INFO_KEY to sdkInfo
+                DEVICE_CHANNEL_KEY to "BRW",
+                THREE_DS_COMP_IND to threeDSCompInd,
+                NOTIFICATION_URL to notificationUrl,
+                BROWSER_INFO to browserData.getHashMap()
             )),
             success = { (_, response) ->
-                success(response.string("state")!!, response)
+                success(response)
             },
             error = { exception ->
-                error(exception)
+                    error(exception)
             })
     }
 
@@ -158,6 +142,26 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
             })
     }
 
+    override fun getPayerIP(
+        requestIpUrl: String,
+        paymentCookie: String,
+        success: (response: JSONObject) -> Unit,
+        error: (Exception) -> Unit
+    ) {
+        httpClient.get(
+            url = requestIpUrl,
+            headers = mapOf(
+                HEADER_COOKIE to paymentCookie
+            ),
+            success = { (_, response) ->
+                success(response)
+            },
+            error = { exception ->
+                error(exception)
+            }
+        )
+    }
+
     companion object {
         @VisibleForTesting
         internal const val PAYMENT_FIELD_PAN = "pan"
@@ -173,15 +177,10 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         internal const val HEADER_COOKIE = "Cookie"
         internal const val HEADER_SET_COOKIE = "Set-Cookie"
 
-//        internal const val THREE_DS_TWO_SDK_APP_ID = "sdkAppID"
-//        internal const val THREE_DS_TWO_SDK_ENC_DATA = "sdkEncData"
-//        internal const val THREE_DS_TWO_SDK_EPHEM_PUB_KEY = "sdkEphemPubKey"
-//        internal const val THREE_DS_TWO_SDK_MAX_TIMEOUT = "sdkMaxTimeout"
-//        internal const val THREE_DS_TWO_SDK_REFERENCE_NUMBER  = "sdkReferenceNumber"
-//        internal const val THREE_DS_TWO_SDK_TRANS_ID  = "sdkTransID"
-//        internal const val THREE_DS_TWO_DEVICE_RENDER_OPTIONS = "deviceRenderOptions"
         internal const val DEVICE_CHANNEL_KEY = "deviceChannel"
-        internal const val SDK_INFO_KEY = "sdkInfo"
+        internal const val THREE_DS_COMP_IND = "threeDSCompInd"
+        internal const val BROWSER_INFO = "browserInfo"
+        internal const val NOTIFICATION_URL = "notificationURL"
     }
 }
 
