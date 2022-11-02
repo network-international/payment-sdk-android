@@ -95,7 +95,7 @@ interface CardPaymentContract {
                                directoryServerID: String, threeDSMessageVersion: String,
                                paymentCookie: String, threeDSTwoAuthenticationURL: String,
                                threeDSTwoChallengeResponseURL: String, outletRef: String,
-                               orderRef: String, orderUrl: String)
+                               orderRef: String, orderUrl: String, paymentRef: String)
 
         fun onPaymentAuthorized()
 

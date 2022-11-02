@@ -10,11 +10,13 @@ import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_C
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.core.CardType
 import androidx.annotation.VisibleForTesting
+import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 
 internal class CardPaymentPresenter(
@@ -34,6 +36,7 @@ internal class CardPaymentPresenter(
     private lateinit var paymentCookie: String
     private lateinit var orderAmount: OrderAmount
     private lateinit var orderUrl: String
+    private lateinit var paymentRef: String
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -208,7 +211,12 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.getOrder(
                 orderUrl = orderUrl,
                 paymentCookie = paymentCookie,
-                success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, _ ->
+                success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, orderJson ->
+                    var paymentRef = ""
+                    try {
+                        val order = Gson().fromJson(orderJson.toString(), Order::class.java)
+                        paymentRef = order?.embedded?.payment?.get(0)?.reference ?: ""
+                    } catch (e: Exception) { }
                     view.showProgress(false)
                     view.focusInCardNumber()
                     this.orderReference = orderReference
@@ -216,6 +224,7 @@ internal class CardPaymentPresenter(
                     this.paymentUrl = paymentUrl
                     this.supportedCards = supportedCards
                     this.orderAmount = orderAmount
+                    this.paymentRef = paymentRef
                 },
                 error = {
                     view.showProgress(false)
@@ -287,7 +296,8 @@ internal class CardPaymentPresenter(
                     threeDSTwoChallengeResponseURL = threeDSecureRequest.threeDSTwoChallengeResponseURL,
                     outletRef = outletRef,
                     orderRef = orderReference,
-                    orderUrl = orderUrl
+                    orderUrl = orderUrl,
+                    paymentRef = paymentRef
                 )
             } else {
                 interactions.onStart3dSecure(threeDSecureRequest)

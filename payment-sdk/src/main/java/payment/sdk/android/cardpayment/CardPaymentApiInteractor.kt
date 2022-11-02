@@ -178,7 +178,6 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         internal const val HEADER_SET_COOKIE = "Set-Cookie"
 
         internal const val DEVICE_CHANNEL_KEY = "deviceChannel"
-        internal const val SDK_INFO_KEY = "sdkInfo"
         internal const val THREE_DS_COMP_IND = "threeDSCompInd"
         internal const val BROWSER_INFO = "browserInfo"
         internal const val NOTIFICATION_URL = "notificationURL"

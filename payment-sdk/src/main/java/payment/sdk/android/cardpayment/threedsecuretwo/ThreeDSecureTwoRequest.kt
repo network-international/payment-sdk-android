@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment.threedsecuretwo
 
+import android.util.Log
 import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.util.Base64
@@ -12,7 +13,7 @@ data class ThreeDSecureTwoRequest(
     val threeDSMethodURL: String?,
     val threeDSServerTransID: String?,
     val threeDSMethodData: String?,
-    val threeDSMethodNotificationURL: String?
+    val threeDSMethodNotificationURL: String
 ) {
     companion object {
         private fun constructThreeDSNotificationURL(
@@ -45,8 +46,11 @@ data class ThreeDSecureTwoRequest(
 
         private fun constructThreeDSMethodData(
             notificationUrl: String,
-            threeDSServerTransID: String
-        ): String {
+            threeDSServerTransID: String?
+        ): String? {
+            if(threeDSServerTransID == null) {
+                return null
+            }
             val data = hashMapOf<String, String>()
             data["threeDSMethodNotificationURL"] = notificationUrl
             data["threeDSServerTransID"] = threeDSServerTransID
@@ -60,18 +64,16 @@ data class ThreeDSecureTwoRequest(
             var threeDSMethodURL: String? = null
             var threeDSServerTransID: String? = null
             var threeDSMethodData: String? = null
-            var threeDSMethodNotificationURL: String? = null
+            val threeDSMethodNotificationURL: String = constructThreeDSNotificationURL(responseJson)
             try {
                 val threeDSTwoConfig = responseJson.getJSONObject("3ds2")
                 directoryServerID = threeDSTwoConfig.getString("directoryServerID")
                 threeDSMessageVersion = threeDSTwoConfig.getString("messageVersion")
                 threeDSMethodURL = threeDSTwoConfig.getString("threeDSMethodURL")
                 threeDSServerTransID = threeDSTwoConfig.getString("threeDSServerTransID")
-                threeDSMethodNotificationURL = constructThreeDSNotificationURL(responseJson)
                 threeDSMethodData =
                     constructThreeDSMethodData(threeDSMethodNotificationURL, threeDSServerTransID)
-            } catch (e: Exception) {
-            }
+            } catch (e: Exception) { }
             return ThreeDSecureTwoRequest(
                 directoryServerID,
                 threeDSMessageVersion,
@@ -88,22 +90,22 @@ data class ThreeDSecureTwoRequest(
             var threeDSMethodURL: String? = null
             var threeDSServerTransID: String? = null
             var threeDSMethodData: String? = null
-            var threeDSMethodNotificationURL: String? = null
+            val threeDSMethodNotificationURL: String = constructThreeDSNotificationURL(
+                domain = paymentResponse.links?.threeDSAuthenticationsUrl?.href ?: "",
+                outletRef = paymentResponse.outletId ?: "",
+                orderRef = paymentResponse.orderReference ?: "",
+                paymentRef = paymentResponse.reference ?: ""
+            )
             try {
                 val threeDSTwoConfig = paymentResponse.threeDSTwo
                 directoryServerID = threeDSTwoConfig?.directoryServerID
                 threeDSMessageVersion = threeDSTwoConfig?.messageVersion
                 threeDSMethodURL = threeDSTwoConfig?.threeDSMethodURL
-                threeDSServerTransID = threeDSTwoConfig?.threeDSServerTransID ?: ""
-                threeDSMethodNotificationURL = constructThreeDSNotificationURL(
-                    domain = paymentResponse.links?.threeDSAuthenticationsUrl?.href ?: "",
-                    outletRef = paymentResponse.outletId ?: "",
-                    orderRef = paymentResponse.orderReference ?: "",
-                    paymentRef = paymentResponse.reference ?: ""
-                )
+                threeDSServerTransID = threeDSTwoConfig?.threeDSServerTransID
                 threeDSMethodData =
                     constructThreeDSMethodData(threeDSMethodNotificationURL, threeDSServerTransID)
             } catch (e: Exception) {
+                Log.e("ThreeDSecureTwoRequest", "Unable to de-serialise certain fields")
             }
             return ThreeDSecureTwoRequest(
                 directoryServerID,

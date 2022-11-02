@@ -6,6 +6,8 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -16,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
-import payment.sdk.android.cardpayment.CardPaymentPresenter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResources
 import payment.sdk.android.core.dependency.StringResourcesImpl
@@ -26,9 +27,9 @@ import java.util.*
 
 
 open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
-    private fun getIpUrl(stringVal: String, outletRef: String, orderRef: String): String {
+    private fun getIpUrl(stringVal: String, outletRef: String, orderRef: String, paymentRef: String): String {
         val slug =
-            "/api/outlets/$outletRef/orders/$orderRef/payments/{paymentRef}/3ds2/requester-ip"
+            "/api/outlets/$outletRef/orders/$orderRef/payments/${paymentRef}/3ds2/requester-ip"
         if (stringVal.contains("-uat", true) ||
             stringVal.contains("sandbox", true)
         ) {
@@ -41,6 +42,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     private var progressDialog: AlertDialog? = null
+    private val webView by lazy {
+        ThreeDSecureTwoWebView(this)
+    }
 
     private val toolbar: Toolbar by lazy {
         findViewById<Toolbar>(R.id.toolbar)
@@ -64,9 +68,12 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private var threeDSMethodNotificationURL: String? = null
     private var outletRef: String? = null
     private var orderRef: String? = null
+    private var paymentRef: String? = null
     private var fingerPrintCompleted: Boolean = false
     private var threeDSTwoChallengeResponseURL: String? = null
     private var orderUrl: String? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private var onFingerPrintTimeout: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,25 +87,38 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         threeDSMethodNotificationURL = intent.getStringExtra(THREE_DS_METHOD_NOTIFICATION_URL)
         paymentCookie = intent.getStringExtra(PAYMENT_COOKIE_KEY)
         threeDSAuthenticationsUrl = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
-        outletRef = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
-        orderRef = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
+        outletRef = intent.getStringExtra(OUTLET_REF)
+        orderRef = intent.getStringExtra(ORDER_REF)
+        paymentRef = intent.getStringExtra(PAYMENT_REF)
         threeDSTwoChallengeResponseURL = intent.getStringExtra(THREE_DS_CHALLENGE_URL_KEY)
         orderUrl = intent.getStringExtra(ORDER_URL)
 
-        showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
-
-        val webView = ThreeDSecureTwoWebView(this)
         webView.init(this)
-        val params = StringBuilder().apply {
-            append("threeDSServerTransID=")
-            append(URLEncoder.encode(threeDSServerTransID, "UTF-8"))
-            append("&threeDSMethodNotificationURL=")
-            append(URLEncoder.encode(threeDSMethodNotificationURL, "UTF-8"))
-            append("&threeDSMethodData=")
-            append(URLEncoder.encode(threeDSMethodData, "UTF-8"))
-        }
-        webView.postUrl(threeDSMethodURL, params.toString().toByteArray())
         pushNewWebView(webView)
+
+        if(threeDSMethodData == null || threeDSMethodURL == null) {
+            fingerPrintCompleted = true
+            onCompleteFingerPrint("U")
+        } else {
+            val params = StringBuilder().apply {
+                append("threeDSServerTransID=")
+                append(URLEncoder.encode(threeDSServerTransID, "UTF-8"))
+                append("&threeDSMethodNotificationURL=")
+                append(URLEncoder.encode(threeDSMethodNotificationURL, "UTF-8"))
+                append("&threeDSMethodData=")
+                append(URLEncoder.encode(threeDSMethodData, "UTF-8"))
+            }
+            val currentWebView = threeDSecureWebViews.last()
+            currentWebView.postUrl(threeDSMethodURL, params.toString().toByteArray())
+            onFingerPrintTimeout = Runnable {
+                webView.stopLoading()
+                webView.loadUrl("about:blank")
+                fingerPrintCompleted = true
+                onCompleteFingerPrint("N")
+            }
+            handler.postDelayed(onFingerPrintTimeout, 10000)
+        }
+        showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
     }
 
     fun pushNewWebView(webView: ThreeDSecureTwoWebView) {
@@ -199,7 +219,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
     }
 
-    fun onCompleteFingerPrint(threeDSCompInd: String) {
+    private fun onCompleteFingerPrint(threeDSCompInd: String) {
+        handler.removeCallbacks(onFingerPrintTimeout)
         val currentWebView = threeDSecureWebViews.last()
         currentWebView.visibility = View.GONE
         val browserDataJS = "browserLanguage: window.navigator.language," +
@@ -234,7 +255,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 finishWithResult()
             } else {
                 paymentApiInteractor.getPayerIP(
-                    requestIpUrl = getIpUrl(threeDSAuthenticationsUrl!!, outletRef!!, orderRef!!),
+                    requestIpUrl = getIpUrl(threeDSAuthenticationsUrl!!, outletRef!!, orderRef!!, paymentRef!!),
                     paymentCookie = paymentCookie!!,
                     success = { ipResponse ->
                         browserData.browserIP = ipResponse.getString("requesterIp")
@@ -317,15 +338,16 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val OUTLET_REF = "outletRef"
         internal const val ORDER_REF = "orderRef"
         internal const val ORDER_URL = "orderUrl"
+        internal const val PAYMENT_REF = "paymentRef"
 
         private val AUTHENTICATING_3DS_TRANSACTION: Int = R.string.authenticating_three_ds_two
 
         fun getIntent(
             context: Context,
-            threeDSMethodURL: String,
-            threeDSServerTransID: String,
-            threeDSMethodData: String,
-            threeDSMethodNotificationURL: String,
+            threeDSMethodURL: String?,
+            threeDSServerTransID: String?,
+            threeDSMethodData: String?,
+            threeDSMethodNotificationURL: String?,
             paymentCookie: String,
             threeDSAuthenticationsUrl: String,
             directoryServerID: String,
@@ -333,7 +355,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             threeDSTwoChallengeResponseURL: String,
             outletRef: String,
             orderRef: String,
-            orderUrl: String
+            orderUrl: String,
+            paymentRef: String
         ) =
             Intent(context, ThreeDSecureTwoWebViewActivity::class.java).apply {
                 putExtra(THREE_DS_METHOD_URL, threeDSMethodURL)
@@ -348,6 +371,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 putExtra(OUTLET_REF, outletRef)
                 putExtra(ORDER_REF, orderRef)
                 putExtra(ORDER_URL, orderUrl)
+                putExtra(PAYMENT_REF, paymentRef)
             }
     }
 }
