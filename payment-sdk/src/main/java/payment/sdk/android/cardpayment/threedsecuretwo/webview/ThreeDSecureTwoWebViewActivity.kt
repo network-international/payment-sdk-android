@@ -14,10 +14,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
+import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResources
 import payment.sdk.android.core.dependency.StringResourcesImpl
@@ -38,7 +40,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         if (stringVal.contains("-dev", true)) {
             return "https://paypage-dev.ngenius-payments.com$slug"
         }
-        return return "https://paypage.ngenius-payments.com$slug"
+        return "https://paypage.ngenius-payments.com$slug"
     }
 
     private var progressDialog: AlertDialog? = null
@@ -116,7 +118,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 fingerPrintCompleted = true
                 onCompleteFingerPrint("N")
             }
-            handler.postDelayed(onFingerPrintTimeout, 10000)
+            onFingerPrintTimeout?.let {
+                handler.postDelayed(it, 10000)
+            }
         }
         showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
     }
@@ -220,7 +224,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     private fun onCompleteFingerPrint(threeDSCompInd: String) {
-        handler.removeCallbacks(onFingerPrintTimeout)
+        onFingerPrintTimeout?.let {
+            handler.removeCallbacks(it)
+        }
         val currentWebView = threeDSecureWebViews.last()
         currentWebView.visibility = View.GONE
         val browserDataJS = "browserLanguage: window.navigator.language," +
@@ -274,10 +280,26 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleCardPaymentResponse(state: String): CardPaymentData {
+        return when (state) {
+            STATUS_PAYMENT_AUTHORISED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED)
+            STATUS_PAYMENT_PURCHASED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED)
+            STATUS_PAYMENT_CAPTURED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
+            STATUS_PAYMENT_FAILED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+            else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+        }
+    }
+
     fun finishWithResult(state: String? = null) {
-        state?.let {
+        if(state != null) {
             val intent = Intent().apply {
-                putExtra(KEY_3DS_STATE, it)
+                putExtra(KEY_3DS_STATE, state)
+                putExtra(INTENT_DATA_KEY, handleCardPaymentResponse(state))
+            }
+            setResult(Activity.RESULT_OK, intent)
+        } else {
+            val intent = Intent().apply {
+                putExtra(INTENT_DATA_KEY, handleCardPaymentResponse("failed"))
             }
             setResult(Activity.RESULT_OK, intent)
         }
@@ -373,5 +395,15 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 putExtra(ORDER_URL, orderUrl)
                 putExtra(PAYMENT_REF, paymentRef)
             }
+
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_AUTHORISED = "AUTHORISED"
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_PURCHASED = "PURCHASED"
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_CAPTURED = "CAPTURED"
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_FAILED = "FAILED"
+        internal const val INTENT_DATA_KEY = "data"
     }
 }
