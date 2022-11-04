@@ -4,6 +4,10 @@
     package="payment.sdk.android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <queries>
+        <package android:name="com.samsung.android.spay" />
+        <package android:name="com.samsung.android.samsungpay.gear" />
+    </queries>
 
     <application
         android:name="payment.sdk.android.demo.App"

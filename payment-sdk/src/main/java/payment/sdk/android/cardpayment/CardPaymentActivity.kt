@@ -11,6 +11,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
@@ -25,10 +26,18 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
         setToolBar()
+        val url = intent.getStringExtra(URL_KEY)
+        val code = intent.getStringExtra(CODE)
+
+        if(url == null || code == null) {
+            Log.e("CardPaymentActivity", "url and code missing")
+            onGenericError("url and code missing")
+            return
+        }
 
         presenter = CardPaymentPresenter(
-            url = intent.getStringExtra(URL_KEY),
-            code = intent.getStringExtra(CODE),
+            url = url,
+            code = code,
             view = CardPaymentView(findViewById(R.id.bottom_sheet)),
             interactions = this,
             paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient()),
@@ -102,11 +111,11 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
         ) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
+            if (resultCode == RESULT_OK && data != null) {
                 presenter.onHandle3DSecurePaymentSate(
                     data.getStringExtra(
                         ThreeDSecureWebViewActivity.KEY_3DS_STATE
-                    )
+                    )!!
                 )
             } else {
                 onPaymentFailed()
