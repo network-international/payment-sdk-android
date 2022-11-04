@@ -3,6 +3,7 @@ package payment.sdk.android.samsungpay
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
 import com.samsung.android.sdk.samsungpay.v2.SamsungPay
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
@@ -45,6 +46,9 @@ class SamsungPayClient(
         } else {
             samsungPay.getSamsungPayStatus(object : StatusListener {
                 override fun onSuccess(status: Int, bundle: Bundle) {
+                    if(status != SamsungPay.SPAY_READY) {
+                        Log.e("SamsungPayClient", "Samsung Pay is not available/ready. It's current status is code $status")
+                    }
                     when (status) {
                         SamsungPay.SPAY_READY -> continuation.resume(true)
                         else -> continuation.resume(false)
@@ -52,6 +56,7 @@ class SamsungPayClient(
                 }
 
                 override fun onFail(error: Int, bundle: Bundle?) {
+                    Log.e("SamsungPayClient", "Samsung Pay check failed")
                     continuation.resume(false)
                 }
             })
