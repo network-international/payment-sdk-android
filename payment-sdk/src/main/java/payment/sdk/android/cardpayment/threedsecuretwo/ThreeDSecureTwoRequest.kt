@@ -90,8 +90,9 @@ data class ThreeDSecureTwoRequest(
             var threeDSMethodURL: String? = null
             var threeDSServerTransID: String? = null
             var threeDSMethodData: String? = null
+            val authHostURi = paymentResponse.links?.threeDSAuthenticationsUrl?.href ?: "";
             val threeDSMethodNotificationURL: String = constructThreeDSNotificationURL(
-                domain = paymentResponse.links?.threeDSAuthenticationsUrl?.href ?: "",
+                domain = URI(authHostURi).host,
                 outletRef = paymentResponse.outletId ?: "",
                 orderRef = paymentResponse.orderReference ?: "",
                 paymentRef = paymentResponse.reference ?: ""
