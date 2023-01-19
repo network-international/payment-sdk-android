@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoRequest
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
@@ -149,6 +150,37 @@ class PaymentClient(
                 error = {
                     println(it)
                 }
+            )
+        } else {
+            val acsUrl = paymentResponse.threeDSOne?.acsUrl
+            if(acsUrl == null) {
+                finishWithError("ThreeDS one acs url not found")
+                return
+            }
+            val acsPaReq = paymentResponse.threeDSOne?.acsPaReq
+            if(acsPaReq == null) {
+                finishWithError("ThreeDS one acsPaReq not found")
+                return
+            }
+            val acsMd = paymentResponse.threeDSOne?.acsMd
+            if(acsMd == null) {
+                finishWithError("ThreeDS one acsMd not found")
+                return
+            }
+            val threeDSOneUrl = paymentResponse.links?.threeDSOneUrl?.href
+            if(threeDSOneUrl == null) {
+                finishWithError("ThreeDS one url not found")
+                return
+            }
+            context.startActivityForResult(
+                ThreeDSecureWebViewActivity.getIntent(
+                    context = context,
+                    acsUrl = acsUrl,
+                    acsPaReq = acsPaReq,
+                    acsMd = acsMd,
+                    gatewayUrl = threeDSOneUrl
+                ),
+                requestCode
             )
         }
     }
