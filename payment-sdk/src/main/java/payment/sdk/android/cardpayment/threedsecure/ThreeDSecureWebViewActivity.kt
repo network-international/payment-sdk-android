@@ -11,6 +11,8 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 
 
 import java.net.URLEncoder
@@ -77,10 +79,29 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleCardPaymentResponse(state: String): CardPaymentData {
+        return when (state) {
+            ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_AUTHORISED -> CardPaymentData(
+                CardPaymentData.STATUS_PAYMENT_AUTHORIZED)
+            ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_PURCHASED -> CardPaymentData(
+                CardPaymentData.STATUS_PAYMENT_PURCHASED)
+            ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_CAPTURED -> CardPaymentData(
+                CardPaymentData.STATUS_PAYMENT_CAPTURED)
+            ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_FAILED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+            else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+        }
+    }
+
     fun finishWithResult(state: String? = null) {
-        state?.let {
+        if(state != null) {
             val intent = Intent().apply {
-                putExtra(KEY_3DS_STATE, it)
+                putExtra(ThreeDSecureTwoWebViewActivity.KEY_3DS_STATE, state)
+                putExtra(ThreeDSecureTwoWebViewActivity.INTENT_DATA_KEY, handleCardPaymentResponse(state))
+            }
+            setResult(Activity.RESULT_OK, intent)
+        } else {
+            val intent = Intent().apply {
+                putExtra(ThreeDSecureTwoWebViewActivity.INTENT_DATA_KEY, handleCardPaymentResponse("failed"))
             }
             setResult(Activity.RESULT_OK, intent)
         }

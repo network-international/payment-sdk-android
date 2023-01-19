@@ -17,6 +17,9 @@ class PaymentResponse {
     @SerializedName(value = "3ds2")
     var threeDSTwo: ThreeDSTwo? = null
 
+    @SerializedName(value = "3ds")
+    var threeDSOne: ThreeDSOne? = null
+
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
@@ -38,6 +41,9 @@ class PaymentResponse {
 
         @SerializedName(value = "cnp:3ds2-authentication")
         var threeDSAuthenticationsUrl: Href? = null
+
+        @SerializedName(value = "cnp:3ds")
+        var threeDSOneUrl: Href? = null
     }
 
     class Embedded {
@@ -61,6 +67,17 @@ class PaymentResponse {
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
+    }
+
+    class ThreeDSOne {
+        @SerializedName(value = "acsUrl")
+        var acsUrl: String? = null
+
+        @SerializedName(value = "acsPaReq")
+        var acsPaReq: String? = null
+
+        @SerializedName(value = "acsMd")
+        var acsMd: String? = null
     }
 
     class ThreeDSTwo {
