@@ -320,6 +320,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     fun showProgress(show: Boolean, text: String?) {
+        if(this.isDestroyed) {
+            return
+        }
         progressDialog = if (show) {
             progressDialog?.dismiss()
             AlertDialog.Builder(this, R.style.OpaqueDialogTheme)
@@ -336,6 +339,12 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
     }
 
+    private fun dismissProgressDialog()  {
+        if(!this.isDestroyed) {
+            progressDialog?.dismiss()
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             setResult(Activity.RESULT_CANCELED)
@@ -343,6 +352,11 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDestroy() {
+        dismissProgressDialog()
+        super.onDestroy()
     }
 
     companion object {
