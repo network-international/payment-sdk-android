@@ -29,7 +29,7 @@
             android:value="" />
         <meta-data
             android:name="spay_sdk_api_level"
-            android:value="2.12" />
+            android:value="2.17" />
 
         <activity
             android:name="payment.sdk.android.demo.home.HomeActivity"
