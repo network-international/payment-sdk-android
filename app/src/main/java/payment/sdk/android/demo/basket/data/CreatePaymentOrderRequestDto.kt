@@ -1,5 +1,8 @@
 package payment.sdk.android.demo.basket.data
 
+import androidx.annotation.Keep
+
+@Keep
 data class CreatePaymentOrderRequestDto(
         private val action: String,
         private val amount: PaymentOrderAmountDto,
@@ -18,6 +21,7 @@ data class CreatePaymentOrderRequestDto(
  *
  *  This is not the same for all currencies. Mapping should be done before sending Gateway
  */
+@Keep
 data class PaymentOrderAmountDto(
         private val value: Int,
         private val currencyCode: String
