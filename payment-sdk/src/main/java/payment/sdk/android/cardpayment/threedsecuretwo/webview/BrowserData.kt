@@ -1,5 +1,8 @@
 package payment.sdk.android.cardpayment.threedsecuretwo.webview
 
+import androidx.annotation.Keep
+
+@Keep
 data class BrowserData(
     val browserLanguage: String,
     val browserJavaEnabled: Boolean,
