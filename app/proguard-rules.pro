@@ -25,3 +25,5 @@
 -keep class **$$Parcelable { *; }
 
 -keep class com.bumptech.glide.integration.okhttp.OkHttpGlideModule
+
+-keep public class * implements com.bumptech.glide.module.GlideModule
