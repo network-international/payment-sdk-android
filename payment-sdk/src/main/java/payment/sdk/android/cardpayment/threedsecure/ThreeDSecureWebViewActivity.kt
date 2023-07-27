@@ -39,6 +39,9 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY)
+
+        if (acsUrl.isNullOrBlank()) throw KotlinNullPointerException("ACS_URL_KEY is empty")
+
         val acsPaReq = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_PA_REQ_KEY)
         val acsMd = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_MD_KEY)
         val gatewayUrl = intent.getStringExtra(ThreeDSecureWebViewClient.GATEWAY_URL_KEY)

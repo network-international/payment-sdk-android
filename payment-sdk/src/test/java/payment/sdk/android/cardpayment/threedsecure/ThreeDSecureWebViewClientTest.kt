@@ -4,16 +4,15 @@ import android.app.Activity
 import android.content.Intent
 import com.flextrade.jfixture.FixtureAnnotations
 import com.flextrade.jfixture.annotations.Fixture
-import com.nhaarman.mockitokotlin2.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 import org.junit.Before
 import org.junit.runner.RunWith
+import org.mockito.kotlin.*
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-
 
 @RunWith(RobolectricTestRunner::class)
 class ThreeDSecureWebViewClientTest {
