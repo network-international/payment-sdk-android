@@ -1,22 +1,17 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
 
-apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.network-international'
 
 android {
-    compileSdkVersion 30
-
-
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 33
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-
     }
 
     buildTypes {
@@ -26,18 +21,39 @@ android {
         }
     }
 
+    // TODO add lint rules, and fix lint errors
+    lintOptions {
+        quiet true
+        abortOnError false
+        warningsAsErrors true
+    }
+    namespace 'payment.sdk.android.samsungpay'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(path: ':payment-sdk-core')
 
-    api 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.20'
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation "junit:junit:$junit"
     api files('libs/samsungpay_2.18.00.jar')
 }
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.network-international'
+            artifactId = 'payment-sdk-samsungpay'
+            version = '0.0.0'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
