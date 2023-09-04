@@ -23,7 +23,8 @@ class ThreeDSecureWebViewClient(
         view?.title?.let { activity.setTitle(it, url) }
     }
 
-    override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+        super.onReceivedError(view, request, error)
         view?.stopLoading()
         activity.finishWithResult()
     }
