@@ -1,14 +1,14 @@
 package payment.sdk.android.cardpayment.widget
 
 import android.text.SpannableStringBuilder
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
 import junitparams.JUnitParamsRunner
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnitParamsRunner::class)
 class NumericMaskInputFilterTest {

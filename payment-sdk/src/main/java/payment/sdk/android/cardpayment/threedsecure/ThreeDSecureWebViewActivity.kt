@@ -38,7 +38,8 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY)
+        val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY) ?: ""
+
         val acsPaReq = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_PA_REQ_KEY)
         val acsMd = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_MD_KEY)
         val gatewayUrl = intent.getStringExtra(ThreeDSecureWebViewClient.GATEWAY_URL_KEY)

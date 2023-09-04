@@ -170,8 +170,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 if (state != "FAILED") {
                     val transStatus = threeDSData.getString("transStatus")
                     if (transStatus == "C") {
-                    val base64EncodedCReq = threeDSData.getString("base64EncodedCReq")
-                    val acsURL = threeDSData.getString("acsURL")
+                        val base64EncodedCReq = threeDSData.getString("base64EncodedCReq")
+                        val acsURL = threeDSData.getString("acsURL")
                         // Open Challenge
                         openChallenge(base64EncodedCReq, acsURL)
                     } else {
@@ -183,6 +183,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             },
             error = { exception ->
                 Log.e("ThreeDSTwoWebActivity", "ThreeDS Authentications failed")
+                finishWithResult()
             }
         )
     }
@@ -300,6 +301,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         } else {
             val intent = Intent().apply {
                 putExtra(INTENT_DATA_KEY, handleCardPaymentResponse("failed"))
+                putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
             }
             setResult(Activity.RESULT_OK, intent)
         }

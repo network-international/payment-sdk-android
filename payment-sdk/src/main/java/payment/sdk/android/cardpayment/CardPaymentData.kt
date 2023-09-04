@@ -14,9 +14,9 @@ class CardPaymentData constructor(
             parcel.readInt(),
             parcel.readString())
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.writeInt(code)
-        dest?.writeString(reason)
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeInt(code)
+        dest.writeString(reason)
     }
 
     override fun describeContents(): Int = 0

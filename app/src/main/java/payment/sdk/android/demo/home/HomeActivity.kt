@@ -1,6 +1,5 @@
 package payment.sdk.android.demo.home
 
-
 import payment.sdk.android.demo.App
 import payment.sdk.android.R
 import payment.sdk.android.demo.basket.BasketFragment
@@ -15,7 +14,6 @@ import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.bottomnavigation.BottomNavigationView.OnNavigationItemSelectedListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.LayoutInflater
@@ -25,11 +23,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import butterknife.BindView
 import butterknife.ButterKnife
+import com.google.android.material.navigation.NavigationBarView
 import java.util.*
 import javax.inject.Inject
 
 class HomeActivity : AppCompatActivity(),
-        HomeActivityContract.View, OnNavigationItemSelectedListener, ConfigurationListener {
+        HomeActivityContract.View, NavigationBarView.OnItemSelectedListener , ConfigurationListener {
 
     @Inject
     lateinit var presenter: HomeActivityContract.Presenter
@@ -53,7 +52,7 @@ class HomeActivity : AppCompatActivity(),
         ButterKnife.bind(this)
 
         setSupportActionBar(toolbar)
-        navigation.setOnNavigationItemSelectedListener(this)
+        navigation.setOnItemSelectedListener(this)
 
         if (intent.getIntExtra("tab", 0) != 0) {
             navigation.selectedItemId = intent.getIntExtra("tab", 0)
