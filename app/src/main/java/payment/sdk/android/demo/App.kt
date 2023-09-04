@@ -1,16 +1,16 @@
 package payment.sdk.android.demo
 
+import android.app.Application
 import payment.sdk.android.demo.dependency.AppComponent
 import payment.sdk.android.demo.dependency.BaseComponent
 import payment.sdk.android.demo.dependency.DaggerAppComponent
 import payment.sdk.android.demo.dependency.configuration.Configuration
-import androidx.multidex.MultiDexApplication
 import androidx.appcompat.app.AppCompatDelegate
 import com.facebook.stetho.Stetho
 import payment.sdk.android.SDKConfig
 import javax.inject.Inject
 
-class App : MultiDexApplication() {
+class App : Application() {
 
     @Inject
     lateinit var configuration: Configuration
