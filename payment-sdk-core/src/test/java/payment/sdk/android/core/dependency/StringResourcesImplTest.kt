@@ -2,12 +2,12 @@ package payment.sdk.android.core.dependency
 
 import android.content.Context
 import com.flextrade.jfixture.JFixture
-import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 
 class StringResourcesImplTest {
 

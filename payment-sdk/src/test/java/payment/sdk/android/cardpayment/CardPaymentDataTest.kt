@@ -1,30 +1,28 @@
 package payment.sdk.android.cardpayment
 
-
 import android.content.Intent
-import com.flextrade.jfixture.FixtureAnnotations
-import com.flextrade.jfixture.annotations.Fixture
-import com.nhaarman.mockitokotlin2.whenever
+import junitparams.JUnitParamsRunner
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 import java.lang.IllegalArgumentException
 
+@RunWith(JUnitParamsRunner::class)
 class CardPaymentDataTest {
 
     @Mock
     lateinit var mockIntent: Intent
 
-    @Fixture
+    @Mock
     lateinit var fixtCardData: CardPaymentData
-
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
-        FixtureAnnotations.initFixtures(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test

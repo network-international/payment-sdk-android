@@ -94,7 +94,7 @@ class HorizontalViewFlipper @JvmOverloads constructor(
         flipAnimation.playTogether(rotateLeftOut, rotateRightIn)
         onAnimationEndCallback?.let { callback ->
             flipAnimation.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     callback()
                 }
             })
@@ -128,7 +128,7 @@ class HorizontalViewFlipper @JvmOverloads constructor(
         flipAnimation.playTogether(rotateRightOut, flipLeftOut)
         onAnimationEndCallback?.let { callback ->
             flipAnimation.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     callback()
                 }
             })

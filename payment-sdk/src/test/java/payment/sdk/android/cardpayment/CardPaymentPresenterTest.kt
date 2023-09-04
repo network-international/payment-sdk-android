@@ -10,7 +10,6 @@ import payment.sdk.android.core.CardType.*
 import com.flextrade.jfixture.FixtureAnnotations
 import com.flextrade.jfixture.JFixture
 import com.flextrade.jfixture.annotations.Fixture
-import com.nhaarman.mockitokotlin2.whenever
 import junitparams.JUnitParamsRunner
 import junitparams.NamedParameters
 import junitparams.Parameters
@@ -19,11 +18,13 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.*
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mock
 
 import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 import payment.sdk.android.cardpayment.card.SpacingPatterns
 import payment.sdk.android.core.OrderAmount
 
@@ -523,7 +524,7 @@ class CardPaymentPresenterTest {
 
         spiedSut.onPayClicked()
 
-        verifyZeroInteractions(mockView, mockPaymentApiInteractor)
+        verifyNoInteractions(mockView, mockPaymentApiInteractor)
     }
 
     @Test
@@ -572,9 +573,12 @@ class CardPaymentPresenterTest {
         val fixtOrderReference = fixture.create(String::class.java)
         val fixtPaymentUrl = fixture.create(String::class.java)
         val fixtCookie = fixture.create(String::class.java)
-        whenever(mockPaymentApiInteractor.getOrder(
-                anyString(), anyString(), anyObject(), anyObject())).then {
-            it.getArgument<((String, String, Set<CardType>, OrderAmount) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"))
+
+
+        whenever(
+            mockPaymentApiInteractor.getOrder(anyString(), anyString(), anyObject(), anyObject())
+        ).then {
+            it.getArgument<((String, String, Set<CardType>, OrderAmount, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", JSONObject())
         }
         whenever(mockPaymentApiInteractor.doPayment(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {
@@ -585,7 +589,7 @@ class CardPaymentPresenterTest {
     }
 
     private fun <T> anyObject(): T {
-        return Mockito.anyObject<T>()
+        return any()
     }
 
     private fun createStateFulInputMock(dirty: Boolean = false, full: Boolean = false, rawTxt: String = "", txt: String = "")
