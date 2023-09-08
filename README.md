@@ -111,23 +111,12 @@ Every possible result code is checked, and an appropriate action is taken:
 - STATUS_GENERIC_ERROR: shows possible issues on the client side, for instance, network is not accessible or an unexpected error occurs.
 
 ## Samsung pay integration
-Just like card, Samsung pay integration is also very simple.
 
-Build samsung pay request:
-```kotlin
-SamsungPayRequest.builder()
-  .merchantId(merchantId = String)
-  .merchantName(merchantName = String)
-  .orderNumber(orderNumber = String)
-  .supportedCards(supportedCards = Set<CardType>)
-  .addressInPaymentSheet(addressInPaymentSheet = SamsungPayRequest.AddressInPaymentSheet)
-  .addAmountBoxControl(amountBoxControl = AmountBoxControl)
-  .build()
-```
-And pass the above request as:
-```kotlin
-PaymentClient.launchSamsungPay(request: SamsungPayRequest)
-```
+Integrating Samsung Pay into your app is a straightforward process, similar to card payment integration. Follow these steps to seamlessly implement Samsung Pay:
+
+1. **Refer to the Integration Guide**: To begin, consult our comprehensive [Samsung Pay Integration Guide](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay). This guide provides detailed instructions and examples to help you integrate Samsung Pay effectively into your application.
+
+2. **Troubleshooting and FAQs**: If you encounter any issues during the integration process or have questions about Samsung Pay integration, please check our [Troubleshooting and FAQs section](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay#faq--troubleshooting). Here, you'll find answers to common questions and solutions to common challenges.
 
 ## Attempt threeDSTwo on a payment
 ```kotlin
