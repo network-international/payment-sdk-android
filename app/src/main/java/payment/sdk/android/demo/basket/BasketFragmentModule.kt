@@ -9,6 +9,7 @@ import payment.sdk.android.demo.dependency.BaseComponent
 import payment.sdk.android.demo.dependency.scope.FragmentViewScope
 import payment.sdk.android.PaymentClient
 import android.app.Activity
+import androidx.activity.ComponentActivity
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

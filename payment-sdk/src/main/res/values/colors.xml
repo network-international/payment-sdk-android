@@ -8,4 +8,5 @@
     <color name="dark_red">#AA0000</color>
     <color name="blue">#4885ED</color>
     <color name="dark_blue">#315A9F</color>
+    <color name="progress_green">#3A8377</color>
 </resources>

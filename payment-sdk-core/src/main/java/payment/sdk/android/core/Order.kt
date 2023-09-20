@@ -11,6 +11,8 @@ class Order {
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
 
+    var savedCard: SavedCard? = null
+
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
@@ -36,11 +38,15 @@ class Order {
         @SerializedName(value = "_links")
         var links: PaymentLinks? = null
         var reference: String? = null
+        var savedCard: SavedCard? = null
     }
 
     class PaymentLinks {
         @SerializedName(value = "payment:samsung_pay")
         var samsungPayLink: Href? = null
+
+        @SerializedName(value = "payment:saved-card")
+        var savedCard: Href? = null
     }
 
     class Href {

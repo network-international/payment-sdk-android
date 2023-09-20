@@ -1,11 +1,13 @@
 package payment.sdk.android.demo.basket.data
 
+import android.util.Log
 import payment.sdk.android.demo.dependency.configuration.Configuration
 import payment.sdk.android.core.CardMapping
 import io.reactivex.Single
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
+import payment.sdk.android.core.SavedCard
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -33,6 +35,7 @@ class PaymentOrderApiInteractor @Inject constructor(
                                 language = language
                         )
                         return@flatMap merchantApiService.createPaymentOrder(request).map { dto ->
+                            Log.i("createPaymentOrder", "order ${dto.reference}")
                             CreatePaymentOrderResponseDomain(
                                     orderReference = dto.reference,
                                     paymentAuthorizationUrl = dto.paymentLinks.paymentAuthorization.href,
@@ -54,19 +57,26 @@ class PaymentOrderApiInteractor @Inject constructor(
                 }
             }
 
-    fun createOrder(action: String, amount: BigDecimal, currency: String): Single<Order> =
+    fun createOrder(action: String, amount: BigDecimal, currency: String, savedCard: SavedCard? = null): Single<Order> =
             Single.just(configuration.locale.language)
                     .flatMap { language ->
                         val request = CreatePaymentOrderRequestDto(
-                                action = action,
-                                amount = PaymentOrderAmountDto(mapToGatewayAmount(amount), currency),
-                                language = language
+                            action = action,
+                            amount = PaymentOrderAmountDto(mapToGatewayAmount(amount), currency),
+                            language = language,
+                            savedCard = savedCard
                         )
-                        return@flatMap merchantApiService.createOrder(request).map { order ->
-                            order
-                        }
+                        return@flatMap merchantApiService.createOrder(request)
                     }
 
+    fun getOrder(orderId: String): Single<Order> {
+        return Single.just(configuration.locale.language)
+            .flatMap { language ->
+                return@flatMap merchantApiService.getOrder(orderId = orderId).map {
+                        order -> order
+                }
+            }
+    }
 
     private fun mapToGatewayAmount(amount: BigDecimal) =
             amount.movePointRight(2).toInt()
