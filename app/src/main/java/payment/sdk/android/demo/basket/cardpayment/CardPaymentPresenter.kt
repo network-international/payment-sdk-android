@@ -9,7 +9,10 @@ import payment.sdk.android.demo.dependency.scheduler.Scheduler
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentRequest
 import android.annotation.SuppressLint
+import android.util.Log
 import io.reactivex.disposables.CompositeDisposable
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.dependency.preference.Preferences
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -18,9 +21,11 @@ class CardPaymentPresenter @Inject constructor(
         private val orderApiInteractor: PaymentOrderApiInteractor,
         private val paymentClient: PaymentClient,
         private val scheduler: Scheduler,
-        private val amountDetails: AmountDetails
+        private val amountDetails: AmountDetails,
+        private val preferences: Preferences
 ) {
     private val subscriptions = CompositeDisposable()
+    private var orderId: String? = null
 
     @SuppressLint("CheckResult")
     fun launchCardPayment() {
@@ -34,6 +39,7 @@ class CardPaymentPresenter @Inject constructor(
                         .observeOn(scheduler.main())
                         .subscribe({ paymentOrderInfo ->
                             view.showProgress(false)
+                            orderId = paymentOrderInfo.orderReference
                             paymentClient.launchCardPayment(
                                     request = CardPaymentRequest.builder()
                                             .gatewayUrl(paymentOrderInfo.paymentAuthorizationUrl)
@@ -74,5 +80,41 @@ class CardPaymentPresenter @Inject constructor(
 
     fun cleanup() {
         subscriptions.dispose()
+    }
+
+    fun launchSavedCardPayment(savedCard: SavedCard) {
+        view.showProgress(true)
+        subscriptions.add(
+            orderApiInteractor.createOrder(
+                action = PaymentOrderAction.SALE, // or PaymentOrderAction.AUTH
+                amount = totalAmount(),
+                currency = amountDetails.getCurrency().currencyCode,
+                savedCard = savedCard
+            ).subscribeOn(scheduler.io())
+                .observeOn(scheduler.main())
+                .subscribe({ order ->
+                    paymentClient.launchSavedCardPayment(order, BasketFragment.THREE_DS_TWO_REQUEST_CODE)
+                }, { error ->
+                    Log.i("Error", "error")
+                })
+        )
+    }
+
+    fun getSavedCard(onSavedCard: (savedCard: SavedCard) -> Unit) {
+        orderId?.let {
+            subscriptions.add(
+                orderApiInteractor.getOrder(it)
+                    .subscribeOn(scheduler.io())
+                    .observeOn(scheduler.main())
+                    .subscribe({ order ->
+                        order.embedded?.payment?.first()?.savedCard?.let { savedCard ->
+                            preferences.saveCard(savedCard)
+                            onSavedCard(savedCard)
+                        }
+                    }, { error ->
+                        Log.i("getSavedCard", error.message!!)
+                    })
+            )
+        }
     }
 }

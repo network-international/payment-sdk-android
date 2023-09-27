@@ -48,7 +48,7 @@ data class ThreeDSecureTwoRequest(
             notificationUrl: String,
             threeDSServerTransID: String?
         ): String? {
-            if(threeDSServerTransID == null) {
+            if (threeDSServerTransID == null) {
                 return null
             }
             val data = hashMapOf<String, String>()
@@ -73,7 +73,8 @@ data class ThreeDSecureTwoRequest(
                 threeDSServerTransID = threeDSTwoConfig.getString("threeDSServerTransID")
                 threeDSMethodData =
                     constructThreeDSMethodData(threeDSMethodNotificationURL, threeDSServerTransID)
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+            }
             return ThreeDSecureTwoRequest(
                 directoryServerID,
                 threeDSMessageVersion,

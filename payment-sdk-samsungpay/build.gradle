@@ -5,10 +5,10 @@ apply plugin: 'maven-publish'
 group='com.github.network-international'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 33
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -34,7 +34,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(path: ':payment-sdk-core')
 
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
 
     testImplementation "junit:junit:$junit"

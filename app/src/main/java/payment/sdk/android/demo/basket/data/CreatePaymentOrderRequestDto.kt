@@ -1,6 +1,7 @@
 package payment.sdk.android.demo.basket.data
 
 import androidx.annotation.Keep
+import payment.sdk.android.core.SavedCard
 
 @Keep
 data class CreatePaymentOrderRequestDto(
@@ -8,7 +9,8 @@ data class CreatePaymentOrderRequestDto(
         private val amount: PaymentOrderAmountDto,
         private val language: String,
         private val description: String = "Furniture Store Android App",
-        private val merchantAttributes: Map<String, String> = mapOf()
+        private val merchantAttributes: Map<String, Any> = mapOf(),
+        private val savedCard: SavedCard? = null
 )
 
 /**

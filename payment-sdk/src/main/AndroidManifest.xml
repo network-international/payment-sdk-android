@@ -13,6 +13,10 @@
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity"
             android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
     </application>
 
 </manifest>
