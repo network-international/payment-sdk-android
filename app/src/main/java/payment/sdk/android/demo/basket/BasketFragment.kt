@@ -1,28 +1,27 @@
 package payment.sdk.android.demo.basket
 
-import payment.sdk.android.demo.App
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import butterknife.BindView
+import butterknife.ButterKnife
+import butterknife.OnClick
+import com.google.android.material.snackbar.Snackbar
 import payment.sdk.android.R
+import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.App
 import payment.sdk.android.demo.basket.data.AmountDetails
 import payment.sdk.android.demo.basket.data.BasketProductDomain
 import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderFactory
 import payment.sdk.android.demo.home.HomeActivity
-import payment.sdk.android.cardpayment.CardPaymentData
-import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import butterknife.BindView
-import butterknife.ButterKnife
 import javax.inject.Inject
-import androidx.recyclerview.widget.DividerItemDecoration
-import android.widget.ProgressBar
-import android.widget.TextView
-import butterknife.OnClick
 
 
 class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.View {
@@ -55,6 +54,18 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
 
     @BindView(R.id.order_successful)
     lateinit var orderSuccessful: View
+
+    @BindView(R.id.saved_card_view)
+    lateinit var savedCardView: View
+
+    @BindView(R.id.iv_card_logo)
+    lateinit var cardLogo: ImageView
+
+    @BindView(R.id.tv_cardholder_name)
+    lateinit var tvCardHolerName: TextView
+
+    @BindView(R.id.tv_cardholder_number)
+    lateinit var tvCardHolerNumber: TextView
 
     @Inject
     internal lateinit var viewHolderFactoryBuilder: BasketProductViewHolderFactory.Builder
@@ -101,6 +112,29 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
 
     override fun showSamsungPayButton(show: Boolean) {
         samsungPayButton.visibility = if(show) View.VISIBLE else View.GONE
+    }
+
+    override fun showSavedCardView(savedCard: SavedCard?) {
+        savedCard?.let {
+            savedCardView.visibility = View.VISIBLE
+            cardLogo.setBackgroundResource(getCardLogo(savedCard.scheme))
+            tvCardHolerName.text = savedCard.cardholderName
+            tvCardHolerNumber.text = savedCard.maskedPan
+            savedCardView.setOnClickListener {
+                presenter.onSavedCardPayment(savedCard)
+            }
+        } ?: run {
+            savedCardView.visibility = View.GONE
+        }
+    }
+
+    fun getCardLogo(scheme: String) = when (scheme) {
+        "MASTERCARD" -> payment.sdk.android.sdk.R.drawable.ic_logo_mastercard
+        "VISA" -> payment.sdk.android.sdk.R.drawable.ic_logo_visa
+        "AMERICAN_EXPRESS" -> payment.sdk.android.sdk.R.drawable.ic_logo_amex
+        "DINERS_CLUB_INTERNATIONAL" -> payment.sdk.android.sdk.R.drawable.ic_logo_dinners_clup
+        "JCB" -> payment.sdk.android.sdk.R.drawable.ic_logo_jcb
+        else -> payment.sdk.android.sdk.R.drawable.ic_card_back_chip
     }
 
     override fun showAmountLayout(show: Boolean) {
@@ -158,13 +192,18 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
         payButtonLayout.visibility = View.GONE
         amountLayout.visibility = View.GONE
         orderSuccessful.visibility = View.VISIBLE
+        savedCardView.visibility = View.GONE
     }
 
     fun onCardPaymentResponse(data: CardPaymentData) {
+        showProgress(false)
+        savedCardView.visibility = View.GONE
         presenter.onCardPaymentResponse(data)
     }
 
     fun onCardPaymentCancelled() {
+        showProgress(false)
+        savedCardView.visibility = View.GONE
         presenter.onCardPaymentCancelled()
     }
 
