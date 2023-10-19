@@ -50,7 +50,7 @@ fun CircularProgressDialog(message: String) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(modifier = Modifier.width(16.dp))
-                CircularProgressIndicator(color = colorResource(id = R.color.progress_green))
+                CircularProgressIndicator(color = colorResource(id = R.color.payment_sdk_progress_loader_color))
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(text = message, color = Color.Gray)
             }

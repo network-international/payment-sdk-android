@@ -11,8 +11,6 @@ import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import payment.sdk.android.core.SavedCard
-import payment.sdk.android.demo.dependency.preference.Preferences
 import java.lang.IllegalArgumentException
 import java.math.BigDecimal
 import java.util.*
@@ -25,9 +23,8 @@ class BasketFragmentPresenter @Inject constructor(
         private val repository: ProductRepository,
         private val scheduler: Scheduler,
         private val formatter: Formatter,
-        private val amountDetails: AmountDetails,
         private val paymentClient: PaymentClient,
-        private val preferences: Preferences
+        private val amountDetails: AmountDetails
 ) : BasketFragmentContract.Presenter {
     private val subscriptions = CompositeDisposable()
 
@@ -51,7 +48,7 @@ class BasketFragmentPresenter @Inject constructor(
                 .observeOn(scheduler.main())
                 .subscribe({ pair ->
                     amountDetails.reset() // Reset all details
-                    view.showSavedCardView(savedCard = preferences.getSavedCard())
+
                     if (pair.first.isEmpty()) {
                         view.showBasketEmptyMessage()
                         view.bindData(emptyList())
@@ -91,18 +88,11 @@ class BasketFragmentPresenter @Inject constructor(
         cardPaymentPresenter.makeSavedCardPayment()
     }
 
-    override fun onSavedCardPayment(savedCard: SavedCard) {
-        cardPaymentPresenter.launchSavedCardPayment(savedCard)
-    }
-
     override fun onCardPaymentResponse(data: CardPaymentData) {
         when (data.code) {
             CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
             CardPaymentData.STATUS_PAYMENT_PURCHASED,
             CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
-                cardPaymentPresenter.getSavedCard(onSavedCard = {
-                    view.showSavedCardView(it)
-                })
                 repository.removeAll()
                         .subscribeOn(scheduler.io())
                         .observeOn(scheduler.main())

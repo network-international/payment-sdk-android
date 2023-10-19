@@ -95,44 +95,6 @@
             android:layout_marginEnd="16dp"
             android:orientation="vertical">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/saved_card_view"
-                android:layout_width="match_parent"
-                android:visibility="gone"
-                android:layout_marginStart="16dp"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:id="@+id/iv_card_logo"
-                    android:layout_width="72dp"
-                    android:layout_height="32dp"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="@string/app_name"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/tv_cardholder_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginStart="8dp"
-                    app:layout_constraintStart_toEndOf="@+id/iv_card_logo"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="test card holder" />
-
-                <TextView
-                    android:id="@+id/tv_cardholder_number"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/iv_card_logo"
-                    app:layout_constraintTop_toBottomOf="@+id/tv_cardholder_name"
-                    tools:text="459**********374774" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
             <Button
                 android:id="@+id/pay"
                 android:layout_width="match_parent"

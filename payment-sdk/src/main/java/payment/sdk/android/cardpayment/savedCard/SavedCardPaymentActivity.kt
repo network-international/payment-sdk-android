@@ -46,7 +46,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     accessToken = (state as SavedCardPaymentState.Authorized).accessToken,
                     savedCardUrl = args.savedCardUrl,
                     savedCard = args.savedCard,
-                    cvv = null,
+                    cvv = (state as SavedCardPaymentState.Authorized).cvv,
                     orderUrl = (state as SavedCardPaymentState.Authorized).orderUrl,
                     paymentCookie = (state as SavedCardPaymentState.Authorized).paymentCookie
                 )
@@ -60,20 +60,28 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 SavedCardPaymentState.Init -> viewModel.authorize(
                     args.authUrl,
                     args.paymentUrl,
-                    args.savedCard.recaptureCsc
+                    args.savedCard.recaptureCsc,
+                    args.cvv
                 )
 
                 is SavedCardPaymentState.CaptureCvv -> {
-                    SavedCardPaymentView(args.savedCard, args.amount, args.currency) { cvv ->
-                        viewModel.doSavedCardPayment(
-                            accessToken = (state as SavedCardPaymentState.CaptureCvv).accessToken,
-                            savedCardUrl = args.savedCardUrl,
-                            savedCard = args.savedCard,
-                            cvv = cvv,
-                            orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
-                            paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie
-                        )
-                    }
+                    SavedCardPaymentView(
+                        savedCard = args.savedCard,
+                        amount = args.amount,
+                        currency = args.currency,
+                        onStartPayment = { cvv ->
+                            viewModel.doSavedCardPayment(
+                                accessToken = (state as SavedCardPaymentState.CaptureCvv).accessToken,
+                                savedCardUrl = args.savedCardUrl,
+                                savedCard = args.savedCard,
+                                cvv = cvv,
+                                orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
+                                paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie
+                            )
+                        }, onNavigationUp = {
+                            setResult(Activity.RESULT_CANCELED, Intent())
+                            finish()
+                        })
                 }
 
                 is SavedCardPaymentState.InitiateThreeDS -> {

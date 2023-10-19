@@ -1,16 +1,10 @@
 package payment.sdk.android.demo.dependency.preference
 
-import payment.sdk.android.core.SavedCard
-
 interface Preferences {
 
     fun put(key: String, value: Boolean)
 
     fun getString(key: String): String?
-
-    fun getSavedCard(): SavedCard?
-
-    fun saveCard(savedCard: SavedCard)
 
     companion object {
         /** General Preferences **/

@@ -23,6 +23,13 @@ data class SavedCardDto(
         cardholderName = cardholderName
     )
 
+    fun getExpiryFormatted(): String {
+        val (year, month) = expiry.split("-")
+        return "$month/${year.takeLast(2)}"
+    }
+
+    fun isAmex(): Boolean = scheme == "AMERICAN_EXPRESS"
+
     companion object {
         fun from(savedCard: SavedCard) = SavedCardDto(
             savedCard.cardholderName,

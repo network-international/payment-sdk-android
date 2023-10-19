@@ -21,12 +21,11 @@ import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.samsungpay.SamsungPayClient
 import payment.sdk.android.samsungpay.SamsungPayResponse
 import java.net.URI
-import kotlin.jvm.Throws
 
 
 class PaymentClient(
-    private val context: Activity,
-    val serviceId: String
+        private val context: Activity,
+        val serviceId: String
 ) {
 
     private val samsungPayClient: SamsungPayClient by lazy {
@@ -55,6 +54,36 @@ class PaymentClient(
         )
     }
 
+    /**
+     * Please note that this feature is in its early stages, and users may encounter some bugs.
+     * Initiates a payment using a saved card retrieved from an order response.
+     *
+     *
+     * To make a payment with a saved card, the 'SavedCard' object must be included in the order request body, as shown below:
+     *
+     * {
+     *     "action": "SALE",
+     *     "amount": {
+     *         "currencyCode": "AED",
+     *         "value": 140
+     *     },
+     *     "savedCard": {
+     *         "maskedPan": "230000******0222",
+     *         "expiry": "2025-08",
+     *         "cardholderName": "test",
+     *         "scheme": "MASTERCARD",
+     *         "cardToken": "card_token",
+     *         "recaptureCsc": false
+     *     }
+     * }
+     *
+     * @param order The response received from the Ngenius order API.
+     * @param code A unique code used to receive results for the 'ActivityForResult'.
+     *
+     * @throws IllegalArgumentException This function will throw an exception if the saved card
+     *                                  is not found in the order response or if the provided arguments
+     *                                  are incorrect.
+     */
     @Throws(IllegalArgumentException::class)
     fun launchSavedCardPayment(
         order: Order,
@@ -62,6 +91,54 @@ class PaymentClient(
     ) {
         val intent = SavedCardActivityArgs.getArgs(
             order = order
+        ).toIntent(context)
+        context.startActivityForResult(
+            intent,
+            code
+        )
+    }
+
+    /**
+     * Please note that this feature is in its early stages, and users may encounter some bugs.
+     * Initiates a payment using a saved card retrieved from an order response. this method accepts
+     * cvv as argument to immediately process payment
+     *
+     * To make a payment with a saved card, the 'SavedCard' object must be included in the order
+     * request body, as shown below:
+     *
+     * {
+     *     "action": "SALE",
+     *     "amount": {
+     *         "currencyCode": "AED",
+     *         "value": 140
+     *     },
+     *     "savedCard": {
+     *         "maskedPan": "230000******0222",
+     *         "expiry": "2025-08",
+     *         "cardholderName": "test",
+     *         "scheme": "MASTERCARD",
+     *         "cardToken": "card_token",
+     *         "recaptureCsc": false
+     *     }
+     * }
+     *
+     * @param order The response received from the Ngenius order API.
+     * @param cvv CVV (Card Verification Value) code to authorize the payment immediately.
+     * @param code A unique code used to receive results for the 'ActivityForResult'.
+     *
+     * @throws IllegalArgumentException This function will throw an exception if the saved card is
+     *                                  not found in the order response or if the provided arguments
+     *                                  are incorrect.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun launchSavedCardPayment(
+        order: Order,
+        cvv: String,
+        code: Int
+    ) {
+        val intent = SavedCardActivityArgs.getArgs(
+            order = order,
+            cvv
         ).toIntent(context)
         context.startActivityForResult(
             intent,
@@ -94,52 +171,49 @@ class PaymentClient(
         if (threeDSecureTwoConfig.directoryServerID != null &&
             threeDSecureTwoConfig.threeDSMessageVersion != null &&
             threeDSecureTwoConfig.threeDSTwoAuthenticationURL != null &&
-            threeDSecureTwoConfig.threeDSTwoChallengeResponseURL != null
-        ) {
+            threeDSecureTwoConfig.threeDSTwoChallengeResponseURL != null) {
 
             val threedsAuthUri = URI(threeDSecureTwoConfig.threeDSTwoAuthenticationURL)
             val authUrl = "https://${threedsAuthUri.host}/transactions/paymentAuthorization"
             val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
             val outletRef = paymentResponse.outletId
-            if (outletRef == null) {
+            if(outletRef == null) {
                 finishWithError("Outlet ref not found")
                 return
             }
             val orderRef = paymentResponse.orderReference
-            if (orderRef == null) {
+            if(orderRef == null) {
                 finishWithError("Order reference not found")
                 return
             }
             val paymentReference = paymentResponse.reference
-            if (paymentReference == null) {
+            if(paymentReference == null) {
                 finishWithError("Payment reference not found")
                 return
             }
-            val threeDSTwoChallengeResponseURL =
-                paymentResponse.links?.threeDSChallengeResponseUrl?.href
-            if (threeDSTwoChallengeResponseURL == null) {
+            val threeDSTwoChallengeResponseURL = paymentResponse.links?.threeDSChallengeResponseUrl?.href
+            if(threeDSTwoChallengeResponseURL == null) {
                 finishWithError("3ds challenge response url not found")
                 return
             }
             val threeDSMessageVersion = paymentResponse.threeDSTwo?.messageVersion
-            if (threeDSMessageVersion == null) {
+            if(threeDSMessageVersion == null) {
                 finishWithError("threeDSMessageVersion not found")
                 return
             }
             val directoryServerID = paymentResponse.threeDSTwo?.directoryServerID
-            if (directoryServerID == null) {
+            if(directoryServerID == null) {
                 finishWithError("directoryServerID not found")
                 return
             }
             val threeDSTwoAuthenticationURL = paymentResponse.links?.threeDSAuthenticationsUrl?.href
-            if (threeDSTwoAuthenticationURL == null) {
+            if(threeDSTwoAuthenticationURL == null) {
                 finishWithError("threeDSTwoAuthenticationURL not found")
                 return
             }
             val threeDSServerTransID = paymentResponse.threeDSTwo?.threeDSServerTransID
             val threeDSMethodURL = paymentResponse.threeDSTwo?.threeDSMethodURL
-            val threeDSecureRequest =
-                ThreeDSecureTwoRequest.buildFromPaymentResponse(paymentResponse)
+            val threeDSecureRequest = ThreeDSecureTwoRequest.buildFromPaymentResponse(paymentResponse)
             val threeDSMethodNotificationURL = threeDSecureRequest.threeDSMethodNotificationURL
             val threeDSMethodData = threeDSecureRequest.threeDSMethodData
             transactionServiceHttpAdapter.getAuthTokenFromCode(
@@ -173,22 +247,22 @@ class PaymentClient(
             )
         } else {
             val acsUrl = paymentResponse.threeDSOne?.acsUrl
-            if (acsUrl == null) {
+            if(acsUrl == null) {
                 finishWithError("ThreeDS one acs url not found")
                 return
             }
             val acsPaReq = paymentResponse.threeDSOne?.acsPaReq
-            if (acsPaReq == null) {
+            if(acsPaReq == null) {
                 finishWithError("ThreeDS one acsPaReq not found")
                 return
             }
             val acsMd = paymentResponse.threeDSOne?.acsMd
-            if (acsMd == null) {
+            if(acsMd == null) {
                 finishWithError("ThreeDS one acsMd not found")
                 return
             }
             val threeDSOneUrl = paymentResponse.links?.threeDSOneUrl?.href
-            if (threeDSOneUrl == null) {
+            if(threeDSOneUrl == null) {
                 finishWithError("ThreeDS one url not found")
                 return
             }

@@ -24,7 +24,4 @@ interface MerchantApiService {
 
     @POST(value = "api/createOrder")
     fun createOrder(@Body createPaymentOrderRequest: CreatePaymentOrderRequestDto): Single<Order>
-
-    @GET(value = "order/{orderId}")
-    fun getOrder(@Path("orderId") orderId: String): Single<Order>
 }
