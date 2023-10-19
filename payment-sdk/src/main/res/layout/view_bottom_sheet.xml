@@ -7,7 +7,7 @@
         android:id="@+id/toolbar3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#000000"
+        android:theme="@style/SdkTheme.ToolBarTheme"
         android:minHeight="?android:attr/actionBarSize" />
 
     <include layout="@layout/view_card_preview" />
@@ -62,17 +62,13 @@
 
     <Button
         android:id="@+id/pay_button"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="16dp"
+        android:background="@color/payment_sdk_pay_button_background_color"
+        android:textColor="@color/payment_sdk_pay_button_text_color"
+        android:layout_margin="16dp"
         android:text="@string/pay_button_title"
-        android:theme="@style/SdkTheme.PayButton"
         android:visibility="gone" />
-
-
 </androidx.appcompat.widget.LinearLayoutCompat>
 

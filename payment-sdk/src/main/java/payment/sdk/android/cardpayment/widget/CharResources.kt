@@ -53,7 +53,8 @@ internal class CharResources {
                 '/' to R.drawable.char_slash,
                 ' ' to R.drawable.char_space,
                 '.' to R.drawable.char_period,
-                '\'' to R.drawable.char_apostrophe
+                '\'' to R.drawable.char_apostrophe,
+                '*' to R.drawable.letter_x
         )
 
 
