@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.cardpayment.savedCard.SavedCardActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoRequest
@@ -49,7 +50,100 @@ class PaymentClient(
                 context = context,
                 url = request.gatewayUrl,
                 code = request.code
-        ), requestCode)
+            ), requestCode
+        )
+    }
+
+    /**
+     * Please note that this feature is in its early stages, and users may encounter some bugs.
+     * Initiates a payment using a saved card retrieved from an order response.
+     *
+     *
+     * To make a payment with a saved card, the 'SavedCard' object must be included in the order request body, as shown below:
+     *
+     * {
+     *     "action": "SALE",
+     *     "amount": {
+     *         "currencyCode": "AED",
+     *         "value": 140
+     *     },
+     *     "savedCard": {
+     *         "maskedPan": "230000******0222",
+     *         "expiry": "2025-08",
+     *         "cardholderName": "test",
+     *         "scheme": "MASTERCARD",
+     *         "cardToken": "card_token",
+     *         "recaptureCsc": false
+     *     }
+     * }
+     *
+     * @param order The response received from the Ngenius order API.
+     * @param code A unique code used to receive results for the 'ActivityForResult'.
+     *
+     * @throws IllegalArgumentException This function will throw an exception if the saved card
+     *                                  is not found in the order response or if the provided arguments
+     *                                  are incorrect.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun launchSavedCardPayment(
+        order: Order,
+        code: Int
+    ) {
+        val intent = SavedCardActivityArgs.getArgs(
+            order = order
+        ).toIntent(context)
+        context.startActivityForResult(
+            intent,
+            code
+        )
+    }
+
+    /**
+     * Please note that this feature is in its early stages, and users may encounter some bugs.
+     * Initiates a payment using a saved card retrieved from an order response. this method accepts
+     * cvv as argument to immediately process payment
+     *
+     * To make a payment with a saved card, the 'SavedCard' object must be included in the order
+     * request body, as shown below:
+     *
+     * {
+     *     "action": "SALE",
+     *     "amount": {
+     *         "currencyCode": "AED",
+     *         "value": 140
+     *     },
+     *     "savedCard": {
+     *         "maskedPan": "230000******0222",
+     *         "expiry": "2025-08",
+     *         "cardholderName": "test",
+     *         "scheme": "MASTERCARD",
+     *         "cardToken": "card_token",
+     *         "recaptureCsc": false
+     *     }
+     * }
+     *
+     * @param order The response received from the Ngenius order API.
+     * @param cvv CVV (Card Verification Value) code to authorize the payment immediately.
+     * @param code A unique code used to receive results for the 'ActivityForResult'.
+     *
+     * @throws IllegalArgumentException This function will throw an exception if the saved card is
+     *                                  not found in the order response or if the provided arguments
+     *                                  are incorrect.
+     */
+    @Throws(IllegalArgumentException::class)
+    fun launchSavedCardPayment(
+        order: Order,
+        cvv: String,
+        code: Int
+    ) {
+        val intent = SavedCardActivityArgs.getArgs(
+            order = order,
+            cvv
+        ).toIntent(context)
+        context.startActivityForResult(
+            intent,
+            code
+        )
     }
 
     fun launchSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {

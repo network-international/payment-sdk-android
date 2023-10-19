@@ -10,6 +10,7 @@
 
     <ProgressBar
         android:id="@+id/progress"
+        android:indeterminateTint="@color/payment_sdk_progress_loader_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

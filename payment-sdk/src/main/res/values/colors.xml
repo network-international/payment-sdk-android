@@ -8,4 +8,18 @@
     <color name="dark_red">#AA0000</color>
     <color name="blue">#4885ED</color>
     <color name="dark_blue">#315A9F</color>
+    <color name="progress_green">#3A8377</color>
+    <color name="payment_sdk_toolbar_color">#000000</color>
+    <color name="payment_sdk_toolbar_text_color">#FFFFFF</color>
+    <color name="payment_sdk_toolbar_icon_color">#FFFFFF</color>
+
+    <color name="payment_sdk_pay_button_background_color">#4885ED</color>
+    <color name="payment_sdk_pay_button_text_color">#FFFFFF</color>
+
+    <color name="payment_sdk_card_center_color">#232527</color>
+    <color name="payment_sdk_card_end_color">#020202</color>
+    <color name="payment_sdk_card_start_color">#43474A</color>
+
+    <color name="payment_sdk_floating_hint_color">@color/blue</color>
+    <color name="payment_sdk_progress_loader_color">@color/progress_green</color>
 </resources>

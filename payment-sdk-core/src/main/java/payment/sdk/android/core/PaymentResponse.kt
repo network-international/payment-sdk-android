@@ -91,4 +91,6 @@ class PaymentResponse {
         var acsSignedContent: String? = null
 
     }
+
+    fun isThreeDSecureTwo(): Boolean = threeDSTwo != null
 }

@@ -1,10 +1,5 @@
 package payment.sdk.android.cardpayment
 
-import payment.sdk.android.sdk.R
-import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
-import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
-import payment.sdk.android.core.dependency.StringResourcesImpl
-import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -14,7 +9,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
+import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
+import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.dependency.StringResourcesImpl
+import payment.sdk.android.sdk.R
 
 class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
 
@@ -127,6 +127,7 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         val toolbar = findViewById<Toolbar>(R.id.toolbar3)
         toolbar.setNavigationIcon(R.drawable.ic_back_button)
         toolbar.setNavigationOnClickListener {
+            setResult(RESULT_CANCELED, intent)
             finish()
         }
         toolbar.setTitle(R.string.make_payment)
