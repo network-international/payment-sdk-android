@@ -33,7 +33,7 @@ class SavedPaymentViewModel(
 
     val state: StateFlow<SavedCardPaymentState> = _state.asStateFlow()
 
-    fun authorize(authUrl: String, paymentUrl: String, recaptureCsc: Boolean) {
+    fun authorize(authUrl: String, paymentUrl: String, recaptureCsc: Boolean, cvv: String?) {
         val authCode = paymentUrl.getQueryParameter("code")
         if (authCode.isNullOrBlank()) {
             _state.update {
@@ -54,16 +54,25 @@ class SavedPaymentViewModel(
 
                 is AuthResponse.Success -> _state.update {
                     if (recaptureCsc) {
-                        SavedCardPaymentState.CaptureCvv(
-                            accessToken = authResponse.getAccessToken(),
-                            paymentCookie = authResponse.getPaymentCookie(),
-                            orderUrl = authResponse.orderUrl
-                        )
+                        if (cvv == null) {
+                            SavedCardPaymentState.CaptureCvv(
+                                accessToken = authResponse.getAccessToken(),
+                                paymentCookie = authResponse.getPaymentCookie(),
+                                orderUrl = authResponse.orderUrl
+                            )
+                        } else {
+                            SavedCardPaymentState.Authorized(
+                                accessToken = authResponse.getAccessToken(),
+                                paymentCookie = authResponse.getPaymentCookie(),
+                                orderUrl = authResponse.orderUrl,
+                                cvv = cvv
+                            )
+                        }
                     } else {
                         SavedCardPaymentState.Authorized(
                             accessToken = authResponse.getAccessToken(),
                             paymentCookie = authResponse.getPaymentCookie(),
-                            orderUrl = authResponse.orderUrl
+                            orderUrl = authResponse.orderUrl,
                         )
                     }
                 }
@@ -151,7 +160,8 @@ sealed class SavedCardPaymentState {
     data class Authorized(
         val accessToken: String,
         val paymentCookie: String,
-        val orderUrl: String
+        val orderUrl: String,
+        val cvv: String? = null
     ) : SavedCardPaymentState()
 
     data class CaptureCvv(

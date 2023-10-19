@@ -6,7 +6,6 @@ import io.reactivex.Single
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
-import payment.sdk.android.core.SavedCard
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -55,26 +54,19 @@ class PaymentOrderApiInteractor @Inject constructor(
                 }
             }
 
-    fun createOrder(action: String, amount: BigDecimal, currency: String, savedCard: SavedCard? = null): Single<Order> =
+    fun createOrder(action: String, amount: BigDecimal, currency: String): Single<Order> =
             Single.just(configuration.locale.language)
                     .flatMap { language ->
                         val request = CreatePaymentOrderRequestDto(
-                            action = action,
-                            amount = PaymentOrderAmountDto(mapToGatewayAmount(amount), currency),
-                            language = language,
-                            savedCard = savedCard
+                                action = action,
+                                amount = PaymentOrderAmountDto(mapToGatewayAmount(amount), currency),
+                                language = language
                         )
-                        return@flatMap merchantApiService.createOrder(request)
+                        return@flatMap merchantApiService.createOrder(request).map { order ->
+                            order
+                        }
                     }
 
-    fun getOrder(orderId: String): Single<Order> {
-        return Single.just(configuration.locale.language)
-            .flatMap { language ->
-                return@flatMap merchantApiService.getOrder(orderId = orderId).map {
-                        order -> order
-                }
-            }
-    }
 
     private fun mapToGatewayAmount(amount: BigDecimal) =
             amount.movePointRight(2).toInt()

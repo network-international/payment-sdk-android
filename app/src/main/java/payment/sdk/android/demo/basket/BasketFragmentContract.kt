@@ -2,7 +2,6 @@ package payment.sdk.android.demo.basket
 
 import payment.sdk.android.demo.basket.data.BasketProductDomain
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.core.SavedCard
 
 
 interface BasketFragmentContract {
@@ -31,8 +30,6 @@ interface BasketFragmentContract {
         fun showOrderSuccessful()
 
         fun showSamsungPayButton(show: Boolean)
-
-        fun showSavedCardView(savedCard: SavedCard?)
     }
 
     interface Presenter {
@@ -55,8 +52,6 @@ interface BasketFragmentContract {
         fun onCardPaymentCancelled()
 
         fun onPayWithSamsungPay()
-
-        fun onSavedCardPayment(savedCard: SavedCard)
     }
 
     interface Interactions {

@@ -24,5 +24,9 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-
+    <style name="SdkTheme.ToolBarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:background">@color/payment_sdk_toolbar_color</item>
+        <item name="colorControlNormal">@color/payment_sdk_toolbar_icon_color</item>
+        <item name="android:textColorPrimary">@color/payment_sdk_toolbar_text_color</item>
+    </style>
 </resources>

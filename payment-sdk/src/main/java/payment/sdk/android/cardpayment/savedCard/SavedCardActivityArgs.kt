@@ -15,7 +15,8 @@ data class SavedCardActivityArgs(
     val paymentUrl: String,
     val savedCard: SavedCardDto,
     val amount: Int,
-    val currency: String
+    val currency: String,
+    val cvv: String?
 ) : Parcelable {
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
 
@@ -39,7 +40,7 @@ data class SavedCardActivityArgs(
         }
 
         @Throws(IllegalArgumentException::class)
-        fun getArgs(order: Order): SavedCardActivityArgs {
+        fun getArgs(order: Order, cvv: String? = null): SavedCardActivityArgs {
             val savedCard = requireNotNull(order.savedCard) {
                 "Saved card info not found, saved card token needs to be passed in order request"
             }
@@ -49,7 +50,8 @@ data class SavedCardActivityArgs(
                 paymentUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
                 savedCard = SavedCardDto.from(savedCard),
                 amount = requireNotNull(order.amount?.value) { "Amount value not found" },
-                currency = requireNotNull(order.amount?.currencyCode) { "currency code not found" }
+                currency = requireNotNull(order.amount?.currencyCode) { "currency code not found" },
+                cvv = cvv
             )
         }
     }

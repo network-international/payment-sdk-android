@@ -70,13 +70,13 @@ dependencies {
     api 'com.facebook.stetho:stetho-okhttp3:1.5.0'
     testImplementation 'junit:junit:4.13.2'
 
-//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-core:3.0.8'
+//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-core:3.0.0'
 //
 //    // For card payment
-//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk:3.0.8'
+//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk:3.0.0'
 //
 //    //For samsung payment
-//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:3.0.8'
+//    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:3.0.0'
 
     implementation project(':payment-sdk')
     implementation project(':payment-sdk-core')

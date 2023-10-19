@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -75,7 +76,7 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
 
-        sut.authorize(authUrl = "blank", paymentUrl = "", false)
+        sut.authorize(authUrl = "blank", paymentUrl = "", false, null)
 
         assertTrue(states[0] is SavedCardPaymentState.Init)
         assertTrue(states[1] is SavedCardPaymentState.Failed)
@@ -93,7 +94,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Error(Exception("error"))
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -103,7 +104,7 @@ class SavedCardViewModelTest {
     }
 
     @Test
-    fun `authorize state is Authorized when AuthApiInteractor return success`() = runTest {
+    fun `authorize state is Authorized when AuthApiInteractor return success and cvv is null`() = runTest {
         val states: MutableList<SavedCardPaymentState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
@@ -114,7 +115,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -125,7 +126,7 @@ class SavedCardViewModelTest {
     }
 
     @Test
-    fun `authorize state is CaptureCvv when AuthApiInteractor return success`() = runTest {
+    fun `authorize state is CaptureCvv when AuthApiInteractor return success and cvv is null`() = runTest {
         val states: MutableList<SavedCardPaymentState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
@@ -136,13 +137,38 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, true)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, true, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
         assertTrue(states[0] is SavedCardPaymentState.Init)
         assertTrue(states[1] is SavedCardPaymentState.Loading)
         assertTrue(states[2] is SavedCardPaymentState.CaptureCvv)
+    }
+
+    @Test
+    fun `authorize state is Authorized when AuthApiInteractor return success and cvv is not null`() = runTest {
+        val states: MutableList<SavedCardPaymentState> = mutableListOf()
+
+        val cvv = "123"
+
+        backgroundScope.launch(testDispatcher) {
+            sut.state.toList(states)
+        }
+
+        coEvery {
+            authApiInteractor.authenticate(any(), any())
+        } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
+
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, true, cvv)
+
+        coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
+
+        assertTrue(states[0] is SavedCardPaymentState.Init)
+        assertTrue(states[1] is SavedCardPaymentState.Loading)
+        assertTrue(states[2] is SavedCardPaymentState.Authorized)
+        val resultCvv = (states[2] as SavedCardPaymentState.Authorized).cvv
+        assertEquals(cvv, resultCvv)
     }
 
     @Test

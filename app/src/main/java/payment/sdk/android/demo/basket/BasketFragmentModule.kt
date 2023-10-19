@@ -1,19 +1,19 @@
 package payment.sdk.android.demo.basket
 
+import payment.sdk.android.BuildConfig
+import payment.sdk.android.R
+import payment.sdk.android.demo.basket.data.MerchantApiService
+import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderFactory
+import payment.sdk.android.demo.basket.viewholder.ViewHolderLayoutModule
+import payment.sdk.android.demo.dependency.BaseComponent
+import payment.sdk.android.demo.dependency.scope.FragmentViewScope
+import payment.sdk.android.PaymentClient
 import android.app.Activity
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
-import payment.sdk.android.BuildConfig
-import payment.sdk.android.PaymentClient
-import payment.sdk.android.R
-import payment.sdk.android.demo.basket.data.MerchantApiService
-import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderFactory
 import payment.sdk.android.demo.basket.viewholder.DaggerBasketProductViewHolderFactory
-import payment.sdk.android.demo.basket.viewholder.ViewHolderLayoutModule
-import payment.sdk.android.demo.dependency.BaseComponent
-import payment.sdk.android.demo.dependency.scope.FragmentViewScope
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory

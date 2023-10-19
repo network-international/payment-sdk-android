@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +31,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Devices
@@ -35,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.SDKTheme
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
+import payment.sdk.android.sdk.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -42,7 +49,8 @@ fun SavedCardPaymentView(
     savedCard: SavedCardDto,
     amount: Int,
     currency: String,
-    onStartPayment: (cvv: String) -> Unit
+    onStartPayment: (cvv: String) -> Unit,
+    onNavigationUp: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val bringIntoViewRequester = BringIntoViewRequester()
@@ -50,13 +58,30 @@ fun SavedCardPaymentView(
 
     var cvv by remember { mutableStateOf("") }
 
+    val cvvLength = if (savedCard.isAmex()) 4 else 3
+
     var isErrorCvv by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Text(text = "Saved Card payment")
-            })
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.make_payment),
+                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    )
+                },
+                backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                navigationIcon = {
+                    IconButton(onClick = { onNavigationUp() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
         },
     ) { contentPadding ->
         Column(
@@ -84,7 +109,7 @@ fun SavedCardPaymentView(
                     value = cvv,
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            isErrorCvv = if (cvv.length in 3..4) {
+                            isErrorCvv = if (cvv.length == cvvLength) {
                                 onStartPayment(cvv)
                                 false
                             } else {
@@ -93,7 +118,7 @@ fun SavedCardPaymentView(
                         }
                     ),
                     onValueChange = {
-                        if (it.length <= 4) {
+                        if (it.length <= cvvLength) {
                             cvv = it
                         }
                     },
@@ -110,7 +135,7 @@ fun SavedCardPaymentView(
                     })
                 if (isErrorCvv) {
                     Text(
-                        text = "CVV is required",
+                        text = "Invalid CVV",
                         color = MaterialTheme.colors.error,
                         style = MaterialTheme.typography.caption,
                         modifier = Modifier.padding(start = 16.dp)
@@ -124,11 +149,11 @@ fun SavedCardPaymentView(
             Spacer(modifier = Modifier.weight(1f))
 
             SavedCardViewBottomBar(bringIntoViewRequester, amount, currency) {
-                if (cvv.length in 3..4) {
-                    isErrorCvv = false
+                isErrorCvv = if (cvv.length == cvvLength) {
                     onStartPayment(cvv)
+                    false
                 } else {
-                    isErrorCvv = true
+                    true
                 }
             }
         }
@@ -149,8 +174,7 @@ fun PreviewContent() {
                 scheme = "JCB"
             ),
             amount = 134,
-            currency = "AED"
-        ) { }
+            currency = "AED", {}, {})
     }
 }
 

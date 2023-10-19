@@ -20,10 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import payment.sdk.android.cardpayment.SDKTheme
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
 import payment.sdk.android.cardpayment.widget.PreviewTextView
 import payment.sdk.android.sdk.R
@@ -42,9 +45,9 @@ fun CardView(savedCard: SavedCardDto) {
             modifier = Modifier.background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        "#43474A".color,
-                        "#232527".color,
-                        "#020202".color,
+                        colorResource(id = R.color.payment_sdk_card_start_color),
+                        colorResource(id = R.color.payment_sdk_card_center_color),
+                        colorResource(id = R.color.payment_sdk_card_end_color),
                     )
                 )
             )
@@ -60,7 +63,7 @@ fun CardView(savedCard: SavedCardDto) {
 
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(start = 32.dp, bottom = 16.dp)
                     .align(Alignment.BottomStart)
             ) {
                 AndroidView(factory = { context ->
@@ -71,13 +74,14 @@ fun CardView(savedCard: SavedCardDto) {
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
+                    modifier = Modifier.padding(start = 96.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "VALID\nTHRU", fontSize = 6.sp, color = Color.White)
+                    Text(text = "EXPIRES\nEND", fontSize = 6.sp, color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
                     AndroidView(factory = { context ->
                         PreviewTextView(context).apply {
-                            text = savedCard.expiry
+                            text = savedCard.getExpiryFormatted()
                         }
                     })
                 }
@@ -106,4 +110,21 @@ private fun getCardImage(scheme: String): Painter {
             else -> R.drawable.ic_card_back_chip
         }
     )
+}
+
+@Preview()
+@Composable
+fun PreviewCardView() {
+    SDKTheme {
+        CardView(
+            savedCard = SavedCardDto(
+                cardholderName = "Cardholder name",
+                cardToken = "",
+                expiry = "2025-08",
+                maskedPan = "230377******0275",
+                recaptureCsc = false,
+                scheme = "JCB"
+            )
+        )
+    }
 }

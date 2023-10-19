@@ -2,10 +2,9 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
-        android:angle="315"
-        android:centerColor="#232527"
-        android:endColor="#020202"
-        android:startColor="#43474A"
+        android:centerColor="@color/payment_sdk_card_center_color"
+        android:endColor="@color/payment_sdk_card_end_color"
+        android:startColor="@color/payment_sdk_card_start_color"
         android:type="linear" />
     <corners android:radius="16dp" />
 </shape>
