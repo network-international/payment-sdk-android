@@ -79,7 +79,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                 paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie
                             )
                         }, onNavigationUp = {
-                            setResult(Activity.RESULT_CANCELED, Intent())
+                            setResult(RESULT_CANCELED, Intent())
                             finish()
                         })
                 }
@@ -122,6 +122,10 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 }
 
                 is SavedCardPaymentState.Loading -> CircularProgressDialog((state as SavedCardPaymentState.Loading).message)
+                SavedCardPaymentState.Captured -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
+                SavedCardPaymentState.PaymentAuthorised -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
+                SavedCardPaymentState.PostAuthReview -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+                SavedCardPaymentState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
             }
         }
     }
@@ -140,6 +144,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     "PURCHASED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
                     "CAPTURED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
                     "FAILED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+                    "POST_AUTH_REVIEW" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
                     else -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
                 }
             } else {

@@ -277,6 +277,7 @@ internal class CardPaymentPresenter(
                 } ?: interactions.onPaymentFailed()
             }
             STATUS_PAYMENT_FAILED -> interactions.onPaymentFailed()
+            STATUS_POST_AUTH_REVIEW -> interactions.onPaymentPostAuthReview()
             else -> interactions.onGenericError("Unknown payment state: $state")
         }
     }
@@ -399,6 +400,8 @@ internal class CardPaymentPresenter(
         internal const val STATUS_PAYMENT_AWAIT_3DS = "AWAIT_3DS"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_FAILED = "FAILED"
+        @VisibleForTesting
+        internal const val STATUS_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
     }
 }
 

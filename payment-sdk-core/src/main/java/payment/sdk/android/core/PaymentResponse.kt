@@ -23,6 +23,7 @@ class PaymentResponse {
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
+    var state: String? = null
     // Other classes
     class Amount {
         var currencyCode: String? = null
