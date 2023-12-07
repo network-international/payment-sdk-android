@@ -287,6 +287,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             STATUS_PAYMENT_PURCHASED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED)
             STATUS_PAYMENT_CAPTURED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
             STATUS_PAYMENT_FAILED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+            STATUS_POST_AUTH_REVIEW -> CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW)
             else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
         }
     }
@@ -420,6 +421,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val STATUS_PAYMENT_CAPTURED = "CAPTURED"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_FAILED = "FAILED"
+        @VisibleForTesting
+        internal const val STATUS_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
         internal const val INTENT_DATA_KEY = "data"
     }
 }

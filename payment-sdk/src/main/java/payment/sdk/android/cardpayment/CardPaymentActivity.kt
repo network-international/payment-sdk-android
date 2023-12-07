@@ -107,6 +107,10 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         finishWithData(CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
     }
 
+    override fun onPaymentPostAuthReview() {
+        finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY

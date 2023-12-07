@@ -105,6 +105,9 @@ class BasketFragmentPresenter @Inject constructor(
             CardPaymentData.STATUS_GENERIC_ERROR -> {
                 view.showError("Generic error(${data.reason})")
             }
+            CardPaymentData.STATUS_POST_AUTH_REVIEW -> {
+                view.showError("Post auth review")
+            }
             else -> IllegalArgumentException("Unknown payment response (${data.reason})")
         }
     }
