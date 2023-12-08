@@ -97,37 +97,43 @@ class SavedPaymentViewModel(
                 cvv = cvv
             )
             when (response) {
-                is SavedCardResponse.Error -> _state.update {
-                    SavedCardPaymentState.Failed(
-                        response.error.message!!
-                    )
-                }
-
+                is SavedCardResponse.Error -> updateFailed(response.error.message!!)
                 is SavedCardResponse.Success -> {
-                    try {
-                        if (response.paymentResponse.isThreeDSecureTwo()) {
-                            val request = threeDSecureFactory.buildThreeDSecureTwoDto(
-                                paymentResponse = response.paymentResponse,
-                                orderUrl = orderUrl,
-                                paymentCookie = paymentCookie
-                            )
-                            _state.update { SavedCardPaymentState.InitiateThreeDSTwo(request) }
-                        } else {
-                            val request =
-                                threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
-                            _state.update { SavedCardPaymentState.InitiateThreeDS(request) }
+                    when (response.paymentResponse.state) {
+                        "AUTHORISED" -> _state.update { SavedCardPaymentState.PaymentAuthorised }
+                        "PURCHASED" -> _state.update { SavedCardPaymentState.Purchased }
+                        "CAPTURED" -> _state.update { SavedCardPaymentState.Captured }
+                        "POST_AUTH_REVIEW" -> _state.update { SavedCardPaymentState.PostAuthReview }
+                        "AWAIT_3DS" -> {
+                            try {
+                                if (response.paymentResponse.isThreeDSecureTwo()) {
+                                    val request = threeDSecureFactory.buildThreeDSecureTwoDto(
+                                        paymentResponse = response.paymentResponse,
+                                        orderUrl = orderUrl,
+                                        paymentCookie = paymentCookie
+                                    )
+                                    _state.update { SavedCardPaymentState.InitiateThreeDSTwo(request) }
+                                } else {
+                                    val request =
+                                        threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
+                                    _state.update { SavedCardPaymentState.InitiateThreeDS(request) }
+                                }
+
+                            } catch (e: IllegalArgumentException) {
+                                updateFailed(e.message!!)
+                            }
                         }
 
-                    } catch (e: IllegalArgumentException) {
-                        _state.update {
-                            SavedCardPaymentState.Failed(
-                                e.message!!
-                            )
-                        }
+                        "FAILED" -> updateFailed("FAILED")
+                        else -> updateFailed("Unknown payment state: ${response.paymentResponse.state}")
                     }
                 }
             }
         }
+    }
+
+    private fun updateFailed(message: String) {
+        _state.update { SavedCardPaymentState.Failed(message) }
     }
 
     companion object {
@@ -169,6 +175,11 @@ sealed class SavedCardPaymentState {
         val paymentCookie: String,
         val orderUrl: String
     ) : SavedCardPaymentState()
+
+    object Captured : SavedCardPaymentState()
+    object PaymentAuthorised : SavedCardPaymentState()
+    object Purchased : SavedCardPaymentState()
+    object PostAuthReview : SavedCardPaymentState()
 
     data class InitiateThreeDS(val threeDSecureDto: ThreeDSecureDto) : SavedCardPaymentState()
 

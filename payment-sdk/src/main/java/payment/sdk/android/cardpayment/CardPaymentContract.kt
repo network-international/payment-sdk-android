@@ -106,6 +106,8 @@ interface CardPaymentContract {
         fun onPaymentFailed()
 
         fun onGenericError(message: String?)
+
+        fun onPaymentPostAuthReview()
     }
 
     interface StatefulInput {
