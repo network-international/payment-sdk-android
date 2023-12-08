@@ -8,6 +8,7 @@
 [![](https://jitpack.io/v/network-international/payment-sdk-android.svg)](https://jitpack.io/#network-international/payment-sdk-android)
 
 ## Specifications
+
 #### Android API Level:
 
 Android SDK and the sample merchant app support a minimum API level 19 (Android
@@ -15,9 +16,11 @@ Kitkat).
 For more details, please refer to Android API level requirements [online](https://developer.android.com/guide/topics/manifest/uses-sdk-element#min)
 
 #### Languages
+
 Android SDK supports English and Arabic.
 
 ## Installation
+
 ```groovy
 allprojects {
   repositories {
@@ -37,17 +40,21 @@ dependencies {
   implementation 'com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:1.0.0'
 }
 ```
+
 ### `payment-sdk-core`
+
 This module contains the common interfaces and classes used by the other SDK modules.
 
 ### `payment-sdk`
+
 This SDK contains the Android Pay Page source code for card payment. The module handles getting card details from the User, and submitting payment requests to the Payment Gateway. If 3D Secure is required with the existing payment flow, this will be handled by the page page as well. A successful or failed payment response will be returned to merchant app in an Intent bundle.
 
 ### `payment-sdk-samsungpay`
+
 This SDK contains the Samsung Pay source code for samsung in-app payment journey.
 
-
 ## Card integration
+
 SDK provides the PaymentClient class to launch various payment methods and get payment in the merchant app. PaymentClient requires an activity instance parameter to be instantiated. Please see the sample app for more details about using PaymentClient. It requires an activity instance rather than a Context since card payment result could only return the result to a calling activity.
 
 The following code shows how to construct PaymentClient by passing an Activity
@@ -58,6 +65,7 @@ class PaymentClient(private val context: Activity)
 ```
 
 ### Card API
+
 SDK provides a very simple API to be able to get payment using debit or credit cards.
 
 ```kotlin
@@ -82,9 +90,10 @@ override fun onActivityResult(
 
 You may notice that requestCode parameter is the same value as we already passed on to launchCardPayment method. If the User presses the Back button and cancels the card payment flow, RESULT_CANCELED is returned as an activity resultcode.
 
-
 ### Result Code in CardPaymentData
+
 View the following code snippet to see how merchant app handles result code in `CardPaymentData`
+
 ```kotlin
 override fun onCardPaymentResponse(data: CardPaymentData) {
   when (data.code) {
@@ -105,10 +114,19 @@ override fun onCardPaymentResponse(data: CardPaymentData) {
 
 Result Codes
 Every possible result code is checked, and an appropriate action is taken:
+
 - STATUS_PAYMENT_CAPTURED shows order creation with “SALE” action parameter is successful.
 - STATUS_PAYMENT_AUTHORIZED shows order creation with “AUTH” action parameter is successful.
 - STATUS_PAYMENT_FAILED shows payment is not successful on payment gateway.
 - STATUS_GENERIC_ERROR: shows possible issues on the client side, for instance, network is not accessible or an unexpected error occurs.
+
+## Saved Card Payment
+
+The saved card token serves as a secure means to facilitate payments through the SDK. For comprehensive instructions and illustrative code samples, please consult the detailed guide available [here](https://github.com/network-international/payment-sdk-android/wiki/Saved-Card-Payment).
+
+## Customizing Colors in Payment
+
+To customize the colors in the Payment SDK for Android, developers can override specific color resources. please refer to detailed guide [here](https://github.com/network-international/payment-sdk-android/wiki/Customizing-Colors-in-Payment-SDK-for-Android)
 
 ## Samsung pay integration
 
@@ -119,6 +137,7 @@ Integrating Samsung Pay into your app is a straightforward process, similar to c
 2. **Troubleshooting and FAQs**: If you encounter any issues during the integration process or have questions about Samsung Pay integration, please check our [Troubleshooting and FAQs section](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay#faq--troubleshooting). Here, you'll find answers to common questions and solutions to common challenges.
 
 ## Attempt threeDSTwo on a payment
+
 ```kotlin
 paymentClient.executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int)
 
@@ -134,19 +153,22 @@ override fun onActivityResult(
 }
 ```
 
-Use the above method to execute threeDS frictionless or challenge for a paymentResponse. 
+Use the above method to execute threeDS frictionless or challenge for a paymentResponse.
 Once the threeDS operation is completed, the `onActivityResult` method is called with the requestedCode and a CardPaymentResponse object is passed as the data element in the third argument.
 Use the same flow as handling a card response to assert the state of the payment for the order as shown in the previous section.
 
 ## Debugging build issues in your app
 
 #### Payment failure after card information is submitted
+
 Ensure your merchant account has EMV 3DS 2.0 enabled. Get in touch with our support to enable.
 
 #### Missing required architecture x86_64 in file...
+
 You need to compile and execute the project on a real device. The SDK is not compatible to be run on a simulator
 
 #### Duplicate class issue
+
 If you see the following error
 `Duplicate class com.nimbusds.jose.jwk.KeyOperation found in modules jetified-ni-three-ds-two-android-sdk-1.0-runtime`
 You need to identify another dependency in your app that has the same `com.nimbusds.jose` library and remove the duplicate copy
