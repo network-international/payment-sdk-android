@@ -322,6 +322,42 @@ class SavedCardViewModelTest {
     }
 
     @Test
+    fun `is is captured when SavedCardPaymentApiInteractor returns state captured`() = runTest {
+        val response = Gson().fromJson(
+            ClassLoader.getSystemResource("paymentResponse.json").readText(),
+            PaymentResponse::class.java
+        )
+        val states: MutableList<SavedCardPaymentState> = mutableListOf()
+
+        backgroundScope.launch(testDispatcher) {
+            sut.state.toList(states)
+        }
+        coEvery {
+            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any())
+        } returns SavedCardResponse.Success(response)
+
+        coEvery {
+            threeDSecureFactory.buildThreeDSecureDto(any())
+        } throws IllegalArgumentException("argument not found")
+
+
+        sut.doSavedCardPayment(accessToken, "saved card", savedCard, "123", "", "")
+
+        coVerify(exactly = 1) {
+            savedCardPaymentApiInteractor.doSavedCardPayment(
+                accessToken,
+                "saved card",
+                savedCard.toSavedCard(),
+                "123"
+            )
+        }
+
+        assertTrue(states[0] is SavedCardPaymentState.Init)
+        assertTrue(states[1] is SavedCardPaymentState.Loading)
+        assertTrue(states[2] is SavedCardPaymentState.Captured)
+    }
+
+    @Test
     fun `state is error when SavedCardPaymentApiInteractor returns failed when IllegalArgumentException`() =
         runTest {
             val response = Gson().fromJson(

@@ -1,0 +1,52 @@
+{
+  "_id": "urn:payment:e192cadc-5d19-48b8-8e83-87983f6e3cf5",
+  "_links": {
+    "cnp:3ds2-challenge-response": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/935936e6-cf5c-4e06-b8d4-6a58a808ea5c/orders/ff69a062-ac87-4f7c-b30e-d7c6b920d47e/payments/e192cadc-5d19-48b8-8e83-87983f6e3cf5/card/3ds2/challenge-response"
+    },
+    "self": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/935936e6-cf5c-4e06-b8d4-6a58a808ea5c/orders/ff69a062-ac87-4f7c-b30e-d7c6b920d47e/payments/e192cadc-5d19-48b8-8e83-87983f6e3cf5"
+    },
+    "cnp:3ds2-authentication": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/935936e6-cf5c-4e06-b8d4-6a58a808ea5c/orders/ff69a062-ac87-4f7c-b30e-d7c6b920d47e/payments/e192cadc-5d19-48b8-8e83-87983f6e3cf5/card/3ds2/authentications"
+    },
+    "cnp:3ds": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/935936e6-cf5c-4e06-b8d4-6a58a808ea5c/orders/ff69a062-ac87-4f7c-b30e-d7c6b920d47e/payments/e192cadc-5d19-48b8-8e83-87983f6e3cf5/card/3ds"
+    },
+    "curies": [
+      {
+        "name": "cnp",
+        "href": "https://api-gateway-dev.ngenius-payments.com/docs/rels/{rel}",
+        "templated": true
+      }
+    ]
+  },
+  "reference": "e192cadc-5d19-48b8-8e83-87983f6e3cf5",
+  "paymentMethod": {
+    "expiry": "2025-08",
+    "cardholderName": "test",
+    "name": "MASTERCARD",
+    "cardType": "DEBIT",
+    "cardCategory": "PREPAID RELOADABLE",
+    "issuingOrg": "MASTERCARD - OPERATIONS TEAM AND TECHNOLOGIES - BUSINESS OPERATIONS",
+    "issuingCountry": "US",
+    "issuingOrgWebsite": "HTTPS://WWW.MASTERCARD.US/",
+    "issuingOrgPhoneNumber": "1-800-307-7309",
+    "pan": "230377******0275",
+    "cvv": ""
+  },
+  "state": "CAPTURED",
+  "amount": {
+    "currencyCode": "AED",
+    "value": 140
+  },
+  "updateDateTime": "2023-09-25T07:27:59.393Z",
+  "outletId": "935936e6-cf5c-4e06-b8d4-6a58a808ea5c",
+  "orderReference": "ff69a062-ac87-4f7c-b30e-d7c6b920d47e",
+  "originIp": "103.255.181.185",
+  "3ds": {
+    "acsUrl": "2.1.0",
+    "acsPaReq": "",
+    "acsMd": ""
+  }
+}

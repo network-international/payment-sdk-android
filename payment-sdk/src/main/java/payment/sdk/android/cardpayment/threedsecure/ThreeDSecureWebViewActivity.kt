@@ -89,6 +89,7 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
             ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_CAPTURED -> CardPaymentData(
                 CardPaymentData.STATUS_PAYMENT_CAPTURED)
             ThreeDSecureTwoWebViewActivity.STATUS_PAYMENT_FAILED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+            ThreeDSecureTwoWebViewActivity.STATUS_POST_AUTH_REVIEW -> CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW)
             else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
         }
     }
