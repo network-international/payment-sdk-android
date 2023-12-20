@@ -89,10 +89,34 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         threeDSMethodNotificationURL = intent.getStringExtra(THREE_DS_METHOD_NOTIFICATION_URL)
         paymentCookie = intent.getStringExtra(PAYMENT_COOKIE_KEY)
         threeDSAuthenticationsUrl = intent.getStringExtra(THREE_DS_AUTH_URL_KEY)
+
+        if(threeDSAuthenticationsUrl == null) {
+            finishWithError("threeDSTwoAuthenticationURL not found")
+            return
+        }
         outletRef = intent.getStringExtra(OUTLET_REF)
+
+        if(outletRef == null) {
+            finishWithError("Outlet ref not found")
+            return
+        }
         orderRef = intent.getStringExtra(ORDER_REF)
+        if(orderRef == null) {
+            finishWithError("Order reference not found")
+            return
+        }
+
         paymentRef = intent.getStringExtra(PAYMENT_REF)
+        if(paymentRef == null) {
+            finishWithError("Payment reference not found")
+            return
+        }
         threeDSTwoChallengeResponseURL = intent.getStringExtra(THREE_DS_CHALLENGE_URL_KEY)
+        if(threeDSTwoChallengeResponseURL == null) {
+            finishWithError("3ds challenge response url not found")
+            return
+        }
+
         orderUrl = intent.getStringExtra(ORDER_URL)
 
         webView.init(this)
@@ -123,6 +147,14 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             }
         }
         showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
+    }
+
+    private fun finishWithError(message: String) {
+        val intent = Intent().apply {
+            putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
+        }
+        setResult(Activity.RESULT_OK, intent)
+        finish()
     }
 
     fun pushNewWebView(webView: ThreeDSecureTwoWebView) {
@@ -388,14 +420,14 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             threeDSMethodData: String?,
             threeDSMethodNotificationURL: String?,
             paymentCookie: String,
-            threeDSAuthenticationsUrl: String,
-            directoryServerID: String,
-            threeDSMessageVersion: String,
-            threeDSTwoChallengeResponseURL: String,
-            outletRef: String,
-            orderRef: String,
+            threeDSAuthenticationsUrl: String?,
+            directoryServerID: String?,
+            threeDSMessageVersion: String?,
+            threeDSTwoChallengeResponseURL: String?,
+            outletRef: String?,
+            orderRef: String?,
             orderUrl: String,
-            paymentRef: String
+            paymentRef: String?
         ) =
             Intent(context, ThreeDSecureTwoWebViewActivity::class.java).apply {
                 putExtra(THREE_DS_METHOD_URL, threeDSMethodURL)
