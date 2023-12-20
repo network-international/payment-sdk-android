@@ -157,15 +157,6 @@ class PaymentClient(
         samsungPayClient.isSamsungPayAvailable(statusListener)
     }
 
-    private fun finishWithError(message: String) {
-        val cardPaymentData = CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message)
-        val intent = Intent().apply {
-            putExtra(CardPaymentData.INTENT_DATA_KEY, cardPaymentData)
-        }
-        context.setResult(Activity.RESULT_OK)
-        context.finish()
-    }
-
     fun executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int) {
         val threeDSecureTwoConfig = ThreeDSecureTwoConfig.buildFromPaymentResponse(paymentResponse)
         if (threeDSecureTwoConfig.directoryServerID != null &&
@@ -177,40 +168,13 @@ class PaymentClient(
             val authUrl = "https://${threedsAuthUri.host}/transactions/paymentAuthorization"
             val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
             val outletRef = paymentResponse.outletId
-            if(outletRef == null) {
-                finishWithError("Outlet ref not found")
-                return
-            }
+
             val orderRef = paymentResponse.orderReference
-            if(orderRef == null) {
-                finishWithError("Order reference not found")
-                return
-            }
             val paymentReference = paymentResponse.reference
-            if(paymentReference == null) {
-                finishWithError("Payment reference not found")
-                return
-            }
             val threeDSTwoChallengeResponseURL = paymentResponse.links?.threeDSChallengeResponseUrl?.href
-            if(threeDSTwoChallengeResponseURL == null) {
-                finishWithError("3ds challenge response url not found")
-                return
-            }
             val threeDSMessageVersion = paymentResponse.threeDSTwo?.messageVersion
-            if(threeDSMessageVersion == null) {
-                finishWithError("threeDSMessageVersion not found")
-                return
-            }
             val directoryServerID = paymentResponse.threeDSTwo?.directoryServerID
-            if(directoryServerID == null) {
-                finishWithError("directoryServerID not found")
-                return
-            }
             val threeDSTwoAuthenticationURL = paymentResponse.links?.threeDSAuthenticationsUrl?.href
-            if(threeDSTwoAuthenticationURL == null) {
-                finishWithError("threeDSTwoAuthenticationURL not found")
-                return
-            }
             val threeDSServerTransID = paymentResponse.threeDSTwo?.threeDSServerTransID
             val threeDSMethodURL = paymentResponse.threeDSTwo?.threeDSMethodURL
             val threeDSecureRequest = ThreeDSecureTwoRequest.buildFromPaymentResponse(paymentResponse)
@@ -246,33 +210,13 @@ class PaymentClient(
                 }
             )
         } else {
-            val acsUrl = paymentResponse.threeDSOne?.acsUrl
-            if(acsUrl == null) {
-                finishWithError("ThreeDS one acs url not found")
-                return
-            }
-            val acsPaReq = paymentResponse.threeDSOne?.acsPaReq
-            if(acsPaReq == null) {
-                finishWithError("ThreeDS one acsPaReq not found")
-                return
-            }
-            val acsMd = paymentResponse.threeDSOne?.acsMd
-            if(acsMd == null) {
-                finishWithError("ThreeDS one acsMd not found")
-                return
-            }
-            val threeDSOneUrl = paymentResponse.links?.threeDSOneUrl?.href
-            if(threeDSOneUrl == null) {
-                finishWithError("ThreeDS one url not found")
-                return
-            }
             context.startActivityForResult(
                 ThreeDSecureWebViewActivity.getIntent(
                     context = context,
-                    acsUrl = acsUrl,
-                    acsPaReq = acsPaReq,
-                    acsMd = acsMd,
-                    gatewayUrl = threeDSOneUrl
+                    acsUrl = paymentResponse.threeDSOne?.acsUrl,
+                    acsPaReq = paymentResponse.threeDSOne?.acsPaReq,
+                    acsMd = paymentResponse.threeDSOne?.acsMd,
+                    gatewayUrl = paymentResponse.links?.threeDSOneUrl?.href
                 ),
                 requestCode
             )
