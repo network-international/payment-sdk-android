@@ -50,7 +50,6 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                     val orderValue = response.json("amount")!!.double("value")!!
                     val currencyCode = response.json("amount")!!.string("currencyCode")!!
                     val outletRef = response.string("outletId")
-
                     val orderAmount = OrderAmount(orderValue, currencyCode)
 
                     success(orderReference!!,
@@ -67,8 +66,17 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
     }
 
     override fun doPayment(paymentUrl: String, paymentCookie: String, pan: String, expiry: String, cvv: String,
-                           cardHolder: String, success: (state: String, response: JSONObject) -> Unit,
+                           cardHolder: String, payerIp: String?, success: (state: String, response: JSONObject) -> Unit,
                            error: (Exception) -> Unit) {
+        val bodyMap = mutableMapOf(
+            PAYMENT_FIELD_PAN to pan,
+            PAYMENT_FIELD_EXPIRY to expiry,
+            PAYMENT_FIELD_CVV to cvv,
+            PAYMENT_FIELD_CARDHOLDER to cardHolder
+        )
+        payerIp?.let {
+            bodyMap.put(PAYMENT_FIELD_PAYER_IP, it)
+        }
         httpClient.put(
                 url = paymentUrl,
                 headers = mapOf(
@@ -76,12 +84,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                         HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
                         HEADER_COOKIE to paymentCookie
                 ),
-                body = Body.Json(mapOf(
-                        PAYMENT_FIELD_PAN to pan,
-                        PAYMENT_FIELD_EXPIRY to expiry,
-                        PAYMENT_FIELD_CVV to cvv,
-                        PAYMENT_FIELD_CARDHOLDER to cardHolder
-                )),
+                body = Body.Json(bodyMap),
                 success = { (_, response) ->
                     success(response.string("state")!!, response)
                 },
@@ -162,6 +165,23 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         )
     }
 
+    override fun getPayerIp(
+        url: String,
+        success: (response: String?) -> Unit,
+        error: (Exception) -> Unit
+    ) {
+        httpClient.get(
+            url = url,
+            headers = emptyMap(),
+            success = { (_, response) ->
+                success(response.string("requesterIp"))
+            },
+            error = { exception ->
+                error(exception)
+            }
+        )
+    }
+
     companion object {
         @VisibleForTesting
         internal const val PAYMENT_FIELD_PAN = "pan"
@@ -171,6 +191,9 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         internal const val PAYMENT_FIELD_CVV = "cvv"
         @VisibleForTesting
         internal const val PAYMENT_FIELD_CARDHOLDER = "cardholderName"
+
+        @VisibleForTesting
+        internal const val PAYMENT_FIELD_PAYER_IP = "payerIp"
 
         internal const val HEADER_ACCEPT = "Accept"
         internal const val HEADER_CONTENT_TYPE = "Content-Type"

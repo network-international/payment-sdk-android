@@ -48,7 +48,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     savedCard = args.savedCard,
                     cvv = (state as SavedCardPaymentState.Authorized).cvv,
                     orderUrl = (state as SavedCardPaymentState.Authorized).orderUrl,
-                    paymentCookie = (state as SavedCardPaymentState.Authorized).paymentCookie
+                    paymentCookie = (state as SavedCardPaymentState.Authorized).paymentCookie,
+                    payPageUrl = args.paymentUrl
                 )
 
                 is SavedCardPaymentState.Failed -> finishWithData(
@@ -76,7 +77,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                 savedCard = args.savedCard,
                                 cvv = cvv,
                                 orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
-                                paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie
+                                paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie,
+                                payPageUrl = args.paymentUrl
                             )
                         }, onNavigationUp = {
                             setResult(RESULT_CANCELED, Intent())

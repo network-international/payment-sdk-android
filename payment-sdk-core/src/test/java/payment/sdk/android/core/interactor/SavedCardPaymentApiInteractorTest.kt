@@ -57,6 +57,7 @@ class SavedCardPaymentApiInteractorTest {
                 cardToken = "",
                 recaptureCsc = false
             ),
+            "1.1.1.1",
             null,
         )
 
@@ -80,6 +81,7 @@ class SavedCardPaymentApiInteractorTest {
                 cardToken = "",
                 recaptureCsc = false
             ),
+            "1.1.1.1",
             null,
         )
 
