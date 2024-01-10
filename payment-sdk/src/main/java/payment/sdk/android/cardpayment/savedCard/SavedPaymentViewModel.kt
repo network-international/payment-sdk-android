@@ -18,12 +18,14 @@ import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
+import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SavedCardResponse
 
 class SavedPaymentViewModel(
     private val authApiInteractor: AuthApiInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
+    private val getPayerIpInteractor: GetPayerIpInteractor,
     private val threeDSecureFactory: ThreeDSecureFactory,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
@@ -86,15 +88,19 @@ class SavedPaymentViewModel(
         savedCard: SavedCardDto,
         cvv: String?,
         orderUrl: String,
-        paymentCookie: String
+        paymentCookie: String,
+        payPageUrl: String,
     ) {
         _state.update { SavedCardPaymentState.Loading("Initiating Payment") }
         viewModelScope.launch(dispatcher) {
+            val payerIp = getPayerIpInteractor.getPayerIp(payPageUrl = payPageUrl)
+
             val response = savedCardPaymentApiInteractor.doSavedCardPayment(
                 accessToken = accessToken,
                 savedCardUrl = savedCardUrl,
                 savedCard = savedCard.toSavedCard(),
-                cvv = cvv
+                cvv = cvv,
+                payerIp = payerIp
             )
             when (response) {
                 is SavedCardResponse.Error -> updateFailed(response.error.message!!)
@@ -149,6 +155,7 @@ class SavedPaymentViewModel(
                 return SavedPaymentViewModel(
                     AuthApiInteractor(httpClient),
                     SavedCardPaymentApiInteractor(httpClient),
+                    GetPayerIpInteractor(httpClient),
                     ThreeDSecureFactory()
                 ) as T
             }

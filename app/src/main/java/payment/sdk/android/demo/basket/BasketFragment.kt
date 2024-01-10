@@ -1,28 +1,27 @@
 package payment.sdk.android.demo.basket
 
-import payment.sdk.android.demo.App
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
+import butterknife.BindView
+import butterknife.ButterKnife
+import butterknife.OnClick
+import com.google.android.material.snackbar.Snackbar
 import payment.sdk.android.R
+import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.App
 import payment.sdk.android.demo.basket.data.AmountDetails
 import payment.sdk.android.demo.basket.data.BasketProductDomain
 import payment.sdk.android.demo.basket.viewholder.BasketProductViewHolderFactory
 import payment.sdk.android.demo.home.HomeActivity
-import payment.sdk.android.cardpayment.CardPaymentData
-import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import butterknife.BindView
-import butterknife.ButterKnife
 import javax.inject.Inject
-import androidx.recyclerview.widget.DividerItemDecoration
-import android.widget.ProgressBar
-import android.widget.TextView
-import butterknife.OnClick
 
 
 class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.View {
@@ -55,6 +54,9 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
 
     @BindView(R.id.order_successful)
     lateinit var orderSuccessful: View
+
+    @BindView(R.id.pay_saved_card)
+    lateinit var savedCardPayButton: Button
 
     @Inject
     internal lateinit var viewHolderFactoryBuilder: BasketProductViewHolderFactory.Builder
@@ -103,6 +105,12 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
         samsungPayButton.visibility = if(show) View.VISIBLE else View.GONE
     }
 
+    override fun onSavedCard(savedCard: SavedCard) {
+        savedCardPayButton.visibility = View.VISIBLE
+        val formattedString = "Pay ${savedCard.scheme} ${savedCard.maskedPan}"
+        savedCardPayButton.text = formattedString
+    }
+
     override fun showAmountLayout(show: Boolean) {
         amountLayout.visibility = if (show) View.VISIBLE else View.GONE
     }
@@ -117,6 +125,11 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
 
     override fun setTaxAmount(amount: String) {
         taxAmountView.text = amount
+    }
+
+    @OnClick(R.id.pay_saved_card)
+    fun onSavedCardPaymentClicked() {
+        presenter.onPayWithSavedCard()
     }
 
     @OnClick(R.id.pay)
@@ -155,6 +168,7 @@ class BasketFragment : androidx.fragment.app.Fragment(), BasketFragmentContract.
 
     override fun showOrderSuccessful() {
         bindData(listOf())
+        presenter.captureCardToSave()
         payButtonLayout.visibility = View.GONE
         amountLayout.visibility = View.GONE
         orderSuccessful.visibility = View.VISIBLE

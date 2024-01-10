@@ -32,13 +32,11 @@ class CoroutinesGatewayHttpClient : HttpClient {
         headers: Map<String, String>,
         body: Body
     ): SDKHttpResponse {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = call("GET", url, headers, body, doOutput = true)
-                SDKHttpResponse.Success(response.first, response.second.toString())
-            } catch (e: java.lang.Exception) {
-                SDKHttpResponse.Failed(e)
-            }
+        return try {
+            val response = call("GET", url, headers, body, doOutput = false)
+            SDKHttpResponse.Success(response.first, response.second.toString())
+        } catch (e: java.lang.Exception) {
+            SDKHttpResponse.Failed(e)
         }
     }
 
