@@ -26,6 +26,7 @@ interface PaymentApiInteractor {
             expiry: String,
             cvv: String,
             cardHolder: String,
+            payerIp: String?,
             success: (state: String, response: JSONObject) -> Unit,
             error: (Exception) -> Unit)
 
@@ -51,5 +52,11 @@ interface PaymentApiInteractor {
             paymentCookie: String,
             success: (response: JSONObject) -> Unit,
             error: (Exception) -> Unit
+    )
+
+    fun getPayerIp(
+        url: String,
+        success: (payerIp: String?) -> Unit,
+        error: (Exception) -> Unit
     )
 }
