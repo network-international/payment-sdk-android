@@ -1,5 +1,6 @@
 package payment.sdk.android.demo.basket
 
+import com.google.gson.Gson
 import payment.sdk.android.demo.basket.cardpayment.CardPaymentPresenter
 import payment.sdk.android.demo.basket.data.AmountDetails
 import payment.sdk.android.demo.basket.data.BasketProductDomain
@@ -11,6 +12,8 @@ import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.dependency.preference.Preferences
 import java.lang.IllegalArgumentException
 import java.math.BigDecimal
 import java.util.*
@@ -24,7 +27,8 @@ class BasketFragmentPresenter @Inject constructor(
         private val scheduler: Scheduler,
         private val formatter: Formatter,
         private val paymentClient: PaymentClient,
-        private val amountDetails: AmountDetails
+        private val amountDetails: AmountDetails,
+        private val preferences: Preferences
 ) : BasketFragmentContract.Presenter {
     private val subscriptions = CompositeDisposable()
 
@@ -35,6 +39,11 @@ class BasketFragmentPresenter @Inject constructor(
      * - WARNING - Avoid leak whilst using flowable. Take first data from stream and unsubscribe
      */
     override fun init() {
+        preferences.getString(Preferences.SAVED_CARD)?.let {
+            val savedCard = Gson().fromJson(it, SavedCard::class.java)
+            view.onSavedCard(savedCard)
+        }
+
         val disposable = repository.getBasketProducts().take(1)
                 .flatMapSingle { basketProducts ->
                     val priceSum = basketProducts.map { it.prices[0].price.multiply(it.amount.toBigDecimal()) }
@@ -84,8 +93,15 @@ class BasketFragmentPresenter @Inject constructor(
         samsungPayPresenter.launchSamsungPay()
     }
 
+    override fun captureCardToSave() {
+        cardPaymentPresenter.captureSavedCard()
+    }
+
     override fun onPayWithSavedCard() {
-        cardPaymentPresenter.makeSavedCardPayment()
+        preferences.getString(Preferences.SAVED_CARD)?.let {
+            val savedCard = Gson().fromJson(it, SavedCard::class.java)
+            cardPaymentPresenter.makeSavedCardPayment(savedCard)
+        }
     }
 
     override fun onCardPaymentResponse(data: CardPaymentData) {

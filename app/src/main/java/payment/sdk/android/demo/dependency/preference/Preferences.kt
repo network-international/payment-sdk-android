@@ -4,6 +4,8 @@ interface Preferences {
 
     fun put(key: String, value: Boolean)
 
+    fun put(key: String, value: String)
+
     fun getString(key: String): String?
 
     companion object {
@@ -23,5 +25,6 @@ interface Preferences {
         const val SPAY_SHIPPING_POST_CODE = "spay_shipping_post_code"
         const val SPAY_SHIPPING_EMAIL = "spay_shipping_email"
         const val SPAY_SHIPPING_PHONE = "spay_shipping_phone"
+        const val SAVED_CARD = "saved_card"
     }
 }

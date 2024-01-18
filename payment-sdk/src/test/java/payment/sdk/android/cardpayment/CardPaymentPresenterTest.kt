@@ -576,13 +576,19 @@ class CardPaymentPresenterTest {
 
 
         whenever(
+            mockPaymentApiInteractor.getPayerIp(anyString(), anyObject(), anyObject())
+        ).then {
+            it.getArgument<((String?) -> Unit)>(1)("1.1.1.1")
+        }
+
+        whenever(
             mockPaymentApiInteractor.getOrder(anyString(), anyString(), anyObject(), anyObject())
         ).then {
             it.getArgument<((String, String, Set<CardType>, OrderAmount, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", JSONObject())
         }
         whenever(mockPaymentApiInteractor.doPayment(
-                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {
-            it.getArgument<((String, JSONObject) -> Unit)>(6)(state, JSONObject())
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {
+            it.getArgument<((String, JSONObject) -> Unit)>(7)(state, JSONObject())
         }
 
         sut.onHandlePaymentAuthorization(listOf("payment-token: $fixtCookie"), fixture.create(String::class.java))

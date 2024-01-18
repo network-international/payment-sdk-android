@@ -26,6 +26,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
+import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SavedCardResponse
 
@@ -40,8 +41,11 @@ class SavedCardViewModelTest {
     private val authApiInteractor: AuthApiInteractor = mockk(relaxed = true)
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor = mockk(relaxed = true)
     private val threeDSecureFactory: ThreeDSecureFactory = mockk(relaxed = true)
+    private val getPayerIpInteractor: GetPayerIpInteractor = mockk(relaxed = true)
 
     private lateinit var sut: SavedPaymentViewModel
+
+    private val payPageUrl = "https://paypage.sandbox.ngenius-payments.com/?code=323eas"
 
     private val savedCard = SavedCardDto(
         cardholderName = "",
@@ -58,6 +62,7 @@ class SavedCardViewModelTest {
         sut = SavedPaymentViewModel(
             authApiInteractor,
             savedCardPaymentApiInteractor,
+            getPayerIpInteractor,
             threeDSecureFactory,
             testDispatcher
         )
@@ -189,6 +194,7 @@ class SavedCardViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
             )
         } returns SavedCardResponse.Success(response)
@@ -196,6 +202,10 @@ class SavedCardViewModelTest {
         coEvery {
             threeDSecureFactory.buildThreeDSecureDto(any())
         } returns ThreeDSecureDto("", "", "", "")
+
+        coEvery {
+            getPayerIpInteractor.getPayerIp(payPageUrl)
+        } returns "1.1.1.1"
 
         val savedCard = SavedCardDto(
             cardholderName = "",
@@ -212,7 +222,8 @@ class SavedCardViewModelTest {
             savedCard,
             "123",
             "order Url",
-            paymentCookie
+            paymentCookie,
+            payPageUrl
         )
 
         coVerify(exactly = 1) {
@@ -220,6 +231,7 @@ class SavedCardViewModelTest {
                 accessToken,
                 "saved card",
                 savedCard.toSavedCard(),
+                "1.1.1.1",
                 "123"
             )
         }
@@ -243,7 +255,7 @@ class SavedCardViewModelTest {
         }
 
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any())
+            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
         } returns SavedCardResponse.Success(response)
 
         coEvery {
@@ -264,6 +276,10 @@ class SavedCardViewModelTest {
             ""
         )
 
+        coEvery {
+            getPayerIpInteractor.getPayerIp(payPageUrl)
+        } returns "1.1.1.1"
+
         val savedCard = SavedCardDto(
             cardholderName = "",
             cardToken = "",
@@ -279,7 +295,8 @@ class SavedCardViewModelTest {
             savedCard,
             "123",
             "order Url",
-            paymentCookie
+            paymentCookie,
+            payPageUrl
         )
 
         coVerify(exactly = 1) {
@@ -287,6 +304,7 @@ class SavedCardViewModelTest {
                 accessToken,
                 "saved card",
                 savedCard.toSavedCard(),
+                "1.1.1.1",
                 "123"
             )
         }
@@ -304,16 +322,29 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any())
+            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
         } returns SavedCardResponse.Error(Exception("error"))
 
-        sut.doSavedCardPayment(accessToken, "saved card", savedCard, "123", "", "")
+        coEvery {
+            getPayerIpInteractor.getPayerIp(payPageUrl)
+        } returns "1.1.1.1"
+
+        sut.doSavedCardPayment(
+            accessToken,
+            "saved card",
+            savedCard,
+            "123",
+            "",
+            "",
+            payPageUrl
+        )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
                 accessToken,
                 "saved card",
                 savedCard.toSavedCard(),
+                "1.1.1.1",
                 "123"
             )
         }
@@ -322,7 +353,7 @@ class SavedCardViewModelTest {
     }
 
     @Test
-    fun `is is captured when SavedCardPaymentApiInteractor returns state captured`() = runTest {
+    fun `state is captured when SavedCardPaymentApiInteractor returns state captured`() = runTest {
         val response = Gson().fromJson(
             ClassLoader.getSystemResource("paymentResponse.json").readText(),
             PaymentResponse::class.java
@@ -332,22 +363,31 @@ class SavedCardViewModelTest {
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
         }
+
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any())
+            getPayerIpInteractor.getPayerIp(payPageUrl)
+        } returns "1.1.1.1"
+
+        coEvery {
+            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
         } returns SavedCardResponse.Success(response)
 
-        coEvery {
-            threeDSecureFactory.buildThreeDSecureDto(any())
-        } throws IllegalArgumentException("argument not found")
-
-
-        sut.doSavedCardPayment(accessToken, "saved card", savedCard, "123", "", "")
+        sut.doSavedCardPayment(
+            accessToken,
+            "saved card",
+            savedCard,
+            "123",
+            "",
+            "",
+            payPageUrl
+        )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
                 accessToken,
                 "saved card",
                 savedCard.toSavedCard(),
+                "1.1.1.1",
                 "123"
             )
         }
@@ -371,21 +411,33 @@ class SavedCardViewModelTest {
                 sut.state.toList(states)
             }
             coEvery {
-                savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any())
+                savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
             } returns SavedCardResponse.Success(response)
 
             coEvery {
                 threeDSecureFactory.buildThreeDSecureDto(any())
             } throws IllegalArgumentException("argument not found")
 
+            coEvery {
+                getPayerIpInteractor.getPayerIp(payPageUrl)
+            } returns "1.1.1.1"
 
-            sut.doSavedCardPayment(accessToken, "saved card", savedCard, "123", "", "")
+            sut.doSavedCardPayment(
+                accessToken,
+                "saved card",
+                savedCard,
+                "123",
+                "",
+                "",
+                payPageUrl
+            )
 
             coVerify(exactly = 1) {
                 savedCardPaymentApiInteractor.doSavedCardPayment(
                     accessToken,
                     "saved card",
                     savedCard.toSavedCard(),
+                    "1.1.1.1",
                     "123"
                 )
             }

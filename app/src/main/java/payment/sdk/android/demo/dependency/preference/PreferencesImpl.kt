@@ -13,6 +13,13 @@ class PreferencesImpl @Inject constructor(private val context: Context) : Prefer
                 .apply()
     }
 
+    override fun put(key: String, value: String) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(key, value)
+            .apply()
+    }
+
     override fun getString(key: String): String? {
         return PreferenceManager.getDefaultSharedPreferences(context).getString(key, null)
     }

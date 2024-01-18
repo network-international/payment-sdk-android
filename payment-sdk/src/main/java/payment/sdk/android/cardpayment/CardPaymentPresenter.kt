@@ -239,23 +239,46 @@ internal class CardPaymentPresenter(
     override fun onPayClicked() {
         if (onValidateInputs()) {
             view.showProgress(true, stringResources.getString(LABEL_SUBMITTING_PAYMENT))
-
-            paymentApiInteractor.doPayment(
-                    paymentUrl = paymentUrl,
-                    paymentCookie = paymentCookie,
-                    pan = view.cardNumber.rawTxt,
-                    expiry = DateFormatter.formatExpireDateForApi(view.expireDate.rawTxt),
-                    cvv = view.cvv.rawTxt,
-                    cardHolder = view.cardHolder.rawTxt,
-                    success = { paymentState, paymentResponse ->
-                        view.showProgress(false)
-                        handleCardPaymentResponse(paymentState, paymentResponse)
-                    },
-                    error = {
-                        view.showProgress(false)
-                        interactions.onGenericError(it.message)
-                    })
+            paymentApiInteractor.getPayerIp(
+                getIpUrl(this.paymentUrl),
+                success = {
+                    doPayment(payerIp = it)
+                }, error = {
+                    doPayment(null)
+                })
         }
+    }
+
+    private fun getIpUrl(stringVal: String): String {
+        val slug = "/api/requester-ip"
+        if (stringVal.contains("-uat", true) ||
+            stringVal.contains("sandbox", true)
+        ) {
+            return "https://paypage.sandbox.ngenius-payments.com$slug"
+        }
+        if (stringVal.contains("-dev", true)) {
+            return "https://paypage-dev.ngenius-payments.com$slug"
+        }
+        return "https://paypage.ngenius-payments.com$slug"
+    }
+
+    private fun doPayment(payerIp: String?) {
+        paymentApiInteractor.doPayment(
+            paymentUrl = paymentUrl,
+            paymentCookie = paymentCookie,
+            pan = view.cardNumber.rawTxt,
+            expiry = DateFormatter.formatExpireDateForApi(view.expireDate.rawTxt),
+            cvv = view.cvv.rawTxt,
+            cardHolder = view.cardHolder.rawTxt,
+            payerIp = payerIp,
+            success = { paymentState, paymentResponse ->
+                view.showProgress(false)
+                handleCardPaymentResponse(paymentState, paymentResponse)
+            },
+            error = {
+                view.showProgress(false)
+                interactions.onGenericError(it.message)
+            })
     }
 
     override fun onHandle3DSecurePaymentSate(state: String) {
