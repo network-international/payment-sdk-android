@@ -1,14 +1,19 @@
 package payment.sdk.android.cardpayment
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.widget.Toolbar
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
@@ -16,7 +21,8 @@ import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R
 
-class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
+
+class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
     private lateinit var presenter: CardPaymentContract.Presenter
 
@@ -24,7 +30,16 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_card_payment)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (SDKConfig.showCancelAlert) {
+                    showDialog()
+                } else {
+                    setResult(RESULT_CANCELED, intent)
+                    finish()
+                }
+            }
+        })
         setToolBar()
         val url = intent.getStringExtra(URL_KEY)
         val code = intent.getStringExtra(CODE)
@@ -112,6 +127,7 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
         ) {
@@ -131,8 +147,12 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         val toolbar = findViewById<Toolbar>(R.id.toolbar3)
         toolbar.setNavigationIcon(R.drawable.ic_back_button)
         toolbar.setNavigationOnClickListener {
-            setResult(RESULT_CANCELED, intent)
-            finish()
+            if (SDKConfig.showCancelAlert) {
+                showDialog()
+            } else {
+                setResult(RESULT_CANCELED, intent)
+                finish()
+            }
         }
         toolbar.setTitle(R.string.make_payment)
         toolbar.setTitleTextColor(Color.WHITE)
@@ -156,6 +176,22 @@ class CardPaymentActivity : Activity(), CardPaymentContract.Interactions {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             overridePendingTransition(0, 0)
 
+        }
+    }
+
+    private fun showDialog() {
+        with(AlertDialog.Builder(this)) {
+            setMessage(R.string.cancel_payment_alert_message)
+            setTitle(R.string.cancel_payment_alert_title)
+            setCancelable(false)
+            setPositiveButton(R.string.confirm_cancel_alert) { _: DialogInterface?, _: Int ->
+                setResult(RESULT_CANCELED, intent)
+                finish()
+            }
+            setNegativeButton(R.string.cancel_alert ) { dialog: DialogInterface, _: Int ->
+                dialog.cancel()
+            }
+            show()
         }
     }
 
