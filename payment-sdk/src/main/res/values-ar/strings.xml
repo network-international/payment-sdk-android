@@ -67,4 +67,8 @@
 
     <string name="authenticating_three_ds_two">Authenticating using 3DS</string>
 
+    <string name="cancel_payment_alert_title">إلغاء الدفع</string>
+    <string name="cancel_payment_alert_message">هل أنت متأكد أنك تريد إلغاء الدفع؟</string>
+    <string name="cancel_alert">لا</string>
+    <string name="confirm_cancel_alert">نعم، ألغِ</string>
 </resources>
