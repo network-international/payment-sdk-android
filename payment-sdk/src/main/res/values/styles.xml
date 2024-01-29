@@ -3,7 +3,7 @@
     <style name="SdkTheme" />
 
     <style name="SdkTheme.Translucent" parent="Theme.AppCompat.Light.Dialog">
-        <item name="windowNoTitle">false</item>
+        <item name="windowNoTitle">true</item>
         <item name="android:windowCloseOnTouchOutside">false</item>
         <item name="android:windowBackground">@drawable/bottom_sheet_background</item>
         <item name="android:windowAnimationStyle">@style/Animation.Design.BottomSheetDialog</item>

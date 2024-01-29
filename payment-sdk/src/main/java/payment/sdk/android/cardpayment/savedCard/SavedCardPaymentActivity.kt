@@ -1,6 +1,8 @@
 package payment.sdk.android.cardpayment.savedCard
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,11 +13,13 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.savedCard.view.SavedCardPaymentView
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.sdk.R
 
 class SavedCardPaymentActivity : ComponentActivity() {
 
@@ -81,8 +85,12 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                 payPageUrl = args.paymentUrl
                             )
                         }, onNavigationUp = {
-                            setResult(RESULT_CANCELED, Intent())
-                            finish()
+                            if (SDKConfig.showCancelAlert) {
+                                showDialog()
+                            } else {
+                                setResult(RESULT_CANCELED, Intent())
+                                finish()
+                            }
                         })
                 }
 
@@ -166,10 +174,30 @@ class SavedCardPaymentActivity : ComponentActivity() {
     private fun setOnBackPressed() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                setResult(Activity.RESULT_CANCELED, Intent())
-                finish()
+                if (SDKConfig.showCancelAlert) {
+                    showDialog()
+                } else {
+                    setResult(Activity.RESULT_CANCELED, Intent())
+                    finish()
+                }
             }
         })
+    }
+
+    private fun showDialog() {
+        with(AlertDialog.Builder(this)) {
+            setMessage(R.string.cancel_payment_alert_message)
+            setTitle(R.string.cancel_payment_alert_title)
+            setCancelable(false)
+            setPositiveButton(R.string.confirm_cancel_alert) { _: DialogInterface?, _: Int ->
+                setResult(RESULT_CANCELED, intent)
+                finish()
+            }
+            setNegativeButton(R.string.cancel_alert ) { dialog: DialogInterface, _: Int ->
+                dialog.cancel()
+            }
+            show()
+        }
     }
 
     companion object {
