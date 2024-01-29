@@ -124,7 +124,25 @@ Every possible result code is checked, and an appropriate action is taken:
 
 The saved card token serves as a secure means to facilitate payments through the SDK. For comprehensive instructions and illustrative code samples, please consult the detailed guide available [here](https://github.com/network-international/payment-sdk-android/wiki/Saved-Card-Payment).
 
-## Customizing Colors in Payment
+## Customizing SDK
+
+#### Customize pay button
+
+You can utilize the `shouldShowOrderAmount` method to control the visibility of the amount on the pay button. The default value is set to true.
+
+```kotlin
+SDKConfig.shouldShowOrderAmount(true)
+```
+
+#### Optional Alert dialog
+
+To enhance user experience, you can prompt an alert dialog when users attempt to close the payment page. This feature can be enabled or disabled using the `shouldShowCancelAlert` configuration method.
+
+```kotlin
+SDKConfig.shouldShowCancelAlert(true)
+```
+
+#### Customizing Colors in Payment
 
 To customize the colors in the Payment SDK for Android, developers can override specific color resources. please refer to detailed guide [here](https://github.com/network-international/payment-sdk-android/wiki/Customizing-Colors-in-Payment-SDK-for-Android)
 
