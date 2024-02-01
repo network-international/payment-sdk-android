@@ -39,9 +39,25 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY)
+        if (acsUrl == null) {
+            finishWithError("ThreeDS one acs url not found")
+            return
+        }
         val acsPaReq = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_PA_REQ_KEY)
+        if (acsPaReq == null) {
+            finishWithError("ThreeDS one acsPaReq not found")
+            return
+        }
         val acsMd = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_MD_KEY)
+        if (acsMd == null) {
+            finishWithError("ThreeDS one acsMd not found")
+            return
+        }
         val gatewayUrl = intent.getStringExtra(ThreeDSecureWebViewClient.GATEWAY_URL_KEY)
+        if (gatewayUrl == null) {
+            finishWithError("ThreeDS one url not found")
+            return
+        }
 
         val params = StringBuilder().apply {
             append("PaReq=")
@@ -57,6 +73,15 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         webView.postUrl(acsUrl, params.toString().toByteArray())
 
         pushNewWebView(webView)
+    }
+
+    private fun finishWithError(message: String) {
+        val intent = Intent().apply {
+            putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
+            putExtra(KEY_3DS_STATE, "FAILED")
+        }
+        setResult(Activity.RESULT_OK, intent)
+        finish()
     }
 
     fun pushNewWebView(webView: ThreeDSecureWebView) {
@@ -135,7 +160,7 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
     companion object {
         const val KEY_3DS_STATE = "3ds-state"
 
-        fun getIntent(context: Context, acsUrl: String, acsPaReq: String, acsMd: String, gatewayUrl: String) =
+        fun getIntent(context: Context, acsUrl: String?, acsPaReq: String?, acsMd: String?, gatewayUrl: String?) =
                 Intent(context, ThreeDSecureWebViewActivity::class.java).apply {
                     putExtra(ThreeDSecureWebViewClient.ACS_URL_KEY, acsUrl)
                     putExtra(ThreeDSecureWebViewClient.ACS_PA_REQ_KEY, acsPaReq)
