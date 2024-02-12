@@ -79,6 +79,7 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
     private fun finishWithError(message: String) {
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
+            putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
         }
         setResult(Activity.RESULT_OK, intent)
         finish()
@@ -160,6 +161,7 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
 
     companion object {
         const val KEY_3DS_STATE = "3ds-state"
+        const val STATUS_PAYMENT_FAILED = "FAILED"
 
         fun getIntent(context: Context, acsUrl: String?, acsPaReq: String?, acsMd: String?, gatewayUrl: String?) =
                 Intent(context, ThreeDSecureWebViewActivity::class.java).apply {
