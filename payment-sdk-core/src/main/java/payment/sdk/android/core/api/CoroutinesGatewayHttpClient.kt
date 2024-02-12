@@ -1,5 +1,6 @@
 package payment.sdk.android.core.api
 
+import android.os.Build
 import androidx.annotation.UiThread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -176,8 +177,10 @@ class CoroutinesGatewayHttpClient : HttpClient {
             connectTimeout = 30000
             doOutput = isDoOutput
             useCaches = false
+            val device = "${Build.MANUFACTURER}-${Build.MODEL}"
+            val os = "OS-${Build.VERSION.SDK_INT}"
             setRequestProperty("Accept-Language", "UTF-8")
-            setRequestProperty("User-Agent", "Android Pay Page")
+            setRequestProperty("User-Agent", "Android Pay Page $device $os")
 
             headers.forEach { (key, value) ->
                 setRequestProperty(key, value)

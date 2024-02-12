@@ -152,6 +152,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private fun finishWithError(message: String) {
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
+            putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
         }
         setResult(Activity.RESULT_OK, intent)
         finish()
