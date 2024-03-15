@@ -75,7 +75,7 @@ class PaymentClient(
             val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
             val outletRef = paymentResponse.outletId
 
-            val orderRef = null
+            val orderRef = paymentResponse.orderReference
             val paymentReference = paymentResponse.reference
             val threeDSTwoChallengeResponseURL = paymentResponse.links?.threeDSChallengeResponseUrl?.href
             val threeDSMessageVersion = paymentResponse.threeDSTwo?.messageVersion
