@@ -81,5 +81,6 @@
     <string name="cancel_payment_alert_message">Are you sure you want to cancel the payment?</string>
     <string name="cancel_alert">No</string>
     <string name="confirm_cancel_alert">Yes, Cancel</string>
+    <string name="title_activity_visa_instalments">Visa Instalments</string>
 
 </resources>

@@ -71,4 +71,6 @@
     <string name="cancel_payment_alert_message">هل أنت متأكد أنك تريد إلغاء الدفع؟</string>
     <string name="cancel_alert">لا</string>
     <string name="confirm_cancel_alert">نعم، ألغِ</string>
+
+    <string name="title_activity_visa_instalments">Visa Instalments</string>
 </resources>
