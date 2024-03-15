@@ -3,6 +3,10 @@
 
     <application>
         <activity
+            android:name="payment.sdk.android.cardpayment.visaInstalments.VisaInstalmentsActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
             android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
             android:screenOrientation="behind"
             android:theme="@style/SdkTheme.Translucent"
