@@ -1,7 +1,9 @@
 package payment.sdk.android.cardpayment
 
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
+import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.VisaPlans
 
 
 interface CardPaymentContract {
@@ -108,6 +110,15 @@ interface CardPaymentContract {
         fun onGenericError(message: String?)
 
         fun onPaymentPostAuthReview()
+
+        fun launchVisaInstalment(
+            visaPlans: VisaPlans,
+            paymentCookie: String,
+            paymentUrl: String,
+            payPageUrl: String,
+            orderUrl: String,
+            newCardDto: NewCardDto
+        )
     }
 
     interface StatefulInput {

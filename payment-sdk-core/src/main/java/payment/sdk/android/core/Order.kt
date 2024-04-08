@@ -47,6 +47,12 @@ class Order {
 
         @SerializedName(value = "payment:saved-card")
         var savedCard: Href? = null
+
+        @SerializedName(value = "payment:card")
+        var card: Href? = null
+
+        @SerializedName(value = "self")
+        var selfLink: Href? = null
     }
 
     class Href {

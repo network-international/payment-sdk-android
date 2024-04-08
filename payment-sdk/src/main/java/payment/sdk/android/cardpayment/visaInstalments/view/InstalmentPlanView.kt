@@ -1,5 +1,8 @@
 package payment.sdk.android.cardpayment.visaInstalments.view
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,71 +10,150 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material.MaterialTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
+import androidx.compose.material.Checkbox
+import androidx.compose.material.CheckboxDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.cardpayment.SDKTheme
-import payment.sdk.android.cardpayment.visaInstalments.InstalmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.PlanFrequency
+import payment.sdk.android.cardpayment.visaInstalments.model.InstalmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.core.TermsAndCondition
+import payment.sdk.android.sdk.R
 
 @Composable
-fun InstalmentPlanView(plan: InstalmentPlan, isSelected: Boolean = false) {
+fun InstalmentPlanView(
+    modifier: Modifier,
+    plan: InstalmentPlan,
+    selectedPlan: InstalmentPlan?,
+    onTermsAccepted: (plan: InstalmentPlan) -> Unit
+) {
+    val isSelected = selectedPlan?.id == plan.id
+    val isTermsAccepted = selectedPlan?.termsAccepted ?: false
     Card(
-        modifier = Modifier.padding(8.dp),
-        border = BorderStroke(2.dp, if (isSelected) Color(0xFF00C7B1) else Color.Gray),
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        border = BorderStroke(3.dp, if (isSelected) Color(0xFF1D33C3) else Color(0xFF808080)),
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
                 .background(Color.White)
-                .fillMaxWidth(),
+                .fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Box(
+                modifier = Modifier
+                    .background(if (isSelected) Color(0xFFF0F4FE) else Color.White)
+                    .fillMaxWidth(),
             ) {
-                Text(
-                    text = "Pay in ${plan.numberOfInstallments}",
-                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
-                    color = Color(red = 0, green = 35, blue = 93)
-                )
-
-                Icon(Icons.Filled.Face, "menu")
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = if (plan.frequency == PlanFrequency.PayInFull) stringResource(
+                            id = R.string.visa_pay_in_full
+                        ) else stringResource(
+                            id = R.string.visa_pay_in_instalment, plan.numberOfInstallments
+                        ),
+                        style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                        color = Color(red = 0, green = 35, blue = 93)
+                    )
+                    if (plan.frequency != PlanFrequency.PayInFull) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
+                    if (plan.frequency == PlanFrequency.PayInFull) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "${plan.currency} ${plan.amount}",
+                            style = MaterialTheme.typography.h6,
+                        )
+                    } else {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(
+                                id = R.string.visa_monthly_instalment,
+                                plan.amount,
+                                plan.currency
+                            ),
+                            style = MaterialTheme.typography.h6,
+                        )
+                    }
+                    if (plan.frequency != PlanFrequency.PayInFull) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    if (plan.frequency != PlanFrequency.PayInFull) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    id = R.string.visa_processing_fee,
+                                    plan.totalUpFrontFees,
+                                    plan.currency
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = stringResource(
+                                    id = R.string.visa_monthly_rate,
+                                    plan.monthlyRate
+                                )
+                            )
+                        }
+                    }
+                }
+                if (plan.frequency != PlanFrequency.PayInFull) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "${plan.currency} ${plan.price}/${plan.frequency.value}",
-                style = MaterialTheme.typography.h6
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            AnimatedVisibility(
+                visible = isSelected && plan.frequency != PlanFrequency.PayInFull,
+                enter = expandVertically(expandFrom = Alignment.Top),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top)
             ) {
-                Text(text = "Total fees: ${plan.currency} ${plan.fee}")
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = "Total ${plan.currency} ${plan.total}")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Checkbox(
+                        checked = isTermsAccepted,
+                        onCheckedChange = {
+                            onTermsAccepted(plan.copy(termsAccepted = true))
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFF1D33C3),
+                            uncheckedColor = Color(0xFF808080)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp),
+                        text = plan.terms?.text ?: ""
+                    )
+                }
             }
         }
     }
@@ -82,15 +164,25 @@ fun InstalmentPlanView(plan: InstalmentPlan, isSelected: Boolean = false) {
 fun InstalmentPlanView_Preview() {
     SDKTheme {
         InstalmentPlanView(
+            modifier = Modifier,
             InstalmentPlan(
-                price = "108",
+                id = "12",
+                amount = "108",
                 currency = "AED",
-                fee = "20",
-                total = "648",
+                totalUpFrontFees = "20",
+                monthlyRate = "648",
                 numberOfInstallments = 6,
-                frequency = PlanFrequency.MONTHLY
+                frequency = PlanFrequency.MONTHLY,
+                terms = TermsAndCondition(
+                    languageCode = "en",
+                    text = "These terms of use constitute an agreement between you and X Pay Pvt Ltd ABN 123456 trading as X Pay(we, our, or us) (and any person who acquires your Payment Plan from us).\\nOur Buy Now Pay Later option allows you to purchase goods or services over a period of time by repaying us in equal instalments (Payment Plan).\\nBy entering into a Payment Plan, you agree to be bound by these Terms of Use.\\nYou should also read our Privacy Policy which forms a part of this agreement.\\n",
+                    url = "xyz",
+                    version = 1
+                )
             ),
-            true
-        )
+            null
+        ) {
+
+        }
     }
 }
