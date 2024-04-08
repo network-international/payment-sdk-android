@@ -1,12 +1,5 @@
 package payment.sdk.android.cardpayment
 
-import payment.sdk.android.cardpayment.CardPaymentContract.StatefulInput
-import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_AUTHORISED
-import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_CAPTURED
-import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_FAILED
-import payment.sdk.android.core.dependency.StringResources
-import payment.sdk.android.core.CardType
-import payment.sdk.android.core.CardType.*
 import com.flextrade.jfixture.FixtureAnnotations
 import com.flextrade.jfixture.JFixture
 import com.flextrade.jfixture.annotations.Fixture
@@ -14,19 +7,38 @@ import junitparams.JUnitParamsRunner
 import junitparams.NamedParameters
 import junitparams.Parameters
 import org.json.JSONObject
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
-
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.clearInvocations
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.never
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
+import payment.sdk.android.cardpayment.CardPaymentContract.StatefulInput
+import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_AUTHORISED
+import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_CAPTURED
+import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_FAILED
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.core.CardType
+import payment.sdk.android.core.CardType.AmericanExpress
+import payment.sdk.android.core.CardType.DinersClubInternational
+import payment.sdk.android.core.CardType.Discover
+import payment.sdk.android.core.CardType.JCB
+import payment.sdk.android.core.CardType.MasterCard
+import payment.sdk.android.core.CardType.Visa
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.dependency.StringResources
 
 @RunWith(JUnitParamsRunner::class)
 class CardPaymentPresenterTest {
@@ -574,6 +586,11 @@ class CardPaymentPresenterTest {
         val fixtPaymentUrl = fixture.create(String::class.java)
         val fixtCookie = fixture.create(String::class.java)
 
+        whenever(
+            mockPaymentApiInteractor.visaEligibilityCheck(cardNumber = anyString(), token =  anyString(), url =  anyString(), success =  anyObject(), error =  anyObject())
+        ).then {
+            it.getArgument<((Exception?) -> Unit)>(4)(IllegalStateException())
+        }
 
         whenever(
             mockPaymentApiInteractor.getPayerIp(anyString(), anyObject(), anyObject())
@@ -584,7 +601,7 @@ class CardPaymentPresenterTest {
         whenever(
             mockPaymentApiInteractor.getOrder(anyString(), anyString(), anyObject(), anyObject())
         ).then {
-            it.getArgument<((String, String, Set<CardType>, OrderAmount, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", JSONObject())
+            it.getArgument<((String, String, Set<CardType>, OrderAmount, String, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", "", JSONObject())
         }
         whenever(mockPaymentApiInteractor.doPayment(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {

@@ -3,6 +3,7 @@ package payment.sdk.android.cardpayment
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import androidx.annotation.VisibleForTesting
+import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
@@ -32,7 +33,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
 
     override fun getOrder(orderUrl: String,
                           paymentCookie: String,
-                          success: (String, String, Set<CardType>, orderAmount: OrderAmount, String, JSONObject) -> Unit,
+                          success: (String, String, Set<CardType>, orderAmount: OrderAmount, String, String, JSONObject) -> Unit,
                           error: (Exception) -> Unit) {
         httpClient.get(
                 url = orderUrl,
@@ -51,12 +52,15 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                     val currencyCode = response.json("amount")!!.string("currencyCode")!!
                     val outletRef = response.string("outletId")
                     val orderAmount = OrderAmount(orderValue, currencyCode)
-
+                    val selfLink = response.json("_embedded")
+                        ?.array("payment")?.at(0)
+                        ?.json("_links")?.json("self")?.string("href") ?: ""
                     success(orderReference!!,
                         paymentUrl,
                         CardMapping.mapSupportedCards(supportedCards!!),
                         orderAmount,
                         outletRef!!,
+                        selfLink,
                         response
                     )
                 },
@@ -175,6 +179,33 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
             headers = emptyMap(),
             success = { (_, response) ->
                 success(response.string("requesterIp"))
+            },
+            error = { exception ->
+                error(exception)
+            }
+        )
+    }
+
+    override fun visaEligibilityCheck(
+        url: String,
+        token: String,
+        cardNumber: String,
+        success: (isEligible: Boolean, plans: VisaPlans) -> Unit,
+        error: (Exception) -> Unit
+    ) {
+        httpClient.post(
+            url = url,
+            headers = mapOf(
+                HEADER_COOKIE to token,
+                HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
+                HEADER_ACCEPT to "application/vnd.ni-payment.v2+json"
+            ),
+            body = Body.Json(mapOf(
+                PAYMENT_FIELD_PAN to cardNumber
+            )),
+            success = { (_, response) ->
+                val plans = Gson().fromJson(response.toString(), VisaPlans::class.java)
+                success(plans.matchedPlans.isNotEmpty(), plans)
             },
             error = { exception ->
                 error(exception)

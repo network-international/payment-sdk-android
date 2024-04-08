@@ -32,7 +32,7 @@ class CardPaymentPresenter @Inject constructor(
         view.showProgress(true)
         subscriptions.add(
                 orderApiInteractor.createPaymentOrder(
-                        action = PaymentOrderAction.SALE, // or PaymentOrderAction.AUTH
+                        action = PaymentOrderAction.PURCHASE, // or PaymentOrderAction.AUTH
                         amount = totalAmount(),
                         currency = amountDetails.getCurrency().currencyCode)
                         .subscribeOn(scheduler.io())

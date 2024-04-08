@@ -16,6 +16,7 @@ import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 
@@ -37,6 +38,8 @@ internal class CardPaymentPresenter(
     private lateinit var orderAmount: OrderAmount
     private lateinit var orderUrl: String
     private lateinit var paymentRef: String
+    private lateinit var selfLink: String
+    private lateinit var payPageUrl: String
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -209,27 +212,30 @@ internal class CardPaymentPresenter(
         paymentCookie = cookies.first { it.startsWith("payment-token") }
 
         paymentApiInteractor.getOrder(
-                orderUrl = orderUrl,
-                paymentCookie = paymentCookie,
-                success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, orderJson ->
-                    var paymentRef = ""
-                    try {
-                        val order = Gson().fromJson(orderJson.toString(), Order::class.java)
-                        paymentRef = order?.embedded?.payment?.get(0)?.reference ?: ""
-                    } catch (e: Exception) { }
-                    view.showProgress(false)
-                    view.focusInCardNumber()
-                    this.orderReference = orderReference
-                    this.outletRef = outletRef
-                    this.paymentUrl = paymentUrl
-                    this.supportedCards = supportedCards
-                    this.orderAmount = orderAmount
-                    this.paymentRef = paymentRef
-                },
-                error = {
-                    view.showProgress(false)
-                    interactions.onGenericError(it.message)
-                })
+            orderUrl = orderUrl,
+            paymentCookie = paymentCookie,
+            success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, selfLink, orderJson ->
+                var paymentRef = ""
+                try {
+                    val order = Gson().fromJson(orderJson.toString(), Order::class.java)
+                    paymentRef = order?.embedded?.payment?.get(0)?.reference ?: ""
+                    this.payPageUrl = order?.links?.paymentUrl?.href ?: ""
+                } catch (e: Exception) {
+                }
+                view.showProgress(false)
+                view.focusInCardNumber()
+                this.selfLink = selfLink
+                this.orderReference = orderReference
+                this.outletRef = outletRef
+                this.paymentUrl = paymentUrl
+                this.supportedCards = supportedCards
+                this.orderAmount = orderAmount
+                this.paymentRef = paymentRef
+            },
+            error = {
+                view.showProgress(false)
+                interactions.onGenericError(it.message)
+            })
     }
 
     /**
@@ -239,14 +245,46 @@ internal class CardPaymentPresenter(
     override fun onPayClicked() {
         if (onValidateInputs()) {
             view.showProgress(true, stringResources.getString(LABEL_SUBMITTING_PAYMENT))
-            paymentApiInteractor.getPayerIp(
-                getIpUrl(this.paymentUrl),
-                success = {
-                    doPayment(payerIp = it)
-                }, error = {
-                    doPayment(null)
-                })
+            paymentApiInteractor.visaEligibilityCheck(
+                cardNumber = view.cardNumber.rawTxt,
+                token = paymentCookie,
+                url = "$selfLink/vis/eligibility-check",
+                success = { isEligible, plans ->
+                    view.showProgress(false)
+                    if (isEligible) {
+                        interactions.launchVisaInstalment(
+                            visaPlans = plans,
+                            paymentUrl = paymentUrl,
+                            paymentCookie = paymentCookie,
+                            orderUrl = orderUrl,
+                            payPageUrl = payPageUrl,
+                            newCardDto = NewCardDto(
+                                cardNumber = view.cardNumber.rawTxt,
+                                expiry = DateFormatter.formatExpireDateForApi(view.expireDate.rawTxt),
+                                customerName = view.cardHolder.rawTxt,
+                                cvv = view.cvv.rawTxt
+                            )
+                        )
+                    } else {
+                        getPayerIp()
+                    }
+                },
+                error = {
+                    getPayerIp()
+                }
+            )
+
         }
+    }
+
+    private fun getPayerIp() {
+        paymentApiInteractor.getPayerIp(
+            getIpUrl(this.paymentUrl),
+            success = {
+                doPayment(payerIp = it)
+            }, error = {
+                doPayment(null)
+            })
     }
 
     private fun getIpUrl(stringVal: String): String {
