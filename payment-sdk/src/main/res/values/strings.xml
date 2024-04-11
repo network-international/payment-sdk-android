@@ -84,17 +84,17 @@
     <string name="title_activity_visa_instalments">Visa Instalments</string>
     
     <string name="visa_instalment_eligible">Eligible for Installments</string>
-    <string name="visa_monthly_instalment">Monthly Installment: %1$s %2$s</string>
-    <string name="visa_bi_monthly_instalment">Bi-Monthly Installment: %1$s %2$s</string>
-    <string name="visa_weekly_instalment">Weekly Installment: %1$s %2$s</string>
-    <string name="visa_bi_weekly_instalment">Bi-Weekly Installment: %1$s %2$s</string>
+    <string name="visa_monthly_instalment">Monthly Installment: %1$s</string>
+    <string name="visa_bi_monthly_instalment">Bi-Monthly Installment: %1$s</string>
+    <string name="visa_weekly_instalment">Weekly Installment: %1$s</string>
+    <string name="visa_bi_weekly_instalment">Bi-Weekly Installment: %1$s</string>
 
     <string name="visa_monthly_rate">Monthly Rate: %1$s %%</string>
     <string name="visa_bi_monthly_rate">Bi-Monthly Rate: %1$s %</string>
     <string name="visa_weekly_rate">Weekly Rate: %1$s %</string>
     <string name="visa_bi_weekly_rate">Bi-Weekly Rate: %1$s %</string>
 
-    <string name="visa_processing_fee">Processing Fees: %1$s %2$s</string>
+    <string name="visa_processing_fee">Processing Fees: %1$s</string>
     <string name="visa_terms_and_conditions">Terms and Conditions</string>
     <string name="visa_read_less">Read less</string>
     <string name="visa_read_more">Read more</string>

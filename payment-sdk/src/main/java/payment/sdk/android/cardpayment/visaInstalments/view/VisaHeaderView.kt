@@ -1,11 +1,14 @@
 package payment.sdk.android.cardpayment.visaInstalments.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
@@ -17,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,8 +47,24 @@ fun VisaHeaderView(modifier: Modifier, cardNumber: String) {
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.Start
         ) {
-            Text(text = "4111 **** **** $cardNumber", style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp))
-            Text(text = stringResource(id = R.string.visa_instalment_eligible), color = Color(0xFFC6C6C6), style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp))
+            val maskedCardNumber = if (cardNumber.isNotEmpty()) {
+                cardNumber
+                    .replaceRange(6, 12, "*".repeat(6))
+                    .replace("....".toRegex(), "$0 ")
+            } else ""
+            Text(
+                text = maskedCardNumber,
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    textDirection = TextDirection.Ltr
+                )
+            )
+            Text(
+                text = stringResource(id = R.string.visa_instalment_eligible),
+                color = Color(0xFF33845C),
+                style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 16.sp)
+            )
         }
     }
 }
@@ -54,6 +74,12 @@ fun VisaHeaderView(modifier: Modifier, cardNumber: String) {
 @Composable
 fun VisaHeaderView_Preview() {
     SDKTheme {
-        VisaHeaderView(modifier = Modifier, cardNumber = "1234")
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            VisaHeaderView(modifier = Modifier, cardNumber = "4761080127842022")
+        }
     }
 }

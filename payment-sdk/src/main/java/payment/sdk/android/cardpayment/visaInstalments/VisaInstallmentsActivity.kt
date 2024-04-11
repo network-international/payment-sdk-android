@@ -16,17 +16,17 @@ import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentsVMState
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstallmentsVMState
 import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
 
-class VisaInstalmentsActivity : ComponentActivity() {
+class VisaInstallmentsActivity : ComponentActivity() {
     private val inputArgs: VisaInstalmentActivityArgs? by lazy {
         VisaInstalmentActivityArgs.fromIntent(intent = intent)
     }
 
-    private val viewModel: VisaInstalmentsViewModel by viewModels { VisaInstalmentsViewModel.Factory }
+    private val viewModel: VisaInstallmentsViewModel by viewModels { VisaInstallmentsViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,33 +44,34 @@ class VisaInstalmentsActivity : ComponentActivity() {
             val state by viewModel.state.collectAsState()
 
             when (state) {
-                is VisaInstalmentsVMState.Loading -> CircularProgressDialog((state as VisaInstalmentsVMState.Loading).message)
-                VisaInstalmentsVMState.Init -> {
+                is VisaInstallmentsVMState.Loading -> CircularProgressDialog((state as VisaInstallmentsVMState.Loading).message)
+                VisaInstallmentsVMState.Init -> {
                     viewModel.init(args = args)
                 }
 
-                is VisaInstalmentsVMState.PlanSelection -> {
+                is VisaInstallmentsVMState.PlanSelection -> {
                     VisaInstalmentsView(
-                        state = (state as VisaInstalmentsVMState.PlanSelection),
+                        state = (state as VisaInstallmentsVMState.PlanSelection),
                         onNavigationUp = {},
                         onSelectPlan = {
                             viewModel.onSelectPlan(
                                 selectedPlan = it,
-                                state = (state as VisaInstalmentsVMState.PlanSelection)
+                                state = (state as VisaInstallmentsVMState.PlanSelection)
                             )
                         },
                         onPayClicked = {
                             viewModel.makeCardPayment(
                                 plan = it,
-                                state = (state as VisaInstalmentsVMState.PlanSelection),
-                                payPageUrl = args.payPageUrl
+                                state = (state as VisaInstallmentsVMState.PlanSelection),
+                                payPageUrl = args.payPageUrl,
+                                cvv = args.cvv
                             )
                         }
                     )
                 }
 
-                is VisaInstalmentsVMState.InitiateThreeDS -> {
-                    val response = (state as VisaInstalmentsVMState.InitiateThreeDS).threeDSecureDto
+                is VisaInstallmentsVMState.InitiateThreeDS -> {
+                    val response = (state as VisaInstallmentsVMState.InitiateThreeDS).threeDSecureDto
                     startActivityForResult(
                         ThreeDSecureWebViewActivity.getIntent(
                             context = this,
@@ -83,9 +84,9 @@ class VisaInstalmentsActivity : ComponentActivity() {
                     )
                 }
 
-                is VisaInstalmentsVMState.InitiateThreeDSTwo -> {
+                is VisaInstallmentsVMState.InitiateThreeDSTwo -> {
                     val response =
-                        (state as VisaInstalmentsVMState.InitiateThreeDSTwo).threeDSecureTwoDto
+                        (state as VisaInstallmentsVMState.InitiateThreeDSTwo).threeDSecureTwoDto
                     startActivityForResult(
                         ThreeDSecureTwoWebViewActivity.getIntent(
                             context = this,
@@ -107,11 +108,11 @@ class VisaInstalmentsActivity : ComponentActivity() {
                     )
                 }
 
-                VisaInstalmentsVMState.Captured -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-                VisaInstalmentsVMState.PaymentAuthorised -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
-                VisaInstalmentsVMState.PostAuthReview -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
-                VisaInstalmentsVMState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
-                is VisaInstalmentsVMState.Failed -> finishWithData(
+                VisaInstallmentsVMState.Captured -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
+                VisaInstallmentsVMState.PaymentAuthorised -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
+                VisaInstallmentsVMState.PostAuthReview -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+                VisaInstallmentsVMState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
+                is VisaInstallmentsVMState.Failed -> finishWithData(
                     CardPaymentData(
                         CardPaymentData.STATUS_PAYMENT_FAILED
                     )

@@ -47,7 +47,7 @@ import payment.sdk.android.sdk.R
 @Composable
 fun SavedCardPaymentView(
     savedCard: SavedCardDto,
-    amount: Int,
+    amount: Double,
     currency: String,
     onStartPayment: (cvv: String) -> Unit,
     onNavigationUp: () -> Unit
@@ -173,7 +173,7 @@ fun PreviewContent() {
                 recaptureCsc = false,
                 scheme = "JCB"
             ),
-            amount = 134,
+            amount = 134.0,
             currency = "AED", {}, {})
     }
 }

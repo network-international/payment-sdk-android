@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
-import payment.sdk.android.cardpayment.visaInstalments.model.InstalmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentsVMState
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstallmentsVMState
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.CardPaymentInteractor
@@ -25,7 +25,7 @@ import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaRequest
 
-class VisaInstalmentsViewModel(
+class VisaInstallmentsViewModel(
     private val cardPaymentInteractor: CardPaymentInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
     private val getPayerIpInteractor: GetPayerIpInteractor,
@@ -33,24 +33,22 @@ class VisaInstalmentsViewModel(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
-    private var _state: MutableStateFlow<VisaInstalmentsVMState> =
-        MutableStateFlow(VisaInstalmentsVMState.Init)
+    private var _state: MutableStateFlow<VisaInstallmentsVMState> =
+        MutableStateFlow(VisaInstallmentsVMState.Init)
 
-    val state: StateFlow<VisaInstalmentsVMState> = _state.asStateFlow()
+    val state: StateFlow<VisaInstallmentsVMState> = _state.asStateFlow()
 
     fun init(
         args: VisaInstalmentActivityArgs
     ) {
-        val newPlans = mutableListOf(InstalmentPlan.payInFull())
-        newPlans.addAll(args.instalmentPlan)
         _state.update {
-            VisaInstalmentsVMState.PlanSelection(
+            VisaInstallmentsVMState.PlanSelection(
                 paymentUrl = args.paymentUrl,
                 newCardDto = args.newCard,
                 savedCardDto = args.savedCard,
                 paymentCookie = args.paymentCookie,
                 orderUrl = args.orderUrl,
-                installmentPlans = newPlans.toList(),
+                installmentPlans = args.instalmentPlan,
                 selectedPlan = null,
                 isValid = false,
                 savedCardUrl = args.savedCardUrl
@@ -58,7 +56,7 @@ class VisaInstalmentsViewModel(
         }
     }
 
-    fun onSelectPlan(selectedPlan: InstalmentPlan, state: VisaInstalmentsVMState.PlanSelection) {
+    fun onSelectPlan(selectedPlan: InstallmentPlan, state: VisaInstallmentsVMState.PlanSelection) {
         val isValid =
             selectedPlan.frequency == PlanFrequency.PayInFull || selectedPlan.termsAccepted
         _state.update {
@@ -67,11 +65,12 @@ class VisaInstalmentsViewModel(
     }
 
     fun makeCardPayment(
-        plan: InstalmentPlan,
-        state: VisaInstalmentsVMState.PlanSelection,
+        plan: InstallmentPlan,
+        state: VisaInstallmentsVMState.PlanSelection,
         payPageUrl: String,
+        cvv: String?
     ) {
-        _state.update { VisaInstalmentsVMState.Loading("Initiating Payment") }
+        _state.update { VisaInstallmentsVMState.Loading("Initiating Payment") }
 
         var visaRequest: VisaRequest? = null
         if (plan.frequency != PlanFrequency.PayInFull) {
@@ -107,7 +106,7 @@ class VisaInstalmentsViewModel(
                 val response = savedCardPaymentApiInteractor.doSavedCardPayment(
                     savedCardUrl = state.savedCardUrl,
                     accessToken = state.paymentCookie,
-                    cvv = "123",
+                    cvv = cvv,
                     savedCard = state.savedCardDto.toSavedCard(),
                     payerIp = payerIp,
                     visaRequest = visaRequest
@@ -132,10 +131,10 @@ class VisaInstalmentsViewModel(
         paymentCookie: String
     ) {
         when (paymentResponse.state) {
-            "AUTHORISED" -> _state.update { VisaInstalmentsVMState.PaymentAuthorised }
-            "PURCHASED" -> _state.update { VisaInstalmentsVMState.Purchased }
-            "CAPTURED" -> _state.update { VisaInstalmentsVMState.Captured }
-            "POST_AUTH_REVIEW" -> _state.update { VisaInstalmentsVMState.PostAuthReview }
+            "AUTHORISED" -> _state.update { VisaInstallmentsVMState.PaymentAuthorised }
+            "PURCHASED" -> _state.update { VisaInstallmentsVMState.Purchased }
+            "CAPTURED" -> _state.update { VisaInstallmentsVMState.Captured }
+            "POST_AUTH_REVIEW" -> _state.update { VisaInstallmentsVMState.PostAuthReview }
             "AWAIT_3DS" -> {
                 try {
                     if (paymentResponse.isThreeDSecureTwo()) {
@@ -146,7 +145,7 @@ class VisaInstalmentsViewModel(
                                 paymentCookie = paymentCookie
                             )
                         _state.update {
-                            VisaInstalmentsVMState.InitiateThreeDSTwo(
+                            VisaInstallmentsVMState.InitiateThreeDSTwo(
                                 request
                             )
                         }
@@ -156,7 +155,7 @@ class VisaInstalmentsViewModel(
                                 paymentResponse = paymentResponse
                             )
                         _state.update {
-                            VisaInstalmentsVMState.InitiateThreeDS(
+                            VisaInstallmentsVMState.InitiateThreeDS(
                                 request
                             )
                         }
@@ -173,7 +172,7 @@ class VisaInstalmentsViewModel(
     }
 
     private fun updateFailed(message: String) {
-        _state.update { VisaInstalmentsVMState.Failed(message) }
+        _state.update { VisaInstallmentsVMState.Failed(message) }
     }
 
     companion object {
@@ -185,7 +184,7 @@ class VisaInstalmentsViewModel(
                 extras: CreationExtras
             ): T {
                 val httpClient = CoroutinesGatewayHttpClient()
-                return VisaInstalmentsViewModel(
+                return VisaInstallmentsViewModel(
                     CardPaymentInteractor(httpClient),
                     SavedCardPaymentApiInteractor(httpClient),
                     GetPayerIpInteractor(httpClient),

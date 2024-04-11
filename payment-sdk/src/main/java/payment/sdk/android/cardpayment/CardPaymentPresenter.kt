@@ -250,7 +250,6 @@ internal class CardPaymentPresenter(
                 token = paymentCookie,
                 url = "$selfLink/vis/eligibility-check",
                 success = { isEligible, plans ->
-                    view.showProgress(false)
                     if (isEligible) {
                         interactions.launchVisaInstalment(
                             visaPlans = plans,
@@ -263,7 +262,8 @@ internal class CardPaymentPresenter(
                                 expiry = DateFormatter.formatExpireDateForApi(view.expireDate.rawTxt),
                                 customerName = view.cardHolder.rawTxt,
                                 cvv = view.cvv.rawTxt
-                            )
+                            ),
+                            orderAmount = orderAmount
                         )
                     } else {
                         getPayerIp()

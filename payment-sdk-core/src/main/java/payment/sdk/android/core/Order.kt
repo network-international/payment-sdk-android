@@ -19,7 +19,7 @@ class Order {
     // Other classes
     class Amount {
         var currencyCode: String? = null
-        var value: Int? = 0
+        var value: Double? = 0.0
     }
 
     class Links {
