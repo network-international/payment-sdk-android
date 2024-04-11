@@ -31,7 +31,7 @@ import java.util.Locale
 @Composable
 fun SavedCardViewBottomBar(
     bringIntoViewRequester: BringIntoViewRequester,
-    amount: Int,
+    amount: Double,
     currency: String,
     onPayClicked: () -> Unit
 ) {
@@ -49,7 +49,7 @@ fun SavedCardViewBottomBar(
     ) {
         val isLTR =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val orderAmount = OrderAmount(amount.toDouble(), currency)
+        val orderAmount = OrderAmount(amount, currency)
         TextButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,7 +81,7 @@ fun PreviewSavedCardViewBottomBar() {
     SDKTheme {
         SavedCardViewBottomBar(
             bringIntoViewRequester = BringIntoViewRequester(),
-            amount = 123,
+            amount = 123.00,
             currency = "AED"
         ) {
 

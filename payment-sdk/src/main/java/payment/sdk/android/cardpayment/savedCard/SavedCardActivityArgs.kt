@@ -14,7 +14,7 @@ data class SavedCardActivityArgs(
     val authUrl: String,
     val paymentUrl: String,
     val savedCard: SavedCardDto,
-    val amount: Int,
+    val amount: Double,
     val currency: String,
     val cvv: String?,
     val selfUrl: String
@@ -56,7 +56,7 @@ data class SavedCardActivityArgs(
                 currency = requireNotNull(order.amount?.currencyCode) { "currency code not found" },
                 cvv = cvv,
                 selfUrl = requireNotNull(order.embedded?.payment?.firstOrNull()?.links?.selfLink?.href) {
-                    "order reference not found"
+                    "Self URL link not found"
                 }
             )
         }

@@ -23,11 +23,11 @@ import org.junit.Test
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
-import payment.sdk.android.cardpayment.visaInstalments.model.InstalmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentsVMState
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstallmentsVMState
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.TermsAndCondition
 import payment.sdk.android.core.interactor.CardPaymentInteractor
@@ -38,7 +38,7 @@ import payment.sdk.android.core.interactor.VisaRequest
 import java.lang.Exception
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class VisaInstalmentsViewModelTest {
+class VisaInstallmentsViewModelTest {
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 
     @get:Rule
@@ -49,7 +49,7 @@ class VisaInstalmentsViewModelTest {
     private val threeDSecureFactory: ThreeDSecureFactory = mockk(relaxed = true)
     private val getPayerIpInteractor: GetPayerIpInteractor = mockk(relaxed = true)
 
-    private lateinit var sut: VisaInstalmentsViewModel
+    private lateinit var sut: VisaInstallmentsViewModel
 
     private val savedCard = SavedCardDto(
         cardholderName = "",
@@ -68,7 +68,7 @@ class VisaInstalmentsViewModelTest {
     )
 
     private val dummyPlans = listOf(
-        InstalmentPlan(
+        InstallmentPlan(
             id = "10",
             currency = "AED",
             amount = "64",
@@ -78,7 +78,7 @@ class VisaInstalmentsViewModelTest {
             frequency = PlanFrequency.PayInFull,
             terms = null
         ),
-        InstalmentPlan(
+        InstallmentPlan(
             id = "11",
             currency = "AED",
             amount = "64",
@@ -93,7 +93,7 @@ class VisaInstalmentsViewModelTest {
                 version = 1
             )
         ),
-        InstalmentPlan(
+        InstallmentPlan(
             id = "12",
             currency = "AED",
             amount = "64",
@@ -108,7 +108,7 @@ class VisaInstalmentsViewModelTest {
                 version = 1
             )
         ),
-        InstalmentPlan(
+        InstallmentPlan(
             id = "13",
             currency = "AED",
             amount = "64",
@@ -125,7 +125,7 @@ class VisaInstalmentsViewModelTest {
         )
     )
 
-    private val dummyPlanSelectionState = VisaInstalmentsVMState.PlanSelection(
+    private val dummyPlanSelectionState = VisaInstallmentsVMState.PlanSelection(
         installmentPlans = dummyPlans,
         selectedPlan = null,
         savedCardDto = null,
@@ -141,7 +141,7 @@ class VisaInstalmentsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = VisaInstalmentsViewModel(
+        sut = VisaInstallmentsViewModel(
             cardPaymentInteractor,
             savedCardPaymentApiInteractor,
             getPayerIpInteractor,
@@ -157,7 +157,7 @@ class VisaInstalmentsViewModelTest {
 
     @Test
     fun `init`() = runTest {
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
@@ -176,13 +176,13 @@ class VisaInstalmentsViewModelTest {
 
         sut.init(visaInstalmentsActivityArgs)
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.PlanSelection)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.PlanSelection)
     }
 
     @Test
     fun `test selection invalid when plan is selected and terms is accepted`() = runTest {
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
@@ -193,17 +193,17 @@ class VisaInstalmentsViewModelTest {
             dummyPlanSelectionState
         )
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.PlanSelection)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.PlanSelection)
 
-        val result = (states[1] as VisaInstalmentsVMState.PlanSelection)
+        val result = (states[1] as VisaInstallmentsVMState.PlanSelection)
 
         assertTrue(result.isValid)
     }
 
     @Test
     fun `test selection invalid when plan is selected but terms not selected`() = runTest {
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
@@ -216,10 +216,10 @@ class VisaInstalmentsViewModelTest {
             dummyPlanSelectionState
         )
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.PlanSelection)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.PlanSelection)
 
-        val result = (states[1] as VisaInstalmentsVMState.PlanSelection)
+        val result = (states[1] as VisaInstallmentsVMState.PlanSelection)
 
         assertFalse(result.isValid)
     }
@@ -230,13 +230,13 @@ class VisaInstalmentsViewModelTest {
             ClassLoader.getSystemResource("threeDSecureTwoResponse.json").readText(),
             PaymentResponse::class.java
         )
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
         }
 
-        val instalmentPlan = InstalmentPlan(
+        val instalmentPlan = InstallmentPlan(
             id = "12",
             currency = "AED",
             amount = "64",
@@ -284,12 +284,13 @@ class VisaInstalmentsViewModelTest {
         sut.makeCardPayment(
             instalmentPlan,
             dummyPlanSelectionState.copy(paymentUrl = "paymentUrl", newCardDto = newCardDto),
-            payPageUrl
+            payPageUrl,
+            "123"
         )
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.Loading)
-        assertTrue(states[2] is VisaInstalmentsVMState.InitiateThreeDSTwo)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.Loading)
+        assertTrue(states[2] is VisaInstallmentsVMState.InitiateThreeDSTwo)
 
         coVerify { getPayerIpInteractor.getPayerIp(any()) }
 
@@ -313,13 +314,13 @@ class VisaInstalmentsViewModelTest {
             ClassLoader.getSystemResource("threeDSecureTwoResponse.json").readText(),
             PaymentResponse::class.java
         )
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
         }
 
-        val instalmentPlan = InstalmentPlan(
+        val instalmentPlan = InstallmentPlan(
             id = "12",
             currency = "AED",
             amount = "64",
@@ -373,12 +374,13 @@ class VisaInstalmentsViewModelTest {
         sut.makeCardPayment(
             instalmentPlan,
             dummyPlanSelectionState.copy(paymentUrl = "paymentUrl", newCardDto = newCardDto),
-            payPageUrl
+            payPageUrl,
+            "123"
         )
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.Loading)
-        assertTrue(states[2] is VisaInstalmentsVMState.InitiateThreeDSTwo)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.Loading)
+        assertTrue(states[2] is VisaInstallmentsVMState.InitiateThreeDSTwo)
 
         coVerify { getPayerIpInteractor.getPayerIp(any()) }
 
@@ -398,13 +400,13 @@ class VisaInstalmentsViewModelTest {
 
     @Test
     fun `make payment fails if API return failure`() = runTest {
-        val states: MutableList<VisaInstalmentsVMState> = mutableListOf()
+        val states: MutableList<VisaInstallmentsVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.state.toList(states)
         }
 
-        val instalmentPlan = InstalmentPlan(
+        val instalmentPlan = InstallmentPlan(
             id = "12",
             currency = "AED",
             amount = "64",
@@ -435,12 +437,13 @@ class VisaInstalmentsViewModelTest {
         sut.makeCardPayment(
             instalmentPlan,
             dummyPlanSelectionState.copy(paymentUrl = "paymentUrl", newCardDto = newCardDto),
-            payPageUrl
+            payPageUrl,
+            "123"
         )
 
-        assertTrue(states[0] is VisaInstalmentsVMState.Init)
-        assertTrue(states[1] is VisaInstalmentsVMState.Loading)
-        assertTrue(states[2] is VisaInstalmentsVMState.Failed)
+        assertTrue(states[0] is VisaInstallmentsVMState.Init)
+        assertTrue(states[1] is VisaInstallmentsVMState.Loading)
+        assertTrue(states[2] is VisaInstallmentsVMState.Failed)
 
         coVerify(exactly = 1) { getPayerIpInteractor.getPayerIp(any()) }
     }

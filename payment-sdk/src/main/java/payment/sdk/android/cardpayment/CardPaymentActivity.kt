@@ -19,6 +19,7 @@ import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
@@ -135,7 +136,8 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         paymentUrl: String,
         payPageUrl: String,
         orderUrl: String,
-        newCardDto: NewCardDto
+        newCardDto: NewCardDto,
+        orderAmount: OrderAmount
     ) {
         startActivityForResult(
             VisaInstalmentActivityArgs.getArgs(
@@ -146,7 +148,8 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                 newCard = newCardDto,
                 payPageUrl = payPageUrl,
                 savedCard = null,
-                orderUrl = orderUrl
+                orderUrl = orderUrl,
+                orderAmount = orderAmount
             ).toIntent(this),
             VISA_INSTALMENT_SELECTION_KEY
         )

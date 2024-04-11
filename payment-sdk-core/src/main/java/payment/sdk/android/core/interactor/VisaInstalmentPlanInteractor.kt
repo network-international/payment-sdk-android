@@ -1,6 +1,5 @@
 package payment.sdk.android.core.interactor
 
-import android.util.Log
 import com.google.gson.Gson
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.Body
@@ -14,7 +13,7 @@ class VisaInstalmentPlanInteractor(
         selfUrl: String,
         cardToken: String,
         token: String
-    ): VisaPlans? {
+    ): VisaPlansResponse {
         val response = httpClient.post(
             url = "$selfUrl/vis/eligibility-check",
             headers = mapOf(
@@ -26,13 +25,11 @@ class VisaInstalmentPlanInteractor(
                 mapOf("cardToken" to cardToken)
             )
         )
-        return when(response) {
-            is SDKHttpResponse.Failed -> {
-                Log.i("VisaInstalmentPlan", "error")
-                return null
-            }
+        return when (response) {
+            is SDKHttpResponse.Failed -> VisaPlansResponse.Error(response.error)
             is SDKHttpResponse.Success -> {
-                return Gson().fromJson(response.body, VisaPlans::class.java)
+                val visaPlans = Gson().fromJson(response.body, VisaPlans::class.java)
+                return VisaPlansResponse.Success(visaPlans)
             }
         }
     }
@@ -42,4 +39,9 @@ class VisaInstalmentPlanInteractor(
         const val HEADER_ACCEPT = "Accept"
         const val HEADER_CONTENT_TYPE = "Content-Type"
     }
+}
+
+sealed class VisaPlansResponse {
+    data class Success(val visaPlans: VisaPlans) : VisaPlansResponse()
+    data class Error(val error: Exception) : VisaPlansResponse()
 }

@@ -6,7 +6,8 @@ import android.os.Parcelable
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
-import payment.sdk.android.cardpayment.visaInstalments.VisaInstalmentsActivity
+import payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsActivity
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
 import kotlin.jvm.Throws
 
@@ -19,14 +20,15 @@ class VisaInstalmentActivityArgs(
     val savedCardUrl: String?,
     val paymentUrl: String?,
     val payPageUrl: String,
-    val instalmentPlan: List<InstalmentPlan>
+    val instalmentPlan: List<InstallmentPlan>,
+    val cvv: String? = null
 ) : Parcelable {
 
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
 
     fun toIntent(context: Context) = Intent(
         context,
-        VisaInstalmentsActivity::class.java
+        VisaInstallmentsActivity::class.java
     ).apply {
         putExtra(
             EXTRA_INTENT,
@@ -52,7 +54,9 @@ class VisaInstalmentActivityArgs(
             visaPlans: VisaPlans,
             savedCard: SavedCardDto?,
             newCard: NewCardDto?,
-            orderUrl: String
+            orderUrl: String,
+            orderAmount: OrderAmount,
+            cvv: String? = null
         ): VisaInstalmentActivityArgs {
             return VisaInstalmentActivityArgs(
                 paymentCookie = paymentCookie,
@@ -61,8 +65,9 @@ class VisaInstalmentActivityArgs(
                 savedCardUrl = savedCardUrl,
                 paymentUrl = paymentUrl,
                 payPageUrl = payPageUrl,
-                instalmentPlan = InstalmentPlan.fromVisaPlans(visaPlans),
-                orderUrl = orderUrl
+                instalmentPlan = InstallmentPlan.fromVisaPlans(visaPlans, orderAmount),
+                orderUrl = orderUrl,
+                cvv = cvv
             )
         }
     }

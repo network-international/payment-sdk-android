@@ -5,10 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 data class VisaPlans(
     val matchedPlans: List<MatchedPlan>,
-    val merchantInfo: MerchantInfo,
-    val paymentAccountReference: String,
-    val transactionAmount: Int,
-    val transactionCurrency: String
 )
 
 data class MatchedPlan(
@@ -23,21 +19,14 @@ data class MatchedPlan(
     val vPlanIDRef: String
 )
 
-data class MerchantInfo(
-    val category: String,
-    val partnerMerchantReferenceID: String
-)
-
 data class CostInfo(
-    val annualPercentageRate: Int,
+    val annualPercentageRate: Double,
     val currency: String,
-    val feeInfo: List<FeeInfo>,
-    val firstInstallment: FirstInstallment,
     val lastInstallment: LastInstallment,
-    val totalFees: Int,
-    val totalPlanCost: Int,
-    val totalRecurringFees: Int,
-    val totalUpfrontFees: Int
+    val totalFees: Double,
+    val totalPlanCost: Double,
+    val totalRecurringFees: Double,
+    val totalUpfrontFees: Double
 )
 
 @Parcelize
@@ -48,22 +37,9 @@ data class TermsAndCondition(
     val version: Int
 ): Parcelable
 
-data class FeeInfo(
-    val flatFee: Int,
-    val ratePercentage: Int,
-    val type: String
-)
-
-data class FirstInstallment(
-    val amount: Int,
-    val installmentFee: Int,
-    val totalAmount: Int,
-    val upfrontFee: Int
-)
-
 data class LastInstallment(
-    val amount: Int,
-    val installmentFee: Int,
-    val totalAmount: Int,
-    val upfrontFee: Int
+    val amount: Double,
+    val installmentFee: Double,
+    val totalAmount: Double,
+    val upfrontFee: Double
 )

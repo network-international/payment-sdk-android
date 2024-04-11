@@ -117,7 +117,8 @@ interface CardPaymentContract {
             paymentUrl: String,
             payPageUrl: String,
             orderUrl: String,
-            newCardDto: NewCardDto
+            newCardDto: NewCardDto,
+            orderAmount: OrderAmount
         )
     }
 

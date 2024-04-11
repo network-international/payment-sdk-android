@@ -29,6 +29,7 @@ import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SavedCardResponse
+import payment.sdk.android.core.interactor.VisaInstalmentPlanInteractor
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SavedCardViewModelTest {
@@ -41,6 +42,7 @@ class SavedCardViewModelTest {
     private val authApiInteractor: AuthApiInteractor = mockk(relaxed = true)
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor = mockk(relaxed = true)
     private val threeDSecureFactory: ThreeDSecureFactory = mockk(relaxed = true)
+    private val visaInstalmentPlanInteractor: VisaInstalmentPlanInteractor = mockk(relaxed = true)
     private val getPayerIpInteractor: GetPayerIpInteractor = mockk(relaxed = true)
 
     private lateinit var sut: SavedPaymentViewModel
@@ -63,6 +65,7 @@ class SavedCardViewModelTest {
             authApiInteractor,
             savedCardPaymentApiInteractor,
             getPayerIpInteractor,
+            visaInstalmentPlanInteractor,
             threeDSecureFactory,
             testDispatcher
         )
@@ -81,7 +84,7 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
 
-        sut.authorize(authUrl = "blank", paymentUrl = "", false, null)
+        sut.authorize(authUrl = "blank", paymentUrl = "", "","",false, null)
 
         assertTrue(states[0] is SavedCardPaymentState.Init)
         assertTrue(states[1] is SavedCardPaymentState.Failed)
@@ -99,7 +102,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Error(Exception("error"))
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false, null)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "","",false, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -120,7 +123,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, false, null)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl,"","", false, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -142,7 +145,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, true, null)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "","",true, null)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -165,7 +168,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, true, cvv)
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "",true, cvv)
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 

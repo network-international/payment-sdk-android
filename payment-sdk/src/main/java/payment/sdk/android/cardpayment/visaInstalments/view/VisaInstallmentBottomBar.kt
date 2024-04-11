@@ -79,8 +79,6 @@ fun VisaInstalmentBottomBar(
 @Composable
 fun VisaInstalmentBottomBar_Preview() {
     SDKTheme {
-        VisaInstalmentBottomBar(isValid = true) {
-
-        }
+        VisaInstalmentBottomBar(isValid = true) {}
     }
 }
