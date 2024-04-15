@@ -117,7 +117,8 @@ fun VisaInstalmentsView_Preview() {
                 paymentUrl = "",
                 selectedPlan = InstallmentPlan.dummyInstallmentPlan.copy(id = "13"),
                 isValid = true,
-                savedCardDto = null
+                savedCardDto = null,
+                accessToken = ""
             ), onNavigationUp = {}, onSelectPlan = {}, onPayClicked = {}
         )
     }

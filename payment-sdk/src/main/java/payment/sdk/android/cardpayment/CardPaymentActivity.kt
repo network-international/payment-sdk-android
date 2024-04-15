@@ -149,7 +149,8 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                 payPageUrl = payPageUrl,
                 savedCard = null,
                 orderUrl = orderUrl,
-                orderAmount = orderAmount
+                orderAmount = orderAmount,
+                accessToken = paymentCookie
             ).toIntent(this),
             VISA_INSTALMENT_SELECTION_KEY
         )

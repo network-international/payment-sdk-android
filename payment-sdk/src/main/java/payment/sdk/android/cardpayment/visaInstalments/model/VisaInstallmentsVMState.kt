@@ -3,15 +3,17 @@ package payment.sdk.android.cardpayment.visaInstalments.model
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
+import payment.sdk.android.cardpayment.widget.LoadingMessage
 
 sealed class VisaInstallmentsVMState {
     object Init : VisaInstallmentsVMState()
 
-    data class Loading(val message: String) : VisaInstallmentsVMState()
+    data class Loading(val message: LoadingMessage) : VisaInstallmentsVMState()
 
     data class PlanSelection(
         val installmentPlans: List<InstallmentPlan>,
         val paymentCookie: String,
+        val accessToken: String,
         val orderUrl: String,
         val savedCardDto: SavedCardDto?,
         val newCardDto: NewCardDto?,

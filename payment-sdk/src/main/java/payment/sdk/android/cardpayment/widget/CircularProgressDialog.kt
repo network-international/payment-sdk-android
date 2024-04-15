@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,7 +27,7 @@ import androidx.compose.ui.window.DialogProperties
 import payment.sdk.android.sdk.R
 
 @Composable
-fun CircularProgressDialog(message: String) {
+fun CircularProgressDialog(message: LoadingMessage) {
     Dialog(
         onDismissRequest = { },
         DialogProperties(
@@ -35,6 +36,12 @@ fun CircularProgressDialog(message: String) {
             usePlatformDefaultWidth = false
         )
     ) {
+        val messageText = stringResource(id = when (message) {
+            LoadingMessage.AUTH -> R.string.message_authorizing
+            LoadingMessage.PAYMENT -> R.string.submitting_payment
+            LoadingMessage.LOADING_ORDER -> R.string.message_loading_order_details
+            LoadingMessage.THREE_DS -> R.string.launching_3d_secure
+        })
         Surface(
             modifier = Modifier
                 .padding(24.dp)
@@ -52,10 +59,14 @@ fun CircularProgressDialog(message: String) {
                 Spacer(modifier = Modifier.width(16.dp))
                 CircularProgressIndicator(color = colorResource(id = R.color.payment_sdk_progress_loader_color))
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = message, color = Color.Gray)
+                Text(text = messageText, color = Color.Gray)
             }
         }
     }
+}
+
+enum class LoadingMessage {
+    AUTH, PAYMENT, LOADING_ORDER, THREE_DS
 }
 
 @Preview(name = "PIXEL_4", device = Devices.PIXEL_4_XL)
@@ -64,6 +75,6 @@ fun CircularProgressDialogPreview() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        CircularProgressDialog(message = "Loading")
+        CircularProgressDialog(message = LoadingMessage.PAYMENT)
     }
 }

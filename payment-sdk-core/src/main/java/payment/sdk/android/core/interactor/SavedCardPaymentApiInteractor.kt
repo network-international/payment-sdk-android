@@ -20,7 +20,7 @@ class SavedCardPaymentApiInteractor(
         cvv: String?,
         visaRequest: VisaRequest? = null
     ): SavedCardResponse {
-        val bodyMap = mutableMapOf(
+        val bodyMap = mutableMapOf<String, Any>(
             KEY_EXPIRY to savedCard.expiry,
             KEY_CARD_TOKEN to savedCard.cardToken,
             KEY_CARDHOLDER_NAME to savedCard.cardholderName
@@ -29,7 +29,13 @@ class SavedCardPaymentApiInteractor(
             bodyMap.put(KEY_CVV, it)
         }
         visaRequest?.let {
-            bodyMap.put(PAYMENT_FIELD_VISA, Gson().toJson(visaRequest))
+            bodyMap.put(
+                CardPaymentInteractor.PAYMENT_FIELD_VISA, mapOf(
+                    CardPaymentInteractor.PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
+                    CardPaymentInteractor.PAYMENT_FIELD_VISA_PLAN_ID to it.vPlanId,
+                    CardPaymentInteractor.PAYMENT_FIELD_VISA_TERMS to it.acceptedTAndCVersion
+                )
+            )
         }
         payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)

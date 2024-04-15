@@ -15,8 +15,8 @@ import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstallmentsVMState
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
@@ -30,7 +30,7 @@ class VisaInstallmentsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setOnBackPressed()
         val args = runCatching {
             requireNotNull(inputArgs) {
                 "VisaInstalmentsActivity input arguments were not found"

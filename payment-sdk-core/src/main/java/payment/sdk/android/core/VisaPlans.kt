@@ -35,7 +35,15 @@ data class TermsAndCondition(
     val text: String,
     val url: String,
     val version: Int
-): Parcelable
+): Parcelable {
+    fun formattedText(): String {
+        return text.replace("\\n\\n", "\n\n")
+            .replace("\\n", "\n")
+            .replace("\\", "")
+            .replace("<", "(")
+            .replace(">",")")
+    }
+}
 
 data class LastInstallment(
     val amount: Double,

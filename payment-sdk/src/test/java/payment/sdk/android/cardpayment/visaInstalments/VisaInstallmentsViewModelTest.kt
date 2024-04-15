@@ -134,7 +134,8 @@ class VisaInstallmentsViewModelTest {
         paymentCookie = "",
         savedCardUrl = null,
         orderUrl = "",
-        newCardDto = null
+        newCardDto = null,
+        accessToken = ""
     )
     private val payPageUrl = "https://paypage.sandbox.ngenius-payments.com/?code=323eas"
 
@@ -171,7 +172,8 @@ class VisaInstallmentsViewModelTest {
             savedCardUrl = "",
             orderUrl = "",
             instalmentPlan = listOf(),
-            newCard = NewCardDto(cardNumber = "", expiry = "", cvv = "", customerName = "")
+            newCard = NewCardDto(cardNumber = "", expiry = "", cvv = "", customerName = ""),
+            accessToken = ""
         )
 
         sut.init(visaInstalmentsActivityArgs)

@@ -17,7 +17,8 @@ data class SavedCardActivityArgs(
     val amount: Double,
     val currency: String,
     val cvv: String?,
-    val selfUrl: String
+    val selfUrl: String,
+    val matchedCandidates: List<Order.MatchedCandidates>
 ) : Parcelable {
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
 
@@ -57,7 +58,8 @@ data class SavedCardActivityArgs(
                 cvv = cvv,
                 selfUrl = requireNotNull(order.embedded?.payment?.firstOrNull()?.links?.selfLink?.href) {
                     "Self URL link not found"
-                }
+                },
+                matchedCandidates = order.savedCardVisMatchedCandidates?.matchedCandidates ?: listOf()
             )
         }
     }

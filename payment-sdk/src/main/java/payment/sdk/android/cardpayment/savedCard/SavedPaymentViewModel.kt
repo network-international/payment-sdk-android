@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
+import payment.sdk.android.cardpayment.widget.LoadingMessage
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
@@ -22,14 +24,14 @@ import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SavedCardResponse
-import payment.sdk.android.core.interactor.VisaInstalmentPlanInteractor
+import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 
 class SavedPaymentViewModel(
     private val authApiInteractor: AuthApiInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
     private val getPayerIpInteractor: GetPayerIpInteractor,
-    private val visaInstalmentPlanInteractor: VisaInstalmentPlanInteractor,
+    private val visaInstalmentPlanInteractor: VisaInstallmentPlanInteractor,
     private val threeDSecureFactory: ThreeDSecureFactory,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
@@ -45,7 +47,8 @@ class SavedPaymentViewModel(
         selfLink: String,
         cardToken: String,
         recaptureCsc: Boolean,
-        cvv: String?
+        cvv: String?,
+        matchedCandidates: List<Order.MatchedCandidates>
     ) {
         val authCode = paymentUrl.getQueryParameter("code")
         if (authCode.isNullOrBlank()) {
@@ -54,7 +57,7 @@ class SavedPaymentViewModel(
             }
             return
         }
-        _state.update { SavedCardPaymentState.Loading("Authorizing Payment") }
+        _state.update { SavedCardPaymentState.Loading(LoadingMessage.AUTH) }
         viewModelScope.launch(dispatcher) {
             val authResponse = authApiInteractor.authenticate(
                 authUrl = authUrl,
@@ -66,58 +69,73 @@ class SavedPaymentViewModel(
                 }
 
                 is AuthResponse.Success -> {
-                    val visaResponse = visaInstalmentPlanInteractor.getPlans(
-                        selfUrl = selfLink,
-                        token = authResponse.getPaymentCookie(),
-                        cardToken = cardToken
-                    )
-                    when (visaResponse) {
-                        is VisaPlansResponse.Error -> {
-                            SavedCardPaymentState.Failed(
-                                visaResponse.error.message ?: "Failed getting visa plans"
-                            )
-                        }
+                    val matchedCandidate =
+                        matchedCandidates.firstOrNull { it.cardToken == cardToken }
+                    if (matchedCandidate != null && matchedCandidate.eligibilityStatus == Order.MatchedCandidates.MATCHED_CANDIDATES_ELIGIBLE) {
+                        val visaResponse = visaInstalmentPlanInteractor.getPlans(
+                            selfUrl = selfLink,
+                            token = authResponse.getPaymentCookie(),
+                            cardToken = cardToken
+                        )
+                        when (visaResponse) {
+                            is VisaPlansResponse.Error -> {
+                                SavedCardPaymentState.Failed(
+                                    visaResponse.error.message ?: "Failed getting visa plans"
+                                )
+                            }
 
-                        is VisaPlansResponse.Success -> {
-                            if (visaResponse.visaPlans.matchedPlans.isEmpty()) {
-                                _state.update {
-                                    if (recaptureCsc && cvv == null) {
-                                        SavedCardPaymentState.CaptureCvv(
-                                            accessToken = authResponse.getAccessToken(),
-                                            paymentCookie = authResponse.getPaymentCookie(),
-                                            orderUrl = authResponse.orderUrl
-                                        )
-                                    } else {
-                                        SavedCardPaymentState.Authorized(
-                                            accessToken = authResponse.getAccessToken(),
-                                            paymentCookie = authResponse.getPaymentCookie(),
-                                            orderUrl = authResponse.orderUrl,
-                                            cvv = cvv
-                                        )
+                            is VisaPlansResponse.Success -> {
+                                if (visaResponse.visaPlans.matchedPlans.isNotEmpty()) {
+                                    _state.update {
+                                        if (recaptureCsc && cvv == null) {
+                                            SavedCardPaymentState.CaptureCvv(
+                                                accessToken = authResponse.getAccessToken(),
+                                                paymentCookie = authResponse.getPaymentCookie(),
+                                                orderUrl = authResponse.orderUrl,
+                                                visaPlans = visaResponse.visaPlans
+                                            )
+                                        } else {
+                                            SavedCardPaymentState.ShowVisaPlans(
+                                                visaPlans = visaResponse.visaPlans,
+                                                paymentCookie = authResponse.getPaymentCookie(),
+                                                orderUrl = authResponse.orderUrl,
+                                                accessToken = authResponse.getAccessToken(),
+                                                cvv = cvv
+                                            )
+                                        }
                                     }
-                                }
-                            } else {
-                                _state.update {
-                                    if (recaptureCsc && cvv == null) {
-                                        SavedCardPaymentState.CaptureCvv(
-                                            accessToken = authResponse.getAccessToken(),
-                                            paymentCookie = authResponse.getPaymentCookie(),
-                                            orderUrl = authResponse.orderUrl,
-                                            visaPlans = visaResponse.visaPlans
-                                        )
-                                    } else {
-                                        SavedCardPaymentState.ShowVisaPlans(
-                                            visaPlans = visaResponse.visaPlans,
-                                            paymentCookie = authResponse.getAccessToken(),
-                                            orderUrl = authResponse.orderUrl,
-                                            cvv = cvv
-                                        )
-                                    }
+                                } else {
+                                    completeAuthSuccess(recaptureCsc, cvv, authResponse)
                                 }
                             }
                         }
+                    } else {
+                        completeAuthSuccess(recaptureCsc, cvv, authResponse)
                     }
                 }
+            }
+        }
+    }
+
+    private fun completeAuthSuccess(
+        recaptureCsc: Boolean,
+        cvv: String?,
+        authResponse: AuthResponse.Success
+    ) {
+        _state.update {
+            if (recaptureCsc && cvv == null) {
+                SavedCardPaymentState.CaptureCvv(
+                    accessToken = authResponse.getAccessToken(),
+                    paymentCookie = authResponse.getPaymentCookie(),
+                    orderUrl = authResponse.orderUrl
+                )
+            } else {
+                SavedCardPaymentState.Authorized(
+                    accessToken = authResponse.getAccessToken(),
+                    paymentCookie = authResponse.getPaymentCookie(),
+                    orderUrl = authResponse.orderUrl,
+                    cvv = cvv
+                )
             }
         }
     }
@@ -132,13 +150,14 @@ class SavedPaymentViewModel(
         payPageUrl: String,
         visaPlans: VisaPlans? = null
     ) {
-        _state.update { SavedCardPaymentState.Loading("Initiating Payment") }
+        _state.update { SavedCardPaymentState.Loading(LoadingMessage.PAYMENT) }
         if (visaPlans != null && visaPlans.matchedPlans.isNotEmpty()) {
             _state.update {
                 SavedCardPaymentState.ShowVisaPlans(
                     visaPlans = visaPlans,
-                    paymentCookie = accessToken,
+                    paymentCookie = paymentCookie,
                     orderUrl = orderUrl,
+                    accessToken = accessToken,
                     cvv = cvv
                 )
             }
@@ -211,20 +230,19 @@ class SavedPaymentViewModel(
                     AuthApiInteractor(httpClient),
                     SavedCardPaymentApiInteractor(httpClient),
                     GetPayerIpInteractor(httpClient),
-                    VisaInstalmentPlanInteractor(httpClient),
+                    VisaInstallmentPlanInteractor(httpClient),
                     ThreeDSecureFactory()
                 ) as T
             }
         }
     }
-
 }
 
 
 sealed class SavedCardPaymentState {
     object Init : SavedCardPaymentState()
 
-    data class Loading(val message: String) : SavedCardPaymentState()
+    data class Loading(val message: LoadingMessage) : SavedCardPaymentState()
 
     data class Authorized(
         val accessToken: String,
@@ -248,6 +266,7 @@ sealed class SavedCardPaymentState {
     data class ShowVisaPlans(
         val visaPlans: VisaPlans,
         val paymentCookie: String,
+        val accessToken: String,
         val orderUrl: String,
         val cvv: String?
     ) : SavedCardPaymentState()

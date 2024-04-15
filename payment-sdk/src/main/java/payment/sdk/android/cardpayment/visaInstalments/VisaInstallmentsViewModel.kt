@@ -14,8 +14,9 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstallmentsVMState
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
+import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.CardPaymentInteractor
@@ -51,7 +52,8 @@ class VisaInstallmentsViewModel(
                 installmentPlans = args.instalmentPlan,
                 selectedPlan = null,
                 isValid = false,
-                savedCardUrl = args.savedCardUrl
+                savedCardUrl = args.savedCardUrl,
+                accessToken = args.accessToken
             )
         }
     }
@@ -70,7 +72,7 @@ class VisaInstallmentsViewModel(
         payPageUrl: String,
         cvv: String?
     ) {
-        _state.update { VisaInstallmentsVMState.Loading("Initiating Payment") }
+        _state.update { VisaInstallmentsVMState.Loading(LoadingMessage.PAYMENT) }
 
         var visaRequest: VisaRequest? = null
         if (plan.frequency != PlanFrequency.PayInFull) {
@@ -105,7 +107,7 @@ class VisaInstallmentsViewModel(
             } else if (state.savedCardUrl != null && state.savedCardDto != null) {
                 val response = savedCardPaymentApiInteractor.doSavedCardPayment(
                     savedCardUrl = state.savedCardUrl,
-                    accessToken = state.paymentCookie,
+                    accessToken = state.accessToken,
                     cvv = cvv,
                     savedCard = state.savedCardDto.toSavedCard(),
                     payerIp = payerIp,
@@ -114,6 +116,7 @@ class VisaInstallmentsViewModel(
                 when (response) {
                     is SavedCardResponse.Error -> updateFailed(response.error.message!!)
                     is SavedCardResponse.Success -> {
+                        _state.update { VisaInstallmentsVMState.Loading(LoadingMessage.THREE_DS) }
                         executeThreeDS(
                             paymentResponse = response.paymentResponse,
                             orderUrl = state.orderUrl,

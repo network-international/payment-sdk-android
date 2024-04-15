@@ -32,12 +32,12 @@ data class SavedCardDto(
 
     companion object {
         fun from(savedCard: SavedCard) = SavedCardDto(
-            savedCard.cardholderName,
-            savedCard.expiry,
-            savedCard.maskedPan,
-            savedCard.scheme,
-            savedCard.cardToken,
-            savedCard.recaptureCsc
+            cardholderName = savedCard.cardholderName,
+            expiry = savedCard.expiry,
+            maskedPan = savedCard.maskedPan,
+            scheme = savedCard.scheme,
+            cardToken = savedCard.cardToken,
+            recaptureCsc = savedCard.recaptureCsc
         )
     }
 }
