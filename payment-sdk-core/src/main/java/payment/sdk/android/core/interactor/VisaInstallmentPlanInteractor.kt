@@ -6,7 +6,7 @@ import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
 
-class VisaInstalmentPlanInteractor(
+class VisaInstallmentPlanInteractor(
     private val httpClient: HttpClient
 ) {
     suspend fun getPlans(

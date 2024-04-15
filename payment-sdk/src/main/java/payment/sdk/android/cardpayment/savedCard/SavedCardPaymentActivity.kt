@@ -70,7 +70,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     recaptureCsc = args.savedCard.recaptureCsc,
                     cvv = args.cvv,
                     cardToken = args.savedCard.cardToken,
-                    selfLink = args.selfUrl
+                    selfLink = args.selfUrl,
+                    matchedCandidates = args.matchedCandidates
                 )
 
                 is SavedCardPaymentState.CaptureCvv -> {
@@ -154,7 +155,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                             savedCard = args.savedCard,
                             orderUrl = response.orderUrl,
                             orderAmount = OrderAmount(args.amount, args.currency),
-                            cvv = response.cvv
+                            cvv = response.cvv,
+                            accessToken = response.accessToken
                         ).toIntent(this),
                         VISA_INSTALMENT_SELECTION_KEY
                     )

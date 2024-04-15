@@ -21,7 +21,8 @@ class VisaInstalmentActivityArgs(
     val paymentUrl: String?,
     val payPageUrl: String,
     val instalmentPlan: List<InstallmentPlan>,
-    val cvv: String? = null
+    val cvv: String? = null,
+    val accessToken: String
 ) : Parcelable {
 
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
@@ -48,6 +49,7 @@ class VisaInstalmentActivityArgs(
         @Throws(IllegalArgumentException::class)
         fun getArgs(
             paymentCookie: String,
+            accessToken: String,
             paymentUrl: String?,
             savedCardUrl: String?,
             payPageUrl: String,
@@ -56,7 +58,7 @@ class VisaInstalmentActivityArgs(
             newCard: NewCardDto?,
             orderUrl: String,
             orderAmount: OrderAmount,
-            cvv: String? = null
+            cvv: String? = null,
         ): VisaInstalmentActivityArgs {
             return VisaInstalmentActivityArgs(
                 paymentCookie = paymentCookie,
@@ -67,7 +69,8 @@ class VisaInstalmentActivityArgs(
                 payPageUrl = payPageUrl,
                 instalmentPlan = InstallmentPlan.fromVisaPlans(visaPlans, orderAmount),
                 orderUrl = orderUrl,
-                cvv = cvv
+                cvv = cvv,
+                accessToken = accessToken
             )
         }
     }
