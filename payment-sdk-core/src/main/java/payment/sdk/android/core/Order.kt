@@ -13,6 +13,7 @@ class Order {
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
 
+    @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
 
     var savedCard: SavedCard? = null
