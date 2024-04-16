@@ -37,6 +37,9 @@ class ProductsFragmentPresenter @Inject constructor(
             products.add(ProductDomain("$i", "Furniture $i", "Just a furniture", listOf(price, price), "file:///android_asset/images/0$i.jpg" ))
         }
         products.add(ProductDomain("${products.size + 2}", "Furniture 6", "Just a furniture", listOf(Price(currency, BigDecimal(2220),  BigDecimal(0))), "file:///android_asset/images/02.jpg" ))
+        products.add(ProductDomain("${products.size + 3}", "Furniture 7", "Just a furniture", listOf(Price(currency, BigDecimal(1500),  BigDecimal(0))), "file:///android_asset/images/02.jpg" ))
+        products.add(ProductDomain("${products.size + 4}", "Furniture 8", "Just a furniture", listOf(Price(currency, BigDecimal(450),  BigDecimal(0))), "file:///android_asset/images/02.jpg" ))
+        products.add(ProductDomain("${products.size + 5}", "Furniture 9", "Just a furniture", listOf(Price(currency, BigDecimal(3000),  BigDecimal(0))), "file:///android_asset/images/02.jpg" ))
         return  products
     }
 

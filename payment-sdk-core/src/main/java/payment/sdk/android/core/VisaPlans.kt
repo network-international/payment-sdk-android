@@ -42,6 +42,11 @@ data class TermsAndCondition(
             .replace("\\", "")
             .replace("<", "(")
             .replace(">",")")
+            .replace("&amp;", "&")
+            .replace("&gt;", ")")
+            .replace("&lt;", "(")
+            .replace("&quot;", "\"")
+            .replace("&#39;", "'")
     }
 }
 
