@@ -87,7 +87,7 @@ class VisaInstallmentsViewModel(
             if (state.paymentUrl != null && state.newCardDto != null) {
                 val response = cardPaymentInteractor.makeCardPayment(
                     paymentUrl = state.paymentUrl,
-                    cardHolder = state.newCardDto.cardNumber,
+                    cardHolder = state.newCardDto.customerName,
                     pan = state.newCardDto.cardNumber,
                     cvv = state.newCardDto.cvv,
                     expiry = state.newCardDto.expiry,
