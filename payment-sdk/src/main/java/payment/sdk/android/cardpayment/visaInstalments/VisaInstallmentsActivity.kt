@@ -52,7 +52,14 @@ class VisaInstallmentsActivity : ComponentActivity() {
                 is VisaInstallmentsVMState.PlanSelection -> {
                     VisaInstalmentsView(
                         state = (state as VisaInstallmentsVMState.PlanSelection),
-                        onNavigationUp = {},
+                        onNavigationUp = {
+                            if (SDKConfig.showCancelAlert) {
+                                showDialog()
+                            } else {
+                                setResult(RESULT_CANCELED, Intent())
+                                finish()
+                            }
+                        },
                         onSelectPlan = {
                             viewModel.onSelectPlan(
                                 selectedPlan = it,

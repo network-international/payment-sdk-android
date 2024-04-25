@@ -167,6 +167,11 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_CANCELED) {
+            setResult(Activity.RESULT_CANCELED, Intent())
+            finish()
+            return
+        }
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
         ) {

@@ -41,7 +41,6 @@ import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.core.TermsAndCondition
 import payment.sdk.android.sdk.R
 
-
 @Composable
 fun VisaPlanTermsView(
     isTermsAccepted: Boolean,
@@ -64,7 +63,7 @@ fun VisaPlanTermsView(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (termsExpanded) {
+                if (termsExpanded || isTermsAccepted) {
                     Checkbox(
                         checked = isTermsAccepted,
                         onCheckedChange = {
