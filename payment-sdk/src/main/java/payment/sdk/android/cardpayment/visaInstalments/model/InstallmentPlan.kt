@@ -37,18 +37,18 @@ data class InstallmentPlan(
                     amount = OrderAmount(
                         matchedPlans.costInfo.lastInstallment.totalAmount,
                         currency
-                    ).formattedCurrencyString(isLTR),
+                    ).formattedCurrencyString2Decimal(isLTR),
                     totalUpFrontFees = OrderAmount(
                         matchedPlans.costInfo.totalUpfrontFees,
                         currency
-                    ).formattedCurrencyString(isLTR),
-                    monthlyRate = (matchedPlans.costInfo.annualPercentageRate / 100.00).toString(),
+                    ).formattedCurrencyString2Decimal(isLTR),
+                    monthlyRate =  String.format("%.2f", matchedPlans.costInfo.annualPercentageRate / 100.00),
                     id = matchedPlans.vPlanID,
                     numberOfInstallments = matchedPlans.numberOfInstallments,
                     frequency = getPlanFrequency(matchedPlans.installmentFrequency)
                 )
             }
-            return listOf(payInFull(amount = orderAmount.formattedCurrencyString(isLTR))) + remotePlans
+            return listOf(payInFull(amount = orderAmount.formattedCurrencyString2Decimal(isLTR))) + remotePlans
         }
 
         private fun getPlanFrequency(frequency: String): PlanFrequency {
