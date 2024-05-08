@@ -42,7 +42,7 @@ data class InstallmentPlan(
                         matchedPlans.costInfo.totalUpfrontFees,
                         currency
                     ).formattedCurrencyString2Decimal(isLTR),
-                    monthlyRate =  String.format("%.2f", matchedPlans.costInfo.annualPercentageRate / 100.00),
+                    monthlyRate =  String.format(Locale.ENGLISH, "%.2f", matchedPlans.costInfo.annualPercentageRate / 100.00),
                     id = matchedPlans.vPlanID,
                     numberOfInstallments = matchedPlans.numberOfInstallments,
                     frequency = getPlanFrequency(matchedPlans.installmentFrequency)
