@@ -27,7 +27,7 @@ class OrderAmount {
         format.currency = Currency.getInstance(this.currencyCode)
         val minorUnit: Int = Currency.getInstance(currencyCode).defaultFractionDigits
         val orderAmount = orderValue / 10.00.pow(minorUnit)
-        val orderAmountFormatted = String.format("%.2f", orderAmount)
+        val orderAmountFormatted = String.format(Locale.ENGLISH, "%.2f", orderAmount)
         return if(isLTR) "$orderAmountFormatted $currencyCode" else "$currencyCode $orderAmountFormatted"
 //        return format.format()
     }
