@@ -35,6 +35,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,7 @@ import payment.sdk.android.sdk.R
 @Composable
 fun SavedCardPaymentView(
     savedCard: SavedCardDto,
-    amount: Int,
+    amount: Double,
     currency: String,
     onStartPayment: (cvv: String) -> Unit,
     onNavigationUp: () -> Unit
@@ -123,13 +124,14 @@ fun SavedCardPaymentView(
                         }
                     },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
+                        keyboardType = KeyboardType.NumberPassword,
+                        imeAction = ImeAction.Done,
                     ),
                     isError = isErrorCvv,
                     label = {
                         Text(text = "CVV")
                     },
+                    visualTransformation = PasswordVisualTransformation(),
                     placeholder = {
                         Text(text = "CVV (required)")
                     })
@@ -173,7 +175,7 @@ fun PreviewContent() {
                 recaptureCsc = false,
                 scheme = "JCB"
             ),
-            amount = 134,
+            amount = 134.0,
             currency = "AED", {}, {})
     }
 }

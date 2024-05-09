@@ -71,4 +71,24 @@
     <string name="cancel_payment_alert_message">هل أنت متأكد أنك تريد إلغاء الدفع؟</string>
     <string name="cancel_alert">لا</string>
     <string name="confirm_cancel_alert">نعم، ألغِ</string>
+
+    <string name="title_activity_visa_instalments">Visa Instalments</string>
+
+    <string name="visa_instalment_eligible">مؤهلة للتقسيط</string>
+    <string name="visa_monthly_instalment">%1$s القسط الشهري</string>
+    <string name="visa_bi_monthly_instalment">%1$s القسط كل شهرين</string>
+    <string name="visa_weekly_instalment">%1$s القسط الأسبوعي</string>
+    <string name="visa_bi_weekly_instalment">%1$s القسط كل أسبوعين</string>
+
+    <string name="visa_monthly_rate">%% %1$s :السعر الشهري:</string>
+    <string name="visa_bi_monthly_rate">%% %1$s :السعر كل شهرين:</string>
+    <string name="visa_weekly_rate">%% %1$s :السعر الأسبوعي</string>
+    <string name="visa_bi_weekly_rate">%% %1$s :السعر كل أسبوعين</string>
+
+    <string name="visa_processing_fee">%1$s رسوم المعالجة</string>
+    <string name="visa_terms_and_conditions">البنود والشروط</string>
+    <string name="visa_read_less">اقرأ أقل</string>
+    <string name="visa_read_more">اقرأ المزيد</string>
+    <string name="visa_pay_in_instalment">%1$s الدفع بمقدار</string>
+    <string name="visa_pay_in_full">الدفع بالكامل</string>
 </resources>

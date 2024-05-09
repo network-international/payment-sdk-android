@@ -20,6 +20,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
         TLSSocketFactoryDelegate()
     }
 
+    private val sdkVersion = "3.1.7"
+
     @UiThread
     override fun get(
         url: String, headers: Map<String, String>,
@@ -180,7 +182,7 @@ class CoroutinesGatewayHttpClient : HttpClient {
             val device = "${Build.MANUFACTURER}-${Build.MODEL}"
             val os = "OS-${Build.VERSION.SDK_INT}"
             setRequestProperty("Accept-Language", "UTF-8")
-            setRequestProperty("User-Agent", "Android Pay Page $device $os")
+            setRequestProperty("User-Agent", "Android Pay Page $device $os SDK:$sdkVersion")
 
             headers.forEach { (key, value) ->
                 setRequestProperty(key, value)

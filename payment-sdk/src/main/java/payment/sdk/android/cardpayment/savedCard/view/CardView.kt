@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment.savedCard.view
 
+import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -69,19 +70,21 @@ fun CardView(savedCard: SavedCardDto) {
                 AndroidView(factory = { context ->
                     PreviewTextView(context).apply {
                         text = savedCard.maskedPan.replace("....".toRegex(), "$0 ")
+                        layoutDirection = View.LAYOUT_DIRECTION_LTR
                     }
                 })
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.padding(start = 96.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(text = "EXPIRES\nEND", fontSize = 6.sp, color = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
                     AndroidView(factory = { context ->
                         PreviewTextView(context).apply {
                             text = savedCard.getExpiryFormatted()
+                            layoutDirection = View.LAYOUT_DIRECTION_LTR
                         }
                     })
                 }
@@ -91,6 +94,7 @@ fun CardView(savedCard: SavedCardDto) {
                 AndroidView(factory = { context ->
                     PreviewTextView(context).apply {
                         text = savedCard.cardholderName.uppercase()
+                        layoutDirection = View.LAYOUT_DIRECTION_LTR
                     }
                 })
             }
