@@ -21,4 +21,14 @@ class OrderAmount {
         return if(isLTR) "$orderAmount $currencyCode" else "$currencyCode $orderAmount"
 //        return format.format()
     }
+
+    fun formattedCurrencyString2Decimal(isLTR: Boolean): String {
+        val format = NumberFormat.getCurrencyInstance()
+        format.currency = Currency.getInstance(this.currencyCode)
+        val minorUnit: Int = Currency.getInstance(currencyCode).defaultFractionDigits
+        val orderAmount = orderValue / 10.00.pow(minorUnit)
+        val orderAmountFormatted = String.format(Locale.ENGLISH, "%.2f", orderAmount)
+        return if(isLTR) "$orderAmountFormatted $currencyCode" else "$currencyCode $orderAmountFormatted"
+//        return format.format()
+    }
 }

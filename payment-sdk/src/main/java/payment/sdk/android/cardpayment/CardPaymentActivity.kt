@@ -17,6 +17,10 @@ import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
+import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R
@@ -126,6 +130,32 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
     }
 
+    override fun launchVisaInstalment(
+        visaPlans: VisaPlans,
+        paymentCookie: String,
+        paymentUrl: String,
+        payPageUrl: String,
+        orderUrl: String,
+        newCardDto: NewCardDto,
+        orderAmount: OrderAmount
+    ) {
+        startActivityForResult(
+            VisaInstalmentActivityArgs.getArgs(
+                paymentCookie = paymentCookie,
+                savedCardUrl = null,
+                visaPlans = visaPlans,
+                paymentUrl = paymentUrl,
+                newCard = newCardDto,
+                payPageUrl = payPageUrl,
+                savedCard = null,
+                orderUrl = orderUrl,
+                orderAmount = orderAmount,
+                accessToken = paymentCookie
+            ).toIntent(this),
+            VISA_INSTALMENT_SELECTION_KEY
+        )
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
@@ -137,6 +167,14 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                         ThreeDSecureWebViewActivity.KEY_3DS_STATE
                     )!!
                 )
+            } else {
+                onPaymentFailed()
+            }
+        }
+
+        if (requestCode == VISA_INSTALMENT_SELECTION_KEY) {
+            if (resultCode == RESULT_OK && data != null) {
+                finishWithData(CardPaymentData.getFromIntent(data))
             } else {
                 onPaymentFailed()
             }
@@ -199,6 +237,7 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
 
         private const val THREE_D_SECURE_REQUEST_KEY: Int = 100
         private const val THREE_D_SECURE_TWO_REQUEST_KEY: Int = 110
+        private const val VISA_INSTALMENT_SELECTION_KEY: Int = 120
 
         private const val URL_KEY = "gateway-payment-url"
         private const val CODE = "code"

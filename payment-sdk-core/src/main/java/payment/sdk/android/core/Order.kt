@@ -1,6 +1,8 @@
 package payment.sdk.android.core
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
 
 class Order {
@@ -11,6 +13,9 @@ class Order {
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
 
+    @SerializedName(value = "visSavedCardMatchedCandidates")
+    var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
+
     var savedCard: SavedCard? = null
 
     @SerializedName(value = "_embedded")
@@ -19,7 +24,7 @@ class Order {
     // Other classes
     class Amount {
         var currencyCode: String? = null
-        var value: Int? = 0
+        var value: Double? = 0.0
     }
 
     class Links {
@@ -47,6 +52,12 @@ class Order {
 
         @SerializedName(value = "payment:saved-card")
         var savedCard: Href? = null
+
+        @SerializedName(value = "payment:card")
+        var card: Href? = null
+
+        @SerializedName(value = "self")
+        var selfLink: Href? = null
     }
 
     class Href {
@@ -56,5 +67,19 @@ class Order {
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
+    }
+
+    data class SavedCardVisMatchedCandidates(
+        val matchedCandidates: List<MatchedCandidates> = listOf()
+    )
+
+    @Parcelize
+    data class MatchedCandidates(
+        val cardToken: String?,
+        val eligibilityStatus: String?
+    ): Parcelable {
+        companion object {
+            const val MATCHED_CANDIDATES_ELIGIBLE = "MATCHED"
+        }
     }
 }

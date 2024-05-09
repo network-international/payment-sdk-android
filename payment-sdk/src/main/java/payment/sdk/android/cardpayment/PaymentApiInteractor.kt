@@ -4,6 +4,7 @@ import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
+import payment.sdk.android.core.VisaPlans
 
 interface PaymentApiInteractor {
 
@@ -16,7 +17,7 @@ interface PaymentApiInteractor {
     fun getOrder(
             orderUrl: String,
             paymentCookie: String,
-            success: (String, String, Set<CardType>, OrderAmount, String, JSONObject) -> Unit,
+            success: (String, String, Set<CardType>, OrderAmount, String, String, JSONObject) -> Unit,
             error: (Exception) -> Unit)
 
     fun doPayment(
@@ -57,6 +58,14 @@ interface PaymentApiInteractor {
     fun getPayerIp(
         url: String,
         success: (payerIp: String?) -> Unit,
+        error: (Exception) -> Unit
+    )
+
+    fun visaEligibilityCheck(
+        url: String,
+        token: String,
+        cardNumber: String,
+        success: (isEligible: Boolean, plans: VisaPlans) -> Unit,
         error: (Exception) -> Unit
     )
 }

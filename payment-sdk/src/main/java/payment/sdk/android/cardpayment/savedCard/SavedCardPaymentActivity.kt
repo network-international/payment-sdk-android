@@ -18,7 +18,9 @@ import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.savedCard.view.SavedCardPaymentView
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
 
 class SavedCardPaymentActivity : ComponentActivity() {
@@ -63,10 +65,13 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 )
 
                 SavedCardPaymentState.Init -> viewModel.authorize(
-                    args.authUrl,
-                    args.paymentUrl,
-                    args.savedCard.recaptureCsc,
-                    args.cvv
+                    authUrl = args.authUrl,
+                    paymentUrl = args.paymentUrl,
+                    recaptureCsc = args.savedCard.recaptureCsc,
+                    cvv = args.cvv,
+                    cardToken = args.savedCard.cardToken,
+                    selfLink = args.selfUrl,
+                    matchedCandidates = args.matchedCandidates
                 )
 
                 is SavedCardPaymentState.CaptureCvv -> {
@@ -82,7 +87,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                 cvv = cvv,
                                 orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
                                 paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie,
-                                payPageUrl = args.paymentUrl
+                                payPageUrl = args.paymentUrl,
+                                visaPlans = (state as SavedCardPaymentState.CaptureCvv).visaPlans
                             )
                         }, onNavigationUp = {
                             if (SDKConfig.showCancelAlert) {
@@ -136,12 +142,36 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 SavedCardPaymentState.PaymentAuthorised -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
                 SavedCardPaymentState.PostAuthReview -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
                 SavedCardPaymentState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
+                is SavedCardPaymentState.ShowVisaPlans -> {
+                    val response = (state as SavedCardPaymentState.ShowVisaPlans)
+                    startActivityForResult(
+                        VisaInstalmentActivityArgs.getArgs(
+                            paymentCookie = response.paymentCookie,
+                            savedCardUrl = args.savedCardUrl,
+                            visaPlans = response.visaPlans,
+                            paymentUrl = null,
+                            newCard = null,
+                            payPageUrl = args.paymentUrl,
+                            savedCard = args.savedCard,
+                            orderUrl = response.orderUrl,
+                            orderAmount = OrderAmount(args.amount, args.currency),
+                            cvv = response.cvv,
+                            accessToken = response.accessToken
+                        ).toIntent(this),
+                        VISA_INSTALMENT_SELECTION_KEY
+                    )
+                }
             }
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_CANCELED) {
+            setResult(Activity.RESULT_CANCELED, Intent())
+            finish()
+            return
+        }
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
         ) {
@@ -157,6 +187,13 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     "POST_AUTH_REVIEW" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
                     else -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
                 }
+            } else {
+                finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+            }
+        }
+        if (requestCode == VISA_INSTALMENT_SELECTION_KEY) {
+            if (resultCode == RESULT_OK && data != null) {
+                finishWithData(CardPaymentData.getFromIntent(data))
             } else {
                 finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
             }
@@ -203,5 +240,6 @@ class SavedCardPaymentActivity : ComponentActivity() {
     companion object {
         const val THREE_D_SECURE_REQUEST_KEY = 504
         const val THREE_D_SECURE_TWO_REQUEST_KEY = 503
+        const val VISA_INSTALMENT_SELECTION_KEY = 505
     }
 }
