@@ -40,8 +40,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build with Gradle
-      run: ./gradlew build testDebugUnitTest
+    - name: Assemble Debug build
+      run: ./gradlew assembleDebug
+
+    - name: Run Unit Test
+      run: ./gradlew testDebugUnitTest
 
     - name: build release
       run: ./gradlew assembleRelease
