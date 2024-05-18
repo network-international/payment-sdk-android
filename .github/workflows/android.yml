@@ -54,6 +54,7 @@ jobs:
         SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
 
     - name: Upload APK as artifact
+      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-artifact@v3
       with:
         name: release-apk
