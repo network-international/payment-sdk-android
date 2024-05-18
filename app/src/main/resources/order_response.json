@@ -1,0 +1,88 @@
+{
+  "_id": "urn:order:a4224a2e-8e64-498e-bdde-d764981b95ed",
+  "_links": {
+    "cancel": {
+      "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed/cancel"
+    },
+    "cnp:payment-link": {
+      "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed/payment-link"
+    },
+    "payment-authorization": {
+      "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/paymentAuthorization"
+    },
+    "self": {
+      "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed"
+    },
+    "tenant-brand": {
+      "href": "http://config-service/config/outlets/9463e990-1719-4155-9d9c-69db503a3289/configs/tenant-brand"
+    },
+    "payment": {
+      "href": "https://paypage-sandbox.platform.network.ae/?code=81f20a1151a0031f"
+    },
+    "merchant-brand": {
+      "href": "http://config-service/config/outlets/9463e990-1719-4155-9d9c-69db503a3289/configs/merchant-brand"
+    }
+  },
+  "type": "SINGLE",
+  "merchantDefinedData": {},
+  "action": "PURCHASE",
+  "amount": {
+    "currencyCode": "AED",
+    "value": 300012
+  },
+  "language": "en",
+  "merchantAttributes": {},
+  "reference": "a4224a2e-8e64-498e-bdde-d764981b95ed",
+  "outletId": "9463e990-1719-4155-9d9c-69db503a3289",
+  "createDateTime": "2024-05-13T08:27:49.842Z",
+  "paymentMethods": {
+    "card": [
+      "VISA"
+    ]
+  },
+  "referrer": "urn:Ecom:a4224a2e-8e64-498e-bdde-d764981b95ed",
+  "formattedOrderSummary": {},
+  "formattedAmount": "د.إ.‏ 3,000.12",
+  "_embedded": {
+    "payment": [
+      {
+        "_id": "urn:payment:d0bedb49-2525-424b-918a-ed3a3f85c30d",
+        "_links": {
+          "self": {
+            "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed/payments/d0bedb49-2525-424b-918a-ed3a3f85c30d"
+          },
+          "payment:card": {
+            "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed/payments/d0bedb49-2525-424b-918a-ed3a3f85c30d/card"
+          },
+          "payment:saved-card": {
+            "href": "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/9463e990-1719-4155-9d9c-69db503a3289/orders/a4224a2e-8e64-498e-bdde-d764981b95ed/payments/d0bedb49-2525-424b-918a-ed3a3f85c30d/saved-card"
+          },
+          "curies": [
+            {
+              "name": "cnp",
+              "href": "https://api-gateway.sandbox.ngenius-payments.com/docs/rels/{rel}",
+              "templated": true
+            }
+          ]
+        },
+        "savedCard": {
+          "maskedPan": "476108******2022",
+          "expiry": "2027-12",
+          "cardholderName": "Mr Something",
+          "scheme": "VISA",
+          "cardToken": "MTcxYzU4N2MtMmE2ZS00YjI1LTg0MmEtY2U2NTIwODJiODlm",
+          "recaptureCsc": true
+        },
+        "reference": "d0bedb49-2525-424b-918a-ed3a3f85c30d",
+        "state": "STARTED",
+        "amount": {
+          "currencyCode": "AED",
+          "value": 300012
+        },
+        "updateDateTime": "2024-05-13T08:27:49.842Z",
+        "outletId": "9463e990-1719-4155-9d9c-69db503a3289",
+        "orderReference": "a4224a2e-8e64-498e-bdde-d764981b95ed"
+      }
+    ]
+  }
+}
