@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -21,9 +25,8 @@ import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
 import payment.sdk.android.demo.ui.screen.AppDialog
-import payment.sdk.android.demo.ui.screen.SegmentedButtonItem
-import payment.sdk.android.demo.ui.screen.SegmentedButtons
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEnvironmentDialog(
     onCancel: () -> Unit,
@@ -37,13 +40,18 @@ fun AddEnvironmentDialog(
     var selectedEnvironment by remember { mutableIntStateOf(0) }
 
     AppDialog(title = "Add Environment", onCancel = onCancel) {
-        SegmentedButtons(modifier = Modifier.fillMaxWidth()) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             entries.forEachIndexed { index, option ->
-                SegmentedButtonItem(
+                SegmentedButton(
                     selected = selectedEnvironment == index,
                     onClick = { selectedEnvironment = index },
-                    label = { Text(text = option.value) },
-                )
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = entries.count()
+                    )
+                ) {
+                    Text(text = option.value)
+                }
             }
         }
 

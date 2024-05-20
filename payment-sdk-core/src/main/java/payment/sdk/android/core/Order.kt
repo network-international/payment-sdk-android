@@ -1,10 +1,11 @@
 package payment.sdk.android.core
 
 import android.os.Parcelable
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-
+@Keep
 class Order {
     @SerializedName(value = "_links")
     var links: Links? = null
@@ -22,11 +23,13 @@ class Order {
     var embedded: Embedded? = null
 
     // Other classes
+    @Keep
     class Amount {
         var currencyCode: String? = null
         var value: Double? = 0.0
     }
 
+    @Keep
     class Links {
         @SerializedName(value = "payment-authorization")
         var paymentAuthorizationUrl: Href? = null
@@ -35,10 +38,12 @@ class Order {
         var paymentUrl: Href? = null
     }
 
+    @Keep
     class Embedded {
         lateinit var payment: Array<Payment>
     }
 
+    @Keep
     class Payment {
         @SerializedName(value = "_links")
         var links: PaymentLinks? = null
@@ -46,6 +51,7 @@ class Order {
         var savedCard: SavedCard? = null
     }
 
+    @Keep
     class PaymentLinks {
         @SerializedName(value = "payment:samsung_pay")
         var samsungPayLink: Href? = null
@@ -60,19 +66,23 @@ class Order {
         var selfLink: Href? = null
     }
 
+    @Keep
     class Href {
         var href: String? = null
     }
 
+    @Keep
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
     }
 
+    @Keep
     data class SavedCardVisMatchedCandidates(
         val matchedCandidates: List<MatchedCandidates> = listOf()
     )
 
+    @Keep
     @Parcelize
     data class MatchedCandidates(
         val cardToken: String?,
