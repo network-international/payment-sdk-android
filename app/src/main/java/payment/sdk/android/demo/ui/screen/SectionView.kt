@@ -12,16 +12,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,9 +27,10 @@ fun SectionView(
     title: String,
     count: Int,
     showDialog: () -> Unit,
+    isExpanded: Boolean = false,
+    onExpand: (Boolean) -> Unit = {},
     content: @Composable () -> Unit
 ) {
-    var expand by remember { mutableStateOf(false) }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
@@ -43,19 +40,19 @@ fun SectionView(
             }
             if (count != 0) {
                 IconButton(onClick = {
-                    expand = !expand
+                    onExpand(!isExpanded)
                 }) {
                     Icon(
-                        imageVector = if (expand) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = "add"
                     )
                 }
             }
         }
 
-        Divider()
+        HorizontalDivider()
         AnimatedVisibility(
-            visible = expand && count != 0,
+            visible = isExpanded && count != 0,
             enter = expandVertically(expandFrom = Alignment.Top),
             exit = shrinkVertically(shrinkTowards = Alignment.Top)
         ) {
@@ -66,7 +63,7 @@ fun SectionView(
             ) {
                 content()
                 Spacer(Modifier.height(8.dp))
-                Divider()
+                HorizontalDivider()
             }
         }
     }

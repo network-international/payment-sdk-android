@@ -2,20 +2,12 @@ package payment.sdk.android.demo
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.annotation.Keep
 import androidx.lifecycle.AbstractSavedStateViewModelFactory
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.savedstate.SavedStateRegistryOwner
-import payment.sdk.android.demo.data.DataStore
-import payment.sdk.android.demo.data.DataStoreImpl
-import payment.sdk.android.demo.http.ApiServiceAdapter
-import payment.sdk.android.demo.http.CreateOrderApiInteractor
-import payment.sdk.android.demo.http.GetOrderApiInteractor
-import payment.sdk.android.demo.model.Environment
-import payment.sdk.android.demo.model.OrderRequest
-import payment.sdk.android.demo.model.PaymentOrderAmount
-import payment.sdk.android.demo.model.Product
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +20,18 @@ import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.demo.data.DataStore
+import payment.sdk.android.demo.data.DataStoreImpl
+import payment.sdk.android.demo.http.ApiServiceAdapter
+import payment.sdk.android.demo.http.CreateOrderApiInteractor
+import payment.sdk.android.demo.http.GetOrderApiInteractor
+import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.OrderRequest
+import payment.sdk.android.demo.model.PaymentOrderAmount
+import payment.sdk.android.demo.model.Product
 import java.util.Locale
 
+@Keep
 class MainViewModel(
     private val paymentClient: PaymentClient,
     private val createOrderApiInteractor: CreateOrderApiInteractor,
@@ -75,18 +77,20 @@ class MainViewModel(
                 it.copy(state = MainViewModelStateType.LOADING, message = "Authenticating...")
             }
             viewModelScope.launch(dispatcher) {
-                val result = createOrderApiInteractor.createOrder(environment, OrderRequest(
-                    action = dataStore.getOrderAction(),
-                    amount = PaymentOrderAmount(
-                        value = state.value.total,
-                        currencyCode = "AED"
-                    ),
-                    language = Locale.getDefault().language,
-                    merchantAttributes = dataStore.getMerchantAttributes()
-                        .filter { it.isActive }
-                        .associate { it.key to it.value },
-                    savedCard = savedCard
-                )
+                val result = createOrderApiInteractor.createOrder(
+                    environment,
+                    OrderRequest(
+                        action = dataStore.getOrderAction(),
+                        amount = PaymentOrderAmount(
+                            value = state.value.total,
+                            currencyCode = "AED"
+                        ),
+                        language = Locale.getDefault().language,
+                        merchantAttributes = dataStore.getMerchantAttributes()
+                            .filter { it.isActive }
+                            .associate { it.key to it.value },
+                        savedCard = savedCard
+                    )
                 )
                 when (result) {
                     is Result.Error -> {
@@ -171,15 +175,11 @@ class MainViewModel(
     }
 
     fun onCardPaymentResponse(data: CardPaymentData) {
-        _state.update { it.copy(state = MainViewModelStateType.LOADING) }
         when (data.code) {
             CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
             CardPaymentData.STATUS_PAYMENT_PURCHASED,
             CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
                 saveCardFromOrder(state.value.orderReference)
-                _state.update {
-                    it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS)
-                }
             }
 
             CardPaymentData.STATUS_PAYMENT_FAILED, CardPaymentData.STATUS_GENERIC_ERROR ->
@@ -207,20 +207,27 @@ class MainViewModel(
     }
 
     private fun saveCardFromOrder(orderReference: String?) {
+        _state.update {
+            it.copy(state = MainViewModelStateType.LOADING, message = "Fetching Order...")
+        }
         getEnvironment()?.let { environment ->
             viewModelScope.launch(dispatcher) {
                 val result = getOrderApiInteractor.getOrder(environment, orderReference)
                 if (result is Result.Success) {
                     result.data.embedded?.payment?.firstOrNull()?.savedCard?.let { savedCard ->
+                        if (dataStore.getSavedCards().isEmpty()) {
+                            dataStore.setSavedCard(savedCard)
+                        }
                         dataStore.saveCard(savedCard)
                     }
-                    _state.update {
-                        it.copy(
-                            state = MainViewModelStateType.PAYMENT_SUCCESS,
-                            message = "Payment Successful",
-                            savedCards = dataStore.getSavedCards()
-                        )
-                    }
+                }
+                _state.update {
+                    it.copy(
+                        state = MainViewModelStateType.PAYMENT_SUCCESS,
+                        message = "Payment Successful",
+                        savedCard = dataStore.getSavedCard(),
+                        savedCards = dataStore.getSavedCards()
+                    )
                 }
             }
         }
