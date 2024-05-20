@@ -170,24 +170,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `show error onCardPaymentResponse if payment is successful but no environment selected`() = runTest {
-        val states: MutableList<MainViewModelState> = mutableListOf()
-
-        backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
-        }
-
-        coEvery { dataStore.getSelectedEnvironment() } returns null
-
-        sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_CAPTURED))
-
-        assertEquals(states[1].state, MainViewModelStateType.LOADING)
-        assertEquals(states[2].state, MainViewModelStateType.ERROR)
-        assertEquals(states[2].message, "No environment selected")
-    }
-
-    @Test
-    fun `show success onCardPaymentResponse if payment is successful with environment selected`() = runTest {
+    fun `test onSamsung Pay Success`() = runTest {
         val orderResponse = Gson().fromJson(
             ClassLoader.getSystemResource("order_response.json").readText(),
             Order::class.java
@@ -199,19 +182,86 @@ class MainViewModelTest {
         }
 
         coEvery { dataStore.getSelectedEnvironment() } returns environment
-        coEvery { dataStore.getSavedCards() } returns emptyList()
-        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns Result.Success(orderResponse)
+        coEvery {
+            createOrderApiInteractor.createOrder(any(), any())
+        } returns Result.Success(orderResponse)
 
-        sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_CAPTURED))
+        sut.onSamsungPay()
 
-        coVerify(exactly = 1) { dataStore.saveCard(any()) }
-        coVerify(exactly = 1) { dataStore.setSavedCard(any()) }
+        coVerify { paymentClient.launchSamsungPay(any(), any(), any()) }
 
+        assertEquals(states[0].state, MainViewModelStateType.INIT)
         assertEquals(states[1].state, MainViewModelStateType.LOADING)
-        assertEquals(states[2].state, MainViewModelStateType.PAYMENT_SUCCESS)
-        assertEquals(states[2].message, "Payment Successful")
-        assertEquals(states[2].savedCards, emptyList<SavedCard>())
+        assertEquals(states[2].state, MainViewModelStateType.INIT)
+        assertEquals(states[2].total, 0.0)
     }
+
+    @Test
+    fun `test onSamsung Pay failed`() = runTest {
+        val states: MutableList<MainViewModelState> = mutableListOf()
+
+        backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
+
+        coEvery { dataStore.getSelectedEnvironment() } returns environment
+        coEvery {
+            createOrderApiInteractor.createOrder(any(), any())
+        } returns Result.Error("Error")
+
+        sut.onSamsungPay()
+
+        assertEquals(states[0].state, MainViewModelStateType.INIT)
+        assertEquals(states[1].state, MainViewModelStateType.LOADING)
+        assertEquals(states[2].state, MainViewModelStateType.ERROR)
+        assertEquals(states[2].message, "Error")
+    }
+
+    @Test
+    fun `show error onCardPaymentResponse if payment is successful but no environment selected`() =
+        runTest {
+            val states: MutableList<MainViewModelState> = mutableListOf()
+
+            backgroundScope.launch(testDispatcher) {
+                sut.state.toList(states)
+            }
+
+            coEvery { dataStore.getSelectedEnvironment() } returns null
+
+            sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_CAPTURED))
+
+            assertEquals(states[1].state, MainViewModelStateType.LOADING)
+            assertEquals(states[2].state, MainViewModelStateType.ERROR)
+            assertEquals(states[2].message, "No environment selected")
+        }
+
+    @Test
+    fun `show success onCardPaymentResponse if payment is successful with environment selected`() =
+        runTest {
+            val orderResponse = Gson().fromJson(
+                ClassLoader.getSystemResource("order_response.json").readText(),
+                Order::class.java
+            )
+            val states: MutableList<MainViewModelState> = mutableListOf()
+
+            backgroundScope.launch(testDispatcher) {
+                sut.state.toList(states)
+            }
+
+            coEvery { dataStore.getSelectedEnvironment() } returns environment
+            coEvery { dataStore.getSavedCards() } returns emptyList()
+            coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns Result.Success(
+                orderResponse
+            )
+
+            sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_CAPTURED))
+
+            coVerify(exactly = 1) { dataStore.saveCard(any()) }
+            coVerify(exactly = 1) { dataStore.setSavedCard(any()) }
+
+            assertEquals(states[1].state, MainViewModelStateType.LOADING)
+            assertEquals(states[2].state, MainViewModelStateType.PAYMENT_SUCCESS)
+            assertEquals(states[2].message, "Payment Successful")
+            assertEquals(states[2].savedCards, emptyList<SavedCard>())
+        }
 
     @Test
     fun `show Success onCardPaymentResponse if get order returns error`() = runTest {
@@ -265,7 +315,9 @@ class MainViewModelTest {
             sut.state.toList(states)
         }
 
-        coEvery { createOrderApiInteractor.createOrder(any(), any()) } returns Result.Success(orderResponse)
+        coEvery { createOrderApiInteractor.createOrder(any(), any()) } returns Result.Success(
+            orderResponse
+        )
         coEvery { dataStore.getSelectedEnvironment() } returns environment
 
         sut.onPayBySavedCard(savedCard)
