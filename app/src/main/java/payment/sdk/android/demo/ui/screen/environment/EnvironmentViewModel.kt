@@ -50,6 +50,9 @@ class EnvironmentViewModel(
     }
 
     fun saveEnvironment(environment: Environment) {
+        if (dataStore.getEnvironments().isEmpty()) {
+            dataStore.setSelectedEnvironment(environment)
+        }
         dataStore.saveEnvironment(environment)
         _state.update { it.copy(environments = dataStore.getEnvironments()) }
     }

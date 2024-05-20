@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.demo.ui.theme.Purple40
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.sdk.R
 
@@ -56,13 +55,9 @@ fun SavedCardView(
             .padding(vertical = 8.dp, horizontal = 16.dp)
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
-            .clickable {
-                onClick()
-            }
+            .clickable { onClick() }
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 modifier = Modifier
@@ -95,15 +90,15 @@ fun SavedCardView(
                     onClick = onDelete,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF93000A))
                 ) {
-                    Text(text = "Delete", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = "Delete",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White
+                    )
                 }
             }
             if (!isEditing) {
-                Button(
-                    modifier = Modifier.padding(8.dp),
-                    onClick = onPay,
-                    colors = ButtonDefaults.buttonColors(containerColor = Purple40)
-                ) {
+                Button(modifier = Modifier.padding(8.dp), onClick = onPay) {
                     Text(text = "Pay", style = MaterialTheme.typography.bodySmall)
                 }
             }

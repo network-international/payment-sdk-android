@@ -205,6 +205,7 @@ class MainViewModelTest {
         sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_CAPTURED))
 
         coVerify(exactly = 1) { dataStore.saveCard(any()) }
+        coVerify(exactly = 1) { dataStore.setSavedCard(any()) }
 
         assertEquals(states[1].state, MainViewModelStateType.LOADING)
         assertEquals(states[2].state, MainViewModelStateType.PAYMENT_SUCCESS)
@@ -240,7 +241,7 @@ class MainViewModelTest {
 
         sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_FAILED))
 
-        assertEquals(states[1].state, MainViewModelStateType.LOADING)
+        assertEquals(states.last().state, MainViewModelStateType.PAYMENT_FAILED)
 
 
         sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_POST_AUTH_REVIEW))

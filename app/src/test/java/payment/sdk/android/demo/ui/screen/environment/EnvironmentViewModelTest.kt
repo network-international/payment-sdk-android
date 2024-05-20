@@ -106,6 +106,18 @@ class EnvironmentViewModelTest {
     }
 
     @Test
+    fun `test saveEnvironment when environments empty`() = runTest {
+        val states: MutableList<EnvironmentViewModelState> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
+        coEvery { dataStore.getEnvironments() } returns emptyList()
+
+        sut.saveEnvironment(environment)
+
+        coVerify { dataStore.setSelectedEnvironment(any()) }
+        coVerify { dataStore.saveEnvironment(environment) }
+    }
+
+    @Test
     fun `test onSelectEnvironment`() = runTest {
         val states: MutableList<EnvironmentViewModelState> = mutableListOf()
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
