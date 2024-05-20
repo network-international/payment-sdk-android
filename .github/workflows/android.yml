@@ -31,8 +31,8 @@ jobs:
         else
           VERSION_NAME=${{ secrets.VERSION_NAME }}
         fi
-          
-        VERSION_CODE=$((${{ secrets.VERSION_CODE }} + 1))
+        
+        VERSION_CODE=${{ github.run_number }}
           
         echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
         echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV

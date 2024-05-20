@@ -96,7 +96,7 @@ fun EnvironmentScreen(
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     text = "Build: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - SDK: v${SDKConfig.getSDKVersion()}",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center
                 )
                 if (showMerchantAttributeDialog) {
