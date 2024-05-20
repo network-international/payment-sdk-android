@@ -29,6 +29,7 @@ import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
+import payment.sdk.android.samsungpay.SamsungPayResponse
 import java.util.Locale
 
 @Keep
@@ -38,7 +39,7 @@ class MainViewModel(
     private val getOrderApiInteractor: GetOrderApiInteractor,
     private val dataStore: DataStore,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : ViewModel() {
+) : ViewModel(), SamsungPayResponse {
 
     private var _state: MutableStateFlow<MainViewModelState> =
         MutableStateFlow(MainViewModelState())
@@ -172,6 +173,49 @@ class MainViewModel(
     }
 
     fun onSamsungPay() {
+        getEnvironment()?.let { environment ->
+            _state.update {
+                it.copy(state = MainViewModelStateType.LOADING, message = "Authenticating...")
+            }
+            viewModelScope.launch(dispatcher) {
+                val result = createOrderApiInteractor.createOrder(
+                    environment,
+                    OrderRequest(
+                        action = dataStore.getOrderAction(),
+                        amount = PaymentOrderAmount(
+                            value = state.value.total,
+                            currencyCode = "AED"
+                        ),
+                        language = Locale.getDefault().language,
+                        merchantAttributes = dataStore.getMerchantAttributes()
+                            .filter { it.isActive }
+                            .associate { it.key to it.value }
+                    )
+                )
+                when (result) {
+                    is Result.Error -> {
+                        _state.update {
+                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        paymentClient.launchSamsungPay(
+                            order = result.data,
+                            "Merchant Name",
+                            this@MainViewModel
+                        )
+                        _state.update {
+                            it.copy(
+                                state = MainViewModelStateType.INIT,
+                                selectedProducts = listOf(),
+                                total = 0.0
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun onCardPaymentResponse(data: CardPaymentData) {
@@ -305,5 +349,13 @@ class MainViewModel(
                     ) as T
                 }
             }
+    }
+
+    override fun onSuccess() {
+        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS) }
+    }
+
+    override fun onFailure(error: String) {
+        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
     }
 }
