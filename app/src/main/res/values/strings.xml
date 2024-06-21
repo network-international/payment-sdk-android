@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Furniture App</string>
+    <string name="app_name">Demo App</string>
 
     <string name="title_activity_home">Home</string>
     <string name="title_activity_product_details">Product Details</string>
