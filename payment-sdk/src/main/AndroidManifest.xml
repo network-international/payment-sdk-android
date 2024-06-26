@@ -22,6 +22,10 @@
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
+            android:name="payment.sdk.android.cardpayment.aaniPay.AaniPayActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
             android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"
             android:windowSoftInputMode="adjustResize" />
