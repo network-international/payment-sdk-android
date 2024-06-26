@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.cardpayment.aaniPay.AaniPayActivity
+import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
 import payment.sdk.android.cardpayment.savedCard.SavedCardActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
@@ -142,6 +144,13 @@ class PaymentClient(
         ).toIntent(context)
         context.startActivityForResult(
             intent,
+            code
+        )
+    }
+
+    fun initiateAaniPay(order: Order, code: Int) {
+        context.startActivityForResult(
+            AaniPayActivityArgs.getArgs(order = order).toIntent(context),
             code
         )
     }

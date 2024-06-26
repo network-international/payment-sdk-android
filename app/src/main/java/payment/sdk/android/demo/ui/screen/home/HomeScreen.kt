@@ -39,7 +39,8 @@ fun HomeScreen(
     onDeleteProduct: (Product) -> Unit,
     onSelectSavedCard: (SavedCard) -> Unit,
     onDeleteSavedCard: (SavedCard) -> Unit,
-    onPaySavedCard: (SavedCard) -> Unit
+    onPaySavedCard: (SavedCard) -> Unit,
+    onClickAaniPay: () -> Unit
 ) {
     var showAddProductDialog by remember { mutableStateOf(false) }
     Scaffold(
@@ -87,7 +88,8 @@ fun HomeScreen(
                         savedCards = state.savedCards,
                         onSelectCard = onSelectSavedCard,
                         onDeleteSavedCard = onDeleteSavedCard,
-                        onPaySavedCard = onPaySavedCard
+                        onPaySavedCard = onPaySavedCard,
+                        onClickAaniPay = onClickAaniPay
                     )
                 }
 

@@ -325,6 +325,7 @@ class MainViewModel(
     companion object {
 
         const val CARD_PAYMENT_REQUEST_CODE = 123
+        const val AANI_PAY_REQUEST_CODE = 134
 
         fun provideFactory(
             activity: Activity,
@@ -363,5 +364,36 @@ class MainViewModel(
 
     override fun onFailure(error: String) {
         _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
+    }
+
+    fun onAaniPay() {
+        getEnvironment()?.let { environment ->
+            _state.update {
+                it.copy(state = MainViewModelStateType.LOADING, message = "Creating Order...")
+            }
+            viewModelScope.launch(dispatcher) {
+                val result = createOrderApiInteractor.createOrder(environment, OrderRequest(
+                    action = dataStore.getOrderAction(),
+                    amount = PaymentOrderAmount(
+                        value = state.value.total,
+                        currencyCode = "AED"
+                    ),
+                    language = Locale.getDefault().language,
+                    merchantAttributes = dataStore.getMerchantAttributes()
+                        .filter { it.isActive }
+                        .associate { it.key to it.value }
+                ))
+
+                when (result) {
+                    is Result.Error -> _state.update {
+                        it.copy(state = MainViewModelStateType.ERROR, message = result.message)
+                    }
+                    is Result.Success -> {
+                        paymentClient.initiateAaniPay(result.data, AANI_PAY_REQUEST_CODE)
+                    }
+                }
+            }
+        }
+
     }
 }

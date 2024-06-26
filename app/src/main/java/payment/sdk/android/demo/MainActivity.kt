@@ -65,6 +65,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onPaySavedCard = {
                                 viewModel.onPayBySavedCard(it)
+                            },
+                            onClickAaniPay = {
+                                viewModel.onAaniPay()
                             }
                         )
                     }

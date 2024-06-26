@@ -46,7 +46,8 @@ fun HomeBottomBar(
     onClickSamsungPay: () -> Unit,
     onSelectCard: (SavedCard) -> Unit,
     onDeleteSavedCard: (SavedCard) -> Unit,
-    onPaySavedCard: (SavedCard) -> Unit
+    onPaySavedCard: (SavedCard) -> Unit,
+    onClickAaniPay: () -> Unit
 ) {
     var expandSavedCards by remember { mutableStateOf(false) }
     Surface(
@@ -134,6 +135,15 @@ fun HomeBottomBar(
                                 contentDescription = ""
                             )
                         }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(42.dp),
+                        onClick = onClickAaniPay
+                    ) {
+                        Text(text = "Aani Pay AED ${"%.2f".format(Locale.ENGLISH, total)}")
                     }
                 }
             }
