@@ -47,7 +47,7 @@ class AaniPayActivityArgs(
             return AaniPayActivityArgs(
                 amount = OrderAmount(
                     orderValue = order.amount?.value ?: 0.0,
-                    currencyCode = order.amount?.currencyCode ?: ""
+                    currencyCode = order.amount?.currencyCode ?: "AED"
                 ).formattedCurrencyString2Decimal(isLTR)
             )
         }
