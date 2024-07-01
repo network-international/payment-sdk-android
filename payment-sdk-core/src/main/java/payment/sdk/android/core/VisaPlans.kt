@@ -1,12 +1,15 @@
 package payment.sdk.android.core
 
 import android.os.Parcelable
+import androidx.annotation.Keep
 import kotlinx.parcelize.Parcelize
 
+@Keep
 data class VisaPlans(
     val matchedPlans: List<MatchedPlan>,
 )
 
+@Keep
 data class MatchedPlan(
     val costInfo: CostInfo,
     val fundedBy: List<String>,
@@ -19,6 +22,7 @@ data class MatchedPlan(
     val vPlanIDRef: String
 )
 
+@Keep
 data class CostInfo(
     val annualPercentageRate: Double,
     val currency: String,
@@ -29,6 +33,7 @@ data class CostInfo(
     val totalUpfrontFees: Double
 )
 
+@Keep
 @Parcelize
 data class TermsAndCondition(
     val languageCode: String,
@@ -50,6 +55,7 @@ data class TermsAndCondition(
     }
 }
 
+@Keep
 data class LastInstallment(
     val amount: Double,
     val installmentFee: Double,
