@@ -93,6 +93,13 @@
     <string name="visa_pay_in_instalment">%1$s الدفع بمقدار</string>
     <string name="visa_pay_in_full">الدفع بالكامل</string>
 
+    <string name="aani">AANI</string>
+    <string name="aani_mobile_number">رقم الجوال</string>
+    <string name="aani_emirates_id">الهوية الإماراتية</string>
+    <string name="aani_passport_id">رقم جواز السفر</string>
+    <string name="aani_email_id">البريد الإلكتروني</string>
+    <string name="aani_alias_type">نوع الاسم المستعار</string>
+
     <string name="paypage_title_awaiting_partial_auth_approval">تأكيد العميل</string>
     <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
     <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
