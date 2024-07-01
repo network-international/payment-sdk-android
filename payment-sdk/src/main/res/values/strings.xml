@@ -100,4 +100,11 @@
     <string name="visa_read_more">Read more</string>
     <string name="visa_pay_in_instalment">Pay in %1$s</string>
     <string name="visa_pay_in_full">Pay in Full</string>
+
+    <string name="aani">AANI</string>
+    <string name="aani_mobile_number">Mobile number</string>
+    <string name="aani_emirates_id">Emirates ID</string>
+    <string name="aani_passport_id">Passport ID</string>
+    <string name="aani_email_id">Email ID</string>
+    <string name="aani_alias_type">Alias type</string>
 </resources>

@@ -51,7 +51,7 @@ class AaniPayActivity : AppCompatActivity() {
                     TopAppBar(
                         title = {
                             Text(
-                                text = "Aani Pay",
+                                text = stringResource(R.string.aani),
                                 color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
                             )
                         },

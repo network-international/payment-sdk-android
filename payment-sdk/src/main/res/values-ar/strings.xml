@@ -91,4 +91,11 @@
     <string name="visa_read_more">اقرأ المزيد</string>
     <string name="visa_pay_in_instalment">%1$s الدفع بمقدار</string>
     <string name="visa_pay_in_full">الدفع بالكامل</string>
+
+    <string name="aani">AANI</string>
+    <string name="aani_mobile_number">رقم الجوال</string>
+    <string name="aani_emirates_id">الهوية الإماراتية</string>
+    <string name="aani_passport_id">رقم جواز السفر</string>
+    <string name="aani_email_id">البريد الإلكتروني</string>
+    <string name="aani_alias_type">نوع الاسم المستعار</string>
 </resources>
