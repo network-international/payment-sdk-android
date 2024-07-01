@@ -107,4 +107,11 @@
     <string name="partial_auth_message">Your issuing bank has approved %1$s instead of the full amount of %2$s.</string>
     <string name="partial_auth_message_question">Do you wish to process the transaction with the reduced amount?</string>
 
+
+    <string name="aani">AANI</string>
+    <string name="aani_mobile_number">Mobile number</string>
+    <string name="aani_emirates_id">Emirates ID</string>
+    <string name="aani_passport_id">Passport ID</string>
+    <string name="aani_email_id">Email ID</string>
+    <string name="aani_alias_type">Alias type</string>
 </resources>

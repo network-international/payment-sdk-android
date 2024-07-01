@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -387,13 +388,13 @@ class MainViewModel(
                 when (result) {
                     is Result.Error -> _state.update {
                         it.copy(state = MainViewModelStateType.ERROR, message = result.message)
+
                     }
                     is Result.Success -> {
-                        paymentClient.initiateAaniPay(result.data, AANI_PAY_REQUEST_CODE)
+                        paymentClient.initiateAaniPay(Order(), AANI_PAY_REQUEST_CODE)
                     }
                 }
             }
         }
-
     }
 }
