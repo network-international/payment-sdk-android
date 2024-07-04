@@ -291,7 +291,7 @@ class MainViewModelTest {
 
         sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_PAYMENT_FAILED))
 
-        assertEquals(states.last().state, MainViewModelStateType.PAYMENT_FAILED)
+        assertEquals(states.last().state, MainViewModelStateType.ERROR)
 
 
         sut.onCardPaymentResponse(CardPaymentData(code = CardPaymentData.STATUS_POST_AUTH_REVIEW))
