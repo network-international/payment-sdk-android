@@ -16,9 +16,11 @@ import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.PaymentResponse
 
 internal class CardPaymentPresenter(
         private val url: String,
@@ -311,7 +313,7 @@ internal class CardPaymentPresenter(
             payerIp = payerIp,
             success = { paymentState, paymentResponse ->
                 view.showProgress(false)
-                handleCardPaymentResponse(paymentState, paymentResponse)
+                handleCardPaymentResponse(paymentState, response = paymentResponse)
             },
             error = {
                 view.showProgress(false)
@@ -339,6 +341,15 @@ internal class CardPaymentPresenter(
             }
             STATUS_PAYMENT_FAILED -> interactions.onPaymentFailed()
             STATUS_POST_AUTH_REVIEW -> interactions.onPaymentPostAuthReview()
+            STATUS_AWAITING_PARTIAL_AUTH_APPROVAL -> {
+                response?.let {
+                    Gson().fromJson(it.toString(), PaymentResponse::class.java)
+                        .toIntent(paymentCookie)
+                        .let { threeDSChallengeIntent ->
+                            interactions.onPartialAuth(threeDSChallengeIntent)
+                        }
+                } ?: interactions.onGenericError("Failed to parse payment response: $state")
+            }
             else -> interactions.onGenericError("Unknown payment state: $state")
         }
     }
@@ -463,6 +474,7 @@ internal class CardPaymentPresenter(
         internal const val STATUS_PAYMENT_FAILED = "FAILED"
         @VisibleForTesting
         internal const val STATUS_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
+        internal const val STATUS_AWAITING_PARTIAL_AUTH_APPROVAL = "AWAITING_PARTIAL_AUTH_APPROVAL"
     }
 }
 

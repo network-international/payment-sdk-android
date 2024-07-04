@@ -21,6 +21,10 @@
             android:name="payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
+            android:theme="@style/SdkTheme.ThreeDSecure"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

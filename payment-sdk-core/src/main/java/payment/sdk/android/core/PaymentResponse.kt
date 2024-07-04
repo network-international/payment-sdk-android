@@ -14,6 +14,8 @@ class PaymentResponse {
     var paymentMethods: PaymentMethods? = null
     var authenticationCode: String? = null
 
+    var paymentMethod: PaymentMethod? = null
+
     @SerializedName(value = "3ds2")
     var threeDSTwo: ThreeDSTwo? = null
 
@@ -23,6 +25,8 @@ class PaymentResponse {
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
+    var authResponse: AuthResponse? = null
+
     var state: String? = null
     // Other classes
     class Amount {
@@ -31,6 +35,12 @@ class PaymentResponse {
     }
 
     class Links {
+        @SerializedName(value = "payment:partial-auth-accept")
+        var partialAuthAccept: Href? = null
+
+        @SerializedName(value = "payment:partial-auth-decline")
+        var partialAuthDecline: Href? = null
+
         @SerializedName(value = "payment-authorization")
         var paymentAuthorizationUrl: Href? = null
 
