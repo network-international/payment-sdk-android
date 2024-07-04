@@ -228,7 +228,7 @@ class MainViewModel(
 
             CardPaymentData.STATUS_PAYMENT_FAILED, CardPaymentData.STATUS_GENERIC_ERROR ->
                 _state.update {
-                    it.copy(state = MainViewModelStateType.PAYMENT_FAILED)
+                    it.copy(state = MainViewModelStateType.ERROR, message = data.reason.orEmpty())
                 }
 
             CardPaymentData.STATUS_POST_AUTH_REVIEW -> _state.update {

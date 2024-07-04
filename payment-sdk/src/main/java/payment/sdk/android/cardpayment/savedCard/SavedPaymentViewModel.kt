@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.Utils.getQueryParameter
@@ -204,6 +206,12 @@ class SavedPaymentViewModel(
                             }
                         }
 
+                        "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
+                            response.paymentResponse.toIntent(paymentCookie).let { intent ->
+                                _state.update { SavedCardPaymentState.InitiatePartialAuth(intent) }
+                            }
+                        }
+
                         "FAILED" -> updateFailed("FAILED")
                         else -> updateFailed("Unknown payment state: ${response.paymentResponse.state}")
                     }
@@ -277,4 +285,7 @@ sealed class SavedCardPaymentState {
         SavedCardPaymentState()
 
     data class Failed(val error: String) : SavedCardPaymentState()
+
+    data class InitiatePartialAuth(val partialAuthIntent: PartialAuthIntent) :
+        SavedCardPaymentState()
 }

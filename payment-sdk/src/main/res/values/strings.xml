@@ -81,6 +81,7 @@
     <string name="cancel_payment_alert_message">Are you sure you want to cancel the payment?</string>
     <string name="cancel_alert">No</string>
     <string name="confirm_cancel_alert">Yes, Cancel</string>
+    <string name="button_yes">Yes</string>
     <string name="title_activity_visa_instalments">Visa Instalments</string>
     
     <string name="visa_instalment_eligible">Eligible for Installments</string>
@@ -100,4 +101,10 @@
     <string name="visa_read_more">Read more</string>
     <string name="visa_pay_in_instalment">Pay in %1$s</string>
     <string name="visa_pay_in_full">Pay in Full</string>
+
+    <string name="paypage_title_awaiting_partial_auth_approval">Customer confirmation</string>
+    <string name="partial_auth_message_with_org">Your issuing bank %1$s has approved %2$s instead of the full amount of %3$s.</string>
+    <string name="partial_auth_message">Your issuing bank has approved %1$s instead of the full amount of %2$s.</string>
+    <string name="partial_auth_message_question">Do you wish to process the transaction with the reduced amount?</string>
+
 </resources>
