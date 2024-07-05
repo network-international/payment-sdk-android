@@ -1,8 +1,9 @@
 package payment.sdk.android.core
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
-
+@Keep
 class PaymentResponse {
     @SerializedName(value = "_links")
     var links: Links? = null
