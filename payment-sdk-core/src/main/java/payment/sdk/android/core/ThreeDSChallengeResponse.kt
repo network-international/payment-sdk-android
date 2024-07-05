@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import payment.sdk.android.core.Order.Href
 
+@Keep
 data class ThreeDSChallengeResponse(
     val _embedded: Embedded
 )
