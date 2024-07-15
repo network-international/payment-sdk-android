@@ -2,9 +2,9 @@ package payment.sdk.android.cardpayment.threedsecuretwo.webview
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.ThreeDSAuthResponse
-import payment.sdk.android.core.ThreeDSChallengeResponse
 
 @Parcelize
 data class PartialAuthIntent(
@@ -17,8 +17,8 @@ data class PartialAuthIntent(
     val issuingOrg: String?
 ) : Parcelable
 
-fun ThreeDSChallengeResponse.toIntent(paymentCookie: String?): PartialAuthIntent? {
-    return _embedded.payment.firstOrNull()?.let { payment ->
+internal fun Order.toIntent(paymentCookie: String?): PartialAuthIntent? {
+    return embedded?.payment?.firstOrNull()?.let { payment ->
         PartialAuthIntent(
             paymentCookie = paymentCookie,
             acceptUrl = payment.links?.partialAuthAccept?.href,
@@ -31,7 +31,7 @@ fun ThreeDSChallengeResponse.toIntent(paymentCookie: String?): PartialAuthIntent
     }
 }
 
-fun ThreeDSAuthResponse.toIntent(paymentCookie: String?): PartialAuthIntent {
+internal fun ThreeDSAuthResponse.toIntent(paymentCookie: String?): PartialAuthIntent {
     return PartialAuthIntent(
         paymentCookie = paymentCookie,
         acceptUrl = links?.partialAuthAccept?.href,
@@ -43,7 +43,7 @@ fun ThreeDSAuthResponse.toIntent(paymentCookie: String?): PartialAuthIntent {
     )
 }
 
-fun PaymentResponse.toIntent(paymentCookie: String?): PartialAuthIntent {
+internal fun PaymentResponse.toIntent(paymentCookie: String?): PartialAuthIntent {
     return PartialAuthIntent(
         paymentCookie = paymentCookie,
         acceptUrl = links?.partialAuthAccept?.href,

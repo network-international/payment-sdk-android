@@ -43,25 +43,22 @@ class PartialAuthActivity : ComponentActivity() {
                         state = state.state,
                         properties = PartialAuthProperties(
                             args.issuingOrg,
-                            OrderAmount(args.partialAmount, args.currency).formattedCurrencyString2Decimal(isLTR),
-                            OrderAmount(args.amount, args.currency).formattedCurrencyString2Decimal(isLTR)
+                            OrderAmount(
+                                args.partialAmount,
+                                args.currency
+                            ).formattedCurrencyString2Decimal(isLTR),
+                            OrderAmount(args.amount, args.currency).formattedCurrencyString2Decimal(
+                                isLTR
+                            )
                         ),
-                        onAccept = {
-                            viewModel.accept(args.acceptUrl, args.paymentCookie)
-                        },
-                        onDecline = {
-                            viewModel.decline(args.declineUrl, args.paymentCookie)
-                        }
+                        onAccept = { viewModel.accept(args.acceptUrl, args.paymentCookie) },
+                        onDecline = { viewModel.decline(args.declineUrl, args.paymentCookie) }
                     )
                 }
 
-                PartialAuthState.SUCCESS -> {
-                    finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-                }
-
-                PartialAuthState.ERROR -> {
-                    finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
-                }
+                PartialAuthState.SUCCESS -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
+                PartialAuthState.ERROR -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+                PartialAuthState.DECLINED -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED))
             }
         }
     }

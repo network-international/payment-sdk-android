@@ -16,7 +16,14 @@ data class MainViewModelState(
 )
 
 enum class MainViewModelStateType {
-    INIT, LOADING, PAYMENT_SUCCESS, PAYMENT_FAILED, PAYMENT_CANCELLED, PAYMENT_POST_AUTH_REVIEW, ERROR
+    INIT,
+    LOADING,
+    PAYMENT_SUCCESS,
+    PAYMENT_FAILED,
+    PAYMENT_CANCELLED,
+    PAYMENT_POST_AUTH_REVIEW,
+    ERROR,
+    PAYMENT_PARTIAL_AUTH_DECLINED
 }
 
 fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, String> {
@@ -36,5 +43,9 @@ fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, S
         )
 
         MainViewModelStateType.ERROR -> Pair("Error", message)
+        MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED -> Pair(
+            "Partial Auth Declined",
+            "Customer declined partial auth"
+        )
     }
 }
