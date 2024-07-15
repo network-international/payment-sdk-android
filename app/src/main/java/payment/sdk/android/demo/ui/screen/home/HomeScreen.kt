@@ -98,6 +98,7 @@ fun HomeScreen(
                     MainViewModelStateType.ERROR,
                     MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW,
                     MainViewModelStateType.PAYMENT_FAILED,
+                    MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED,
                     MainViewModelStateType.PAYMENT_CANCELLED -> {
                         val (title, message) = state.state.getAlertMessage(state.message)
                         Alert(

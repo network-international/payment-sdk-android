@@ -149,7 +149,7 @@ fun PartialAuthView(
 fun PartialAuthViewPreview() {
     Box {
         PartialAuthView(
-            PartialAuthState.LOADING,
+            PartialAuthState.INIT,
             PartialAuthProperties("HDFC", "500.0", "100.0"),
             {}) { }
     }

@@ -232,11 +232,11 @@ class MainViewModel(
                 }
 
             CardPaymentData.STATUS_POST_AUTH_REVIEW -> _state.update {
-                it.copy(
-                    state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW
-                )
+                it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
             }
-
+            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
+            }
             else -> _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
         }
     }
@@ -332,7 +332,7 @@ class MainViewModel(
                     modelClass: Class<T>,
                     handle: SavedStateHandle
                 ): T {
-                    val client = PaymentClient(activity, "DEMO_VAL")
+                    val client = PaymentClient(activity, "FOC")
                     return MainViewModel(
                         paymentClient = client,
                         createOrderApiInteractor = CreateOrderApiInteractor(

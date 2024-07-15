@@ -90,7 +90,7 @@ class PartialAuthViewModelTest {
 
         assertEquals(states[0].state, PartialAuthState.INIT)
         assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.ERROR)
+        assertEquals(states[2].state, PartialAuthState.DECLINED)
     }
 
     @Test
