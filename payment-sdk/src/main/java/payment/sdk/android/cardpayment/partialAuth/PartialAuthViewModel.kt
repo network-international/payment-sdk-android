@@ -48,7 +48,7 @@ class PartialAuthViewModel(
     }
 
     fun decline(url: String, accessToken: String) {
-        updateState(url, accessToken, PartialAuthState.ERROR)
+        updateState(url, accessToken, PartialAuthState.DECLINED)
     }
 
     companion object {
@@ -68,7 +68,7 @@ class PartialAuthViewModel(
 }
 
 enum class PartialAuthState {
-    LOADING, INIT, SUCCESS, ERROR
+    LOADING, INIT, SUCCESS, ERROR, DECLINED
 }
 
 data class PartialAuthVMState(

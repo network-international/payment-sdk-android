@@ -20,8 +20,8 @@ import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.ThreeDSAuthResponse
-import payment.sdk.android.core.ThreeDSChallengeResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResources
 import payment.sdk.android.core.dependency.StringResourcesImpl
@@ -245,13 +245,13 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                         orderUrl = orderUrl!!,
                         paymentCookie = paymentCookie!!,
                         success = { _, _, _, _, _, _, order ->
-                            val threeDSChallengeResponse = Gson().fromJson(order.toString(), ThreeDSChallengeResponse::class.java)
+                            val orderResponse = Gson().fromJson(order.toString(), Order::class.java)
                             val orderState: String? = order
                                 .getJSONObject("_embedded")
                                 ?.getJSONArray("payment")
                                 ?.getJSONObject(0)
                                 ?.getString("state")
-                            finishWithResult(orderState, threeDSChallengeResponse.toIntent(paymentCookie))
+                            finishWithResult(orderState, orderResponse.toIntent(paymentCookie))
                         },
                         error = {
                             finishWithResult()
