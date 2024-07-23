@@ -94,7 +94,7 @@
     <string name="visa_pay_in_full">الدفع بالكامل</string>
 
     <string name="paypage_title_awaiting_partial_auth_approval">تأكيد العميل</string>
-    <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك {%1$s} على {%2$s} بدلاً من المبلغ الكامل لـ {%3$s}</string>
-    <string name="partial_auth_message">تمت الموافقة من قبل البنك على {%1$s} بدلاً من المبلغ الكامل لـ {%2$s}</string>
+    <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
+    <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
     <string name="partial_auth_message_question">هل ترغب في المضي قدما مع المبلغ المخفض؟</string>
 </resources>

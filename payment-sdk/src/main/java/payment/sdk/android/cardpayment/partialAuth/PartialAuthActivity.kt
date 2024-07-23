@@ -51,14 +51,25 @@ class PartialAuthActivity : ComponentActivity() {
                                 isLTR
                             )
                         ),
-                        onAccept = { viewModel.accept(args.acceptUrl, args.paymentCookie) },
-                        onDecline = { viewModel.decline(args.declineUrl, args.paymentCookie) }
+                        onAccept = { viewModel.submitRequest(args.acceptUrl, args.paymentCookie) },
+                        onDecline = { viewModel.submitRequest(args.declineUrl, args.paymentCookie) }
                     )
                 }
 
                 PartialAuthState.SUCCESS -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-                PartialAuthState.ERROR -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+                PartialAuthState.ERROR -> finishWithData(
+                    CardPaymentData(
+                        CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED,
+                        state.message
+                    )
+                )
+
                 PartialAuthState.DECLINED -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED))
+                PartialAuthState.PARTIALLY_AUTHORISED -> finishWithData(
+                    CardPaymentData(
+                        CardPaymentData.STATUS_PARTIALLY_AUTHORISED
+                    )
+                )
             }
         }
     }
