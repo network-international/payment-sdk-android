@@ -23,7 +23,9 @@ enum class MainViewModelStateType {
     PAYMENT_CANCELLED,
     PAYMENT_POST_AUTH_REVIEW,
     ERROR,
-    PAYMENT_PARTIAL_AUTH_DECLINED
+    PAYMENT_PARTIAL_AUTH_DECLINED,
+    PAYMENT_PARTIAL_AUTH_DECLINE_FAILED,
+    PAYMENT_PARTIALLY_AUTHORISED
 }
 
 fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, String> {
@@ -46,6 +48,14 @@ fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, S
         MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED -> Pair(
             "Partial Auth Declined",
             "Customer declined partial auth"
+        )
+        MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED -> Pair(
+            "Sorry, your payment has not been accepted.",
+            "Due to technical error, the refund was not processed. Please contact merchant for refund."
+        )
+        MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED -> Pair(
+            "Payment Partially Authorized",
+            "Payment Partially Authorized"
         )
     }
 }

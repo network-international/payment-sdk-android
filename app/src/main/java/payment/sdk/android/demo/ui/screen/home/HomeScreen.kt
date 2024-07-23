@@ -99,7 +99,9 @@ fun HomeScreen(
                     MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW,
                     MainViewModelStateType.PAYMENT_FAILED,
                     MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED,
-                    MainViewModelStateType.PAYMENT_CANCELLED -> {
+                    MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED,
+                    MainViewModelStateType.PAYMENT_CANCELLED,
+                    MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED -> {
                         val (title, message) = state.state.getAlertMessage(state.message)
                         Alert(
                             onConfirmation = closeDialog,

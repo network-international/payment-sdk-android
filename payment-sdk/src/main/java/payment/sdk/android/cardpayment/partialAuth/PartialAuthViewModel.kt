@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.google.gson.JsonParser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,7 @@ class PartialAuthViewModel(
 
     val state: StateFlow<PartialAuthVMState> = _state.asStateFlow()
 
-    private fun updateState(url: String, accessToken: String, successState: PartialAuthState) {
+    fun submitRequest(url: String, accessToken: String) {
         _state.update { it.copy(state = PartialAuthState.LOADING) }
         viewModelScope.launch(dispatcher) {
             val response = httpClient.put(
@@ -37,18 +38,34 @@ class PartialAuthViewModel(
             )
 
             when (response) {
-                is SDKHttpResponse.Failed -> _state.update { it.copy(state = PartialAuthState.ERROR) }
-                is SDKHttpResponse.Success -> _state.update { it.copy(state = successState) }
+                is SDKHttpResponse.Failed -> _state.update {
+                    it.copy(
+                        state = PartialAuthState.ERROR,
+                        message = response.error.message
+                    )
+                }
+
+                is SDKHttpResponse.Success -> {
+                    val state =
+                        JsonParser.parseString(response.body).asJsonObject.get("state").asString.orEmpty()
+                    handleState(state)
+                }
             }
         }
     }
 
-    fun accept(url: String, accessToken: String) {
-        updateState(url, accessToken, PartialAuthState.SUCCESS)
-    }
-
-    fun decline(url: String, accessToken: String) {
-        updateState(url, accessToken, PartialAuthState.DECLINED)
+    private fun handleState(state: String) {
+        _state.update {
+            it.copy(
+                state = when (state) {
+                    "CAPTURED", "AUTHORISED", "VERIFIED", "PURCHASED" -> PartialAuthState.SUCCESS
+                    "PARTIAL_AUTH_DECLINED" -> PartialAuthState.DECLINED
+                    "PARTIAL_AUTH_DECLINE_FAILED" -> PartialAuthState.ERROR
+                    "PARTIALLY_AUTHORISED" -> PartialAuthState.PARTIALLY_AUTHORISED
+                    else -> PartialAuthState.ERROR
+                }
+            )
+        }
     }
 
     companion object {
@@ -68,9 +85,10 @@ class PartialAuthViewModel(
 }
 
 enum class PartialAuthState {
-    LOADING, INIT, SUCCESS, ERROR, DECLINED
+    LOADING, INIT, SUCCESS, ERROR, DECLINED, PARTIALLY_AUTHORISED
 }
 
 data class PartialAuthVMState(
-    val state: PartialAuthState = PartialAuthState.INIT
+    val state: PartialAuthState = PartialAuthState.INIT,
+    val message: String? = null
 )
