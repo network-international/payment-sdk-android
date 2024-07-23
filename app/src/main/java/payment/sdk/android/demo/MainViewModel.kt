@@ -237,6 +237,12 @@ class MainViewModel(
             CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED -> _state.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
             }
+            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
+            }
+            CardPaymentData.STATUS_PARTIALLY_AUTHORISED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
+            }
             else -> _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
         }
     }

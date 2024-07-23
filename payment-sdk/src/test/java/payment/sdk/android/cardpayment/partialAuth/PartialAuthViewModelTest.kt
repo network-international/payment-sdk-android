@@ -48,11 +48,15 @@ class PartialAuthViewModelTest {
     fun `test accept partial auth success`() = runTest {
         val states: MutableList<PartialAuthVMState> = mutableListOf()
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
+
+        val body = """
+            { "state": "CAPTURED" }
+        """.trimIndent()
         coEvery {
             httpClient.put(any(), any(), any())
-        } returns SDKHttpResponse.Success(mapOf(), "")
+        } returns SDKHttpResponse.Success(mapOf(), body)
 
-        sut.accept(url, "token")
+        sut.submitRequest(url, "token")
 
         assertEquals(states[0].state, PartialAuthState.INIT)
         assertEquals(states[1].state, PartialAuthState.LOADING)
@@ -69,7 +73,7 @@ class PartialAuthViewModelTest {
             httpClient.put(any(), any(), any())
         } returns SDKHttpResponse.Failed(Exception())
 
-        sut.accept(url, "token")
+        sut.submitRequest(url, "token")
 
         assertEquals(states[0].state, PartialAuthState.INIT)
         assertEquals(states[1].state, PartialAuthState.LOADING)
@@ -77,16 +81,18 @@ class PartialAuthViewModelTest {
     }
 
     @Test
-    fun `test decline partial auth success`() = runTest {
+    fun `test partial auth declined`() = runTest {
         val states: MutableList<PartialAuthVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
-
+        val body = """
+            { "state": "PARTIAL_AUTH_DECLINED" }
+        """.trimIndent()
         coEvery {
             httpClient.put(any(), any(), any())
-        } returns SDKHttpResponse.Success(mapOf(), "")
+        } returns SDKHttpResponse.Success(mapOf(), body)
 
-        sut.decline(url, "token")
+        sut.submitRequest(url, "token")
 
         assertEquals(states[0].state, PartialAuthState.INIT)
         assertEquals(states[1].state, PartialAuthState.LOADING)
@@ -94,19 +100,42 @@ class PartialAuthViewModelTest {
     }
 
     @Test
-    fun `test decline partial auth Error`() = runTest {
+    fun `test partial auth declined failed`() = runTest {
         val states: MutableList<PartialAuthVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
+        val body = """
+            { "state": "PARTIAL_AUTH_DECLINE_FAILED" }
+        """.trimIndent()
 
         coEvery {
             httpClient.put(any(), any(), any())
-        } returns SDKHttpResponse.Failed(Exception())
+        } returns SDKHttpResponse.Success(mapOf(),body)
 
-        sut.decline(url, "token")
+        sut.submitRequest(url, "token")
 
         assertEquals(states[0].state, PartialAuthState.INIT)
         assertEquals(states[1].state, PartialAuthState.LOADING)
         assertEquals(states[2].state, PartialAuthState.ERROR)
+    }
+
+    @Test
+    fun `test auth partially authorised`() = runTest {
+        val states: MutableList<PartialAuthVMState> = mutableListOf()
+
+        backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
+        val body = """
+            { "state": "PARTIALLY_AUTHORISED" }
+        """.trimIndent()
+
+        coEvery {
+            httpClient.put(any(), any(), any())
+        } returns SDKHttpResponse.Success(mapOf(),body)
+
+        sut.submitRequest(url, "token")
+
+        assertEquals(states[0].state, PartialAuthState.INIT)
+        assertEquals(states[1].state, PartialAuthState.LOADING)
+        assertEquals(states[2].state, PartialAuthState.PARTIALLY_AUTHORISED)
     }
 }

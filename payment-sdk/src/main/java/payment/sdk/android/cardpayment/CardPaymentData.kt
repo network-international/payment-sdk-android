@@ -29,6 +29,8 @@ class CardPaymentData constructor(
         const val STATUS_PAYMENT_CAPTURED: Int = 2
         const val STATUS_POST_AUTH_REVIEW: Int = 4
         const val STATUS_PARTIAL_AUTH_DECLINED: Int = 5
+        const val STATUS_PARTIAL_AUTH_DECLINE_FAILED: Int = 6
+        const val STATUS_PARTIALLY_AUTHORISED: Int = 7
 
         internal const val INTENT_DATA_KEY = "data"
 
