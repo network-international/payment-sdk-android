@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -23,7 +24,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
@@ -31,6 +31,9 @@ class AaniPayActivity : AppCompatActivity() {
     private val inputArgs: AaniPayActivityArgs? by lazy {
         AaniPayActivityArgs.fromIntent(intent = intent)
     }
+
+    private val viewModel: AaniPayViewModel by viewModels { AaniPayViewModel.Factory }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -72,7 +75,7 @@ class AaniPayActivity : AppCompatActivity() {
                     modifier = Modifier.padding(contentPadding)
                 ) {
                     if (showTimer) {
-                        AaniPayTimerScreen(args.amount)
+                        AaniPayTimerScreen("args.amount")
                     } else {
                         AaniPayScreen {
                             showTimer = true

@@ -4,17 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import androidx.core.os.bundleOf
-import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
 import kotlinx.parcelize.Parcelize
 import payment.sdk.android.cardpayment.aaniPay.AaniPayActivity
 import payment.sdk.android.core.Order
-import payment.sdk.android.core.OrderAmount
-import java.util.Locale
 
 @Parcelize
 class AaniPayActivityArgs(
-    val amount: String
+    val amount: Double,
+    val anniPaymentLink: String,
+    val currencyCode: String,
+    val authUrl: String,
+    val payPageUrl: String
 ) : Parcelable {
 
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
@@ -42,13 +42,18 @@ class AaniPayActivityArgs(
         fun getArgs(
             order: Order,
         ): AaniPayActivityArgs {
-            val isLTR =
-                TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
             return AaniPayActivityArgs(
-                amount = OrderAmount(
-                    orderValue = order.amount?.value ?: 0.0,
-                    currencyCode = order.amount?.currencyCode ?: "AED"
-                ).formattedCurrencyString2Decimal(isLTR)
+                amount = requireNotNull(order.amount?.value) {
+                    "Order Amount Not found"
+                },
+                currencyCode = requireNotNull(order.amount?.currencyCode) {
+                    "Currency Code not found"
+                },
+                anniPaymentLink = requireNotNull(order.embedded?.payment?.first()?.links?.aaniPayment?.href) {
+                    "Aani Payment Link not found"
+                },
+                payPageUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
+                authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) { "Auth URL not found " }
             )
         }
     }

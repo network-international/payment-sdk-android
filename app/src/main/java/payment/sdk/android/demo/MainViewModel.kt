@@ -391,7 +391,7 @@ class MainViewModel(
 
                     }
                     is Result.Success -> {
-                        paymentClient.initiateAaniPay(Order(), AANI_PAY_REQUEST_CODE)
+                        paymentClient.initiateAaniPay(result.data, AANI_PAY_REQUEST_CODE)
                     }
                 }
             }
