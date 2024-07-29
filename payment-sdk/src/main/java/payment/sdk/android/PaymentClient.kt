@@ -149,10 +149,14 @@ class PaymentClient(
     }
 
     fun initiateAaniPay(order: Order, code: Int) {
-        context.startActivityForResult(
-            AaniPayActivityArgs.getArgs(order = order).toIntent(context),
-            code
-        )
+        try {
+            context.startActivityForResult(
+                AaniPayActivityArgs.getArgs(order = order).toIntent(context),
+                code
+            )
+        } catch (e: IllegalArgumentException) {
+            Log.e("initiateAaniPay", e.message.orEmpty())
+        }
     }
 
     fun launchSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {
