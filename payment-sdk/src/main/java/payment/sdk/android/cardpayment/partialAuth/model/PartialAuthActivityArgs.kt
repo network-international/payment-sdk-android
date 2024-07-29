@@ -43,23 +43,23 @@ class PartialAuthActivityArgs(
         fun getArgs(partialAuthIntent: PartialAuthIntent?): PartialAuthActivityArgs {
             return PartialAuthActivityArgs(
                 partialAmount = requireNotNull(partialAuthIntent?.partialAmount) {
-                    "ThreeDSChallengeResponse Partial amount not found"
+                    "Partial Auth Partial amount not found"
                 },
                 amount = requireNotNull(partialAuthIntent?.amount) {
-                    "ThreeDSChallengeResponse Amount not found"
+                    "Partial Auth Amount not found"
                 },
                 acceptUrl = requireNotNull(partialAuthIntent?.acceptUrl) {
-                    "ThreeDSChallengeResponse acceptUrl not found"
+                    "Partial Auth acceptUrl not found"
                 },
                 declineUrl = requireNotNull(partialAuthIntent?.declineUrl) {
-                    "ThreeDSChallengeResponse declineUrl not found"
+                    "Partial Auth declineUrl not found"
                 },
                 issuingOrg = partialAuthIntent?.issuingOrg,
                 currency = requireNotNull(partialAuthIntent?.currency) {
-                    "ThreeDSChallengeResponse currencyCode not found"
+                    "PartialAuth currencyCode not found"
                 },
                 paymentCookie = requireNotNull(partialAuthIntent?.paymentCookie) {
-                    "ThreeDSChallengeResponse payment cookie not found"
+                    "Partial Auth payment cookie not found"
                 }
             )
         }
