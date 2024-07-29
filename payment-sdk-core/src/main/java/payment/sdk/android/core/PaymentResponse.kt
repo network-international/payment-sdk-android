@@ -30,11 +30,13 @@ class PaymentResponse {
 
     var state: String? = null
     // Other classes
+    @Keep
     class Amount {
         var currencyCode: String? = null
         var value: Int? = 0
     }
 
+    @Keep
     class Links {
         @SerializedName(value = "payment:partial-auth-accept")
         var partialAuthAccept: Href? = null
@@ -58,20 +60,24 @@ class PaymentResponse {
         var threeDSOneUrl: Href? = null
     }
 
+    @Keep
     class Embedded {
         lateinit var payment: Array<Payment>
     }
 
+    @Keep
     class Payment {
         @SerializedName(value = "_links")
         var links: PaymentLinks? = null
     }
 
+    @Keep
     class PaymentLinks {
         @SerializedName(value = "payment:samsung_pay")
         var samsungPayLink: Href? = null
     }
 
+    @Keep
     class Href {
         var href: String? = null
     }
