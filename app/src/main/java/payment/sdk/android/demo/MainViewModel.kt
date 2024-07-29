@@ -2,6 +2,7 @@ package payment.sdk.android.demo
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.AbstractSavedStateViewModelFactory
 import androidx.lifecycle.SavedStateHandle
@@ -145,6 +146,7 @@ class MainViewModel(
                     }
 
                     is Result.Success -> {
+                        Log.i("MainViewModel", "order ref ${result.data.reference}")
                         val authUrl: String =
                             result.data.links?.paymentAuthorizationUrl?.href.orEmpty()
                         val code = result.data.links?.paymentUrl?.href
