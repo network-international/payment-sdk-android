@@ -2,6 +2,7 @@ package payment.sdk.android
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
