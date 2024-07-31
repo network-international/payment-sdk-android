@@ -15,15 +15,15 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
+import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
+import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
@@ -47,8 +47,6 @@ class AaniPayActivity : AppCompatActivity() {
         }
 
         setContent {
-            var showTimer by remember { mutableStateOf(false) }
-
             Scaffold(
                 topBar = {
                     TopAppBar(
@@ -74,11 +72,42 @@ class AaniPayActivity : AppCompatActivity() {
                 Column(
                     modifier = Modifier.padding(contentPadding)
                 ) {
-                    if (showTimer) {
-                        AaniPayTimerScreen("args.amount")
-                    } else {
-                        AaniPayScreen {
-                            showTimer = true
+                    val state by viewModel.state.collectAsState()
+                    when (state) {
+                        is AaniPayVMState.Authorized -> {
+                            AaniPayScreen { alias, value ->
+                                viewModel.onSubmit(
+                                    args = args,
+                                    alias = alias,
+                                    value = value,
+                                    accessToken = (state as AaniPayVMState.Authorized).accessToken
+                                )
+                            }
+                        }
+
+                        is AaniPayVMState.Error -> {
+                            finishWithData(
+                                CardPaymentData(
+                                    CardPaymentData.STATUS_PAYMENT_FAILED,
+                                    (state as AaniPayVMState.Error).message
+                                )
+                            )
+                        }
+
+                        AaniPayVMState.Init -> viewModel.authorize(args.authUrl, args.payPageUrl)
+                        is AaniPayVMState.Pooling -> {
+                            AaniPayTimerScreen(
+                                (state as AaniPayVMState.Pooling).amount,
+                                (state as AaniPayVMState.Pooling).currencyCode
+                            )
+                        }
+
+                        is AaniPayVMState.Loading -> {
+                            CircularProgressDialog((state as AaniPayVMState.Loading).message)
+                        }
+
+                        AaniPayVMState.Success -> {
+                            finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
                         }
                     }
                 }

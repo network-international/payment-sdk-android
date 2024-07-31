@@ -1,0 +1,25 @@
+{
+  "_id": "urn:payment:3a23b6cd-99ea-403e-b50f-cbf0536b97fc",
+  "_links": {
+    "cnp:aani-status": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/97333dc8-c3af-4098-8538-5eab87db99b8/orders/dcde8ca0-3d2f-4368-a669-f251da27d7c0/payments/3a23b6cd-99ea-403e-b50f-cbf0536b97fc/aani/status"
+    },
+    "self": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/97333dc8-c3af-4098-8538-5eab87db99b8/orders/dcde8ca0-3d2f-4368-a669-f251da27d7c0/payments/3a23b6cd-99ea-403e-b50f-cbf0536b97fc"
+    },
+    "curies": [
+      {
+        "name": "cnp",
+        "href": "https://api-gateway-dev.ngenius-payments.com/docs/rels/{rel}",
+        "templated": true
+      }
+    ]
+  },
+  "reference": "3a23b6cd-99ea-403e-b50f-cbf0536b97fc",
+  "state": "PENDING",
+  "amount": {
+    "currencyCode": "AED",
+    "value": 10000
+  },
+  "aani": {}
+}

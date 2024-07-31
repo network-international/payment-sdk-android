@@ -2,7 +2,6 @@ package payment.sdk.android.demo
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.AbstractSavedStateViewModelFactory
 import androidx.lifecycle.SavedStateHandle
@@ -19,7 +18,6 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.core.Order
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -146,7 +144,6 @@ class MainViewModel(
                     }
 
                     is Result.Success -> {
-                        Log.i("MainViewModel", "order ref ${result.data.reference}")
                         val authUrl: String =
                             result.data.links?.paymentAuthorizationUrl?.href.orEmpty()
                         val code = result.data.links?.paymentUrl?.href
@@ -328,7 +325,7 @@ class MainViewModel(
     companion object {
 
         const val CARD_PAYMENT_REQUEST_CODE = 123
-        const val AANI_PAY_REQUEST_CODE = 134
+        const val AANI_PAY_REQUEST_CODE = 123
 
         fun provideFactory(
             activity: Activity,
