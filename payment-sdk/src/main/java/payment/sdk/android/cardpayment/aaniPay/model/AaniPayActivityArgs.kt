@@ -14,7 +14,8 @@ class AaniPayActivityArgs(
     val anniPaymentLink: String,
     val currencyCode: String,
     val authUrl: String,
-    val payPageUrl: String
+    val payPageUrl: String,
+    val backLink: String
 ) : Parcelable {
 
     private fun toBundle() = bundleOf(EXTRA_ARGS to this)
@@ -53,7 +54,8 @@ class AaniPayActivityArgs(
                     "Aani Payment Link not found"
                 },
                 payPageUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
-                authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) { "Auth URL not found " }
+                authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) { "Auth URL not found " },
+                backLink = "https://paypage.ngenius-payments.com/?code=2891yekjnad" // TODO: Get backlink from merchant
             )
         }
     }
