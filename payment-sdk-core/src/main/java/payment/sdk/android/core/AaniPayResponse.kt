@@ -19,5 +19,5 @@ data class Links(
 )
 
 data class Aani(
-    val deepLinkUrl: String
+    val deepLinkUrl: String?
 )
