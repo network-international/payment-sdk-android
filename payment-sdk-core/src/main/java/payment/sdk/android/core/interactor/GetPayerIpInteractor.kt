@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import androidx.annotation.Keep
 import com.google.gson.Gson
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
@@ -21,6 +22,7 @@ class GetPayerIpInteractor(
         }
     }
 
+    @Keep
     internal data class PayerIpResponse(
         val requesterIp: String?
     )
