@@ -17,10 +17,10 @@ enum class AaniIDType(
 ) {
     MOBILE_NUMBER(
         resourceId = R.string.aani_mobile_number,
-        regex = "^[0-9]{10}$".toRegex(),
+        regex = "\\d{5,13}\$".toRegex(),
         keyboardType = KeyboardType.Phone,
-        length = 10,
-        sample = "8888888888",
+        length = 9,
+        sample = "888888888",
         label = "MOBILE_NUMBER"
     ),
     EMIRATES_ID(

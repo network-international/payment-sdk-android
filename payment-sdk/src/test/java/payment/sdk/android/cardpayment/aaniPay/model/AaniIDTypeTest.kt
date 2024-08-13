@@ -47,11 +47,11 @@ class AaniIDTypeTest {
     @Test
     fun mobileNumberValidation() {
         val validMobileNumbers = listOf(
-            "1234567890",
-            "0987654321",
-            "1122334455",
-            "5566778899",
-            "6677889900"
+            "123456789",
+            "098765431",
+            "112233455",
+            "556677899",
+            "667789900"
         )
 
         validMobileNumbers.forEach { assertTrue(AaniIDType.MOBILE_NUMBER.validate(it)) }
