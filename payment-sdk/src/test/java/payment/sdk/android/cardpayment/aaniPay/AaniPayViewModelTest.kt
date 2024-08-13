@@ -220,7 +220,7 @@ class AaniPayViewModelTest {
 
     companion object {
         private val args =
-            AaniPayActivityArgs(100.0, "link", "AED", "anniPaymentLink", "backLink", "")
+            AaniPayActivityArgs(100.0, "link", "AED", "anniPaymentLink", "")
         private const val authUrl = "authUrl"
         private const val paymentUrl = "https://test.com/?code=authCode"
         private const val authCode = "authCode"
