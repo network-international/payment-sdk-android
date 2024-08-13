@@ -102,11 +102,9 @@ class AaniPayActivity : AppCompatActivity() {
                                 (state as AaniPayVMState.Pooling).amount,
                                 (state as AaniPayVMState.Pooling).currencyCode
                             )
-                            if (isAaniAppInstalled()) {
-                                startActivity(Intent(Intent.ACTION_VIEW).apply {
-                                    intent.setData(Uri.parse(((state as AaniPayVMState.Pooling).deepLink)))
-                                })
-                            }
+                            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                                intent.setData(Uri.parse(((state as AaniPayVMState.Pooling).deepLink)))
+                            })
                         }
 
                         is AaniPayVMState.Loading -> {
@@ -131,7 +129,7 @@ class AaniPayActivity : AppCompatActivity() {
         }
     }
 
-    fun isAaniAppInstalled(): Boolean {
+    private fun isAaniAppInstalled(): Boolean {
         return try {
             packageManager.getPackageInfo("ae.aletihadpayments.aani", PackageManager.GET_ACTIVITIES)
             true
