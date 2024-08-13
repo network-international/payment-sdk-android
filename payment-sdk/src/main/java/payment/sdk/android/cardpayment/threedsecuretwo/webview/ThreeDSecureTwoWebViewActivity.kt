@@ -272,6 +272,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         val currentWebView = threeDSecureWebViews.last()
         currentWebView.visibility = View.GONE
         val browserDataJS = "browserLanguage: window.navigator.language," +
+                "acceptBrowserLanguages: window.navigator.languages," +
                 "browserJavaEnabled: window.navigator.javaEnabled ? window.navigator.javaEnabled() : false," +
                 "browserColorDepth: window.screen.colorDepth.toString()," +
                 "browserScreenHeight: window.screen.height.toString()," +
