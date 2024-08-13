@@ -73,14 +73,8 @@ class AaniPayViewModel(
             val response = aaniPayApiInterator.makePayment(
                 args.anniPaymentLink,
                 accessToken,
-                createRequest(
-                    alias = alias,
-                    value = value,
-                    payerIp = payerIp,
-                    backLink = args.backLink
-                ).toBody()
+                createRequest(alias = alias, value = value, payerIp = payerIp).toBody()
             )
-
 
             when (response) {
                 is AaniPayApiResponse.Error -> _state.update {
@@ -91,7 +85,8 @@ class AaniPayViewModel(
                     _state.update {
                         AaniPayVMState.Pooling(
                             amount = response.aaniPayResponse.amount.value ?: 0.0,
-                            currencyCode = response.aaniPayResponse.amount.currencyCode ?: "AED"
+                            currencyCode = response.aaniPayResponse.amount.currencyCode ?: "AED",
+                            deepLink = response.aaniPayResponse.aani?.deepLinkUrl ?: ""
                         )
                     }
                     startPooling(
@@ -123,12 +118,10 @@ class AaniPayViewModel(
     private fun createRequest(
         alias: AaniIDType,
         value: String,
-        backLink: String,
         payerIp: String
     ) = with(
         AaniPayRequest(
             aliasType = alias.label,
-            backLink = backLink,
             payerIp = payerIp,
         )
     ) {

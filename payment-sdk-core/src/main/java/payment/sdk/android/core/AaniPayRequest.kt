@@ -10,7 +10,7 @@ data class AaniPayRequest(
     val emiratesId: String? = null,
     val passportId: String? = null,
     val emailId: String? = null,
-    val backLink: String,
+    val backLink: String = "niannipay://open",
     val payerIp: String,
     val source: String = "MOBILE_APP"
 ) {
