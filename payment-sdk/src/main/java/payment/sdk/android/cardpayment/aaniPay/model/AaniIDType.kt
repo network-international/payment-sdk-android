@@ -3,6 +3,7 @@ package payment.sdk.android.cardpayment.aaniPay.model
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import payment.sdk.android.cardpayment.validation.EmiratesIdVisualTransformation
+import payment.sdk.android.cardpayment.validation.UppercaseVisualTransformation
 import payment.sdk.android.sdk.R
 
 enum class AaniIDType(
@@ -37,7 +38,8 @@ enum class AaniIDType(
         keyboardType = KeyboardType.Text,
         length = 9,
         sample = "X12345678",
-        label = "PASSPORT_ID"
+        label = "PASSPORT_ID",
+        inputFormatter = UppercaseVisualTransformation()
     ),
     EMAIL_ID(
         resourceId = R.string.aani_email_id,

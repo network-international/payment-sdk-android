@@ -2,6 +2,8 @@ package payment.sdk.android.cardpayment.aaniPay
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -100,6 +102,11 @@ class AaniPayActivity : AppCompatActivity() {
                                 (state as AaniPayVMState.Pooling).amount,
                                 (state as AaniPayVMState.Pooling).currencyCode
                             )
+                            if (isAaniAppInstalled()) {
+                                startActivity(Intent(Intent.ACTION_VIEW).apply {
+                                    intent.setData(Uri.parse(((state as AaniPayVMState.Pooling).deepLink)))
+                                })
+                            }
                         }
 
                         is AaniPayVMState.Loading -> {
@@ -112,6 +119,24 @@ class AaniPayActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent?.data?.let { uri ->
+            if (uri.scheme == "niannipay" && uri.host == "open") {
+            }
+        }
+    }
+
+    fun isAaniAppInstalled(): Boolean {
+        return try {
+            packageManager.getPackageInfo("ae.aletihadpayments.aani", PackageManager.GET_ACTIVITIES)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
         }
     }
 
