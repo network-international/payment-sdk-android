@@ -114,4 +114,8 @@
     <string name="aani_passport_id">Passport ID</string>
     <string name="aani_email_id">Email ID</string>
     <string name="aani_alias_type">Alias type</string>
+    <string name="aani_paying_amount">Paying %1$s</string>
+    <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
+    <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
+
 </resources>
