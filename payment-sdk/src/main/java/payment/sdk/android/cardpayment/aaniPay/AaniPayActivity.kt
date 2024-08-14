@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -15,12 +16,14 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
@@ -47,33 +50,38 @@ class AaniPayActivity : AppCompatActivity() {
             return
         }
 
+        lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                handleBackPress(state)
+            }
+        }
+
         setContent {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = stringResource(R.string.aani),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                            )
-                        },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
-                        navigationIcon = {
+            val state by viewModel.state.collectAsState()
+
+            Scaffold(topBar = {
+                TopAppBar(title = {
+                    Text(
+                        text = stringResource(R.string.aani),
+                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    )
+                },
+                    backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                    navigationIcon = {
+                        if (state !is AaniPayVMState.Pooling) {
                             IconButton(onClick = { }) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
                                     contentDescription = "Back"
                                 )
                             }
                         }
-                    )
-                }
-            ) { contentPadding ->
+                    })
+            }) { contentPadding ->
                 Column(
                     modifier = Modifier.padding(contentPadding)
                 ) {
-                    val state by viewModel.state.collectAsState()
                     when (state) {
                         is AaniPayVMState.Authorized -> {
                             AaniPayScreen { alias, value ->
@@ -101,12 +109,18 @@ class AaniPayActivity : AppCompatActivity() {
                                 (state as AaniPayVMState.Pooling).amount,
                                 (state as AaniPayVMState.Pooling).currencyCode
                             )
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse((state as AaniPayVMState.Pooling).deepLink))
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            try {
-                                startActivity(intent)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                            with(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse((state as AaniPayVMState.Pooling).deepLink)
+                                )
+                            ) {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                try {
+                                    startActivity(intent)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                         }
 
@@ -123,13 +137,19 @@ class AaniPayActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleBackPress(state: AaniPayVMState) {
+        onBackPressedDispatcher.addCallback(this) {
+            if (state !is AaniPayVMState.Pooling) {
+                finish()
+            }
+        }.apply {
+            isEnabled = state is AaniPayVMState.Pooling
+        }
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent?.data?.let { uri ->
-            if (uri.scheme == "niannipay" && uri.host == "open") {
-            }
-        }
     }
 
     private fun finishWithData(cardPaymentData: CardPaymentData) {
