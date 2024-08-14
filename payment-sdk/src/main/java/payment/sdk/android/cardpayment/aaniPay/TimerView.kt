@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,45 +34,45 @@ fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: String) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Paying $amount", style = TextStyle(
+            text = stringResource(R.string.aani_paying_amount, amount),
+            style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                lineHeight = 36.sp,
-                letterSpacing = 0.sp,
                 color = colorResource(id = R.color.payment_sdk_pay_button_background_color)
             )
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            "Click the notification received on you app to complete the payment", style = TextStyle(
+            text = stringResource(R.string.aani_tap_notification),
+            style = TextStyle(
                 fontWeight = FontWeight.W500,
                 fontSize = 16.sp,
-                lineHeight = 24.sp,
-                letterSpacing = 0.15.sp,
-            ),
-            textAlign = TextAlign.Center
+                textAlign = TextAlign.Center
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold
+            style = TextStyle(
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "NOTE: Please do not close the app while the timer is running",
+            text = stringResource(R.string.aani_note_do_not_close),
             style = TextStyle(
                 fontWeight = FontWeight.W400,
                 fontSize = 14.sp,
-                lineHeight = 20.sp,
-                letterSpacing = 0.25.sp,
-                color = Color.Gray
-            ),
-            textAlign = TextAlign.Center
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
         )
     }
 }
