@@ -55,7 +55,8 @@ class MainViewModel(
                 isSamsungPayAvailable = false,
                 total = 0.0,
                 savedCard = dataStore.getSavedCard(),
-                savedCards = dataStore.getSavedCards()
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
             )
         }
         paymentClient.getSupportedPaymentMethods(object :
@@ -84,7 +85,7 @@ class MainViewModel(
                         action = dataStore.getOrderAction(),
                         amount = PaymentOrderAmount(
                             value = state.value.total,
-                            currencyCode = "AED"
+                            currencyCode = dataStore.getCurrency().code
                         ),
                         language = Locale.getDefault().language,
                         merchantAttributes = dataStore.getMerchantAttributes()
@@ -128,7 +129,7 @@ class MainViewModel(
                     action = dataStore.getOrderAction(),
                     amount = PaymentOrderAmount(
                         value = state.value.total,
-                        currencyCode = "AED"
+                        currencyCode = dataStore.getCurrency().code
                     ),
                     language = Locale.getDefault().language,
                     merchantAttributes = dataStore.getMerchantAttributes()
@@ -184,7 +185,7 @@ class MainViewModel(
                         action = dataStore.getOrderAction(),
                         amount = PaymentOrderAmount(
                             value = state.value.total,
-                            currencyCode = "AED"
+                            currencyCode = dataStore.getCurrency().code
                         ),
                         language = Locale.getDefault().language,
                         merchantAttributes = dataStore.getMerchantAttributes()
@@ -363,5 +364,16 @@ class MainViewModel(
 
     override fun onFailure(error: String) {
         _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
+    }
+
+    fun onRefresh() {
+        _state.update {
+            MainViewModelState(
+                products = dataStore.getProducts(),
+                savedCard = dataStore.getSavedCard(),
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
+            )
+        }
     }
 }
