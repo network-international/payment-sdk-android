@@ -12,7 +12,8 @@ data class MainViewModelState(
     val total: Double = 0.0,
     val orderReference: String? = null,
     val savedCard: SavedCard? = null,
-    val savedCards: List<SavedCard> = listOf()
+    val savedCards: List<SavedCard> = listOf(),
+    val currency: String = ""
 )
 
 enum class MainViewModelStateType {

@@ -28,6 +28,7 @@ import payment.sdk.android.demo.model.Product
 fun ProductItem(
     product: Product,
     isSelected: Boolean,
+    currency: String,
     onClick: () -> Unit,
     onDeleteProduct: (Product) -> Unit
 ) {
@@ -68,7 +69,7 @@ fun ProductItem(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "AED ${product.amount.formatCurrency()}",
+                    text = "$currency ${product.amount.formatCurrency()}",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )

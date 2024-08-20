@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onPaySavedCard = {
                                 viewModel.onPayBySavedCard(it)
-                            }
+                            },
+                            onRefresh = viewModel::onRefresh
                         )
                     }
 
