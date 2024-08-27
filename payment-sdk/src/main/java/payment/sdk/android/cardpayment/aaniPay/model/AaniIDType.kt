@@ -18,8 +18,8 @@ enum class AaniIDType(
     MOBILE_NUMBER(
         resourceId = R.string.aani_mobile_number,
         regex = "\\d{5,13}\$".toRegex(),
-        keyboardType = KeyboardType.Phone,
-        length = 9,
+        keyboardType = KeyboardType.Number,
+        length = 13,
         sample = "888888888",
         label = "MOBILE_NUMBER"
     ),

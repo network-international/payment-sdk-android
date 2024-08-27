@@ -30,6 +30,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.cardpayment.aaniPay.Views.AliasTypeView
@@ -43,7 +45,7 @@ fun AaniPayScreen(
     onSubmit: (alias: AaniIDType, value: String) -> Unit
 ) {
     var selectedInputType by remember { mutableStateOf(AaniIDType.MOBILE_NUMBER) }
-    var inputValue by remember { mutableStateOf("") }
+    var inputValue by remember { mutableStateOf(TextFieldValue("")) }
     var isInputValid by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val inputTypes = AaniIDType.entries
@@ -59,7 +61,7 @@ fun AaniPayScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Image(
-            modifier = Modifier.height(80.dp),
+            modifier = Modifier.height(120.dp),
             painter = painterResource(R.drawable.aani_logo),
             contentScale = ContentScale.Fit,
             contentDescription = ""
@@ -75,7 +77,13 @@ fun AaniPayScreen(
             onSelected = {
                 expanded = !expanded
                 selectedInputType = it
-                inputValue = ""
+                inputValue = TextFieldValue(
+                    text = if (it == AaniIDType.EMIRATES_ID) "784" else "",
+                    selection = if (it == AaniIDType.EMIRATES_ID) TextRange(
+                        3,
+                        3
+                    ) else TextRange.Zero
+                )
             }
         )
 
@@ -100,10 +108,10 @@ fun AaniPayScreen(
                     .focusRequester(focusRequester)
                     .background(Color.White),
                 onValueChange = {
-                    if (selectedInputType.length >= it.length) {
+                    if (selectedInputType.length >= it.text.length) {
                         inputValue = it
                         isInputValid = selectedInputType.validate(
-                            selectedInputType.inputFormatter.filter(AnnotatedString(it)).text.text
+                            selectedInputType.inputFormatter.filter(AnnotatedString(it.text)).text.text
                         )
                     }
                 },
@@ -125,7 +133,7 @@ fun AaniPayScreen(
             text = stringResource(R.string.make_payment),
             isValid = isInputValid
         ) {
-            onSubmit(selectedInputType, inputValue)
+            onSubmit(selectedInputType, inputValue.text)
         }
     }
 }
