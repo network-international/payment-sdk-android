@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment.aaniPay.Views
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
-import payment.sdk.android.sdk.R
 
 @Composable
 fun AliasTypeView(
@@ -40,7 +40,6 @@ fun AliasTypeView(
             .fillMaxWidth()
     ) {
         OutlinedTextField(
-            label = { Text(stringResource(R.string.aani_alias_type)) },
             value = stringResource(type.resourceId),
             enabled = false,
             modifier = Modifier.fillMaxSize(),

@@ -109,18 +109,15 @@ class AaniPayActivity : AppCompatActivity() {
                                 (state as AaniPayVMState.Pooling).amount,
                                 (state as AaniPayVMState.Pooling).currencyCode
                             )
-                            with(
-                                Intent(
+                            try {
+                                startActivity(Intent(
                                     Intent.ACTION_VIEW,
                                     Uri.parse((state as AaniPayVMState.Pooling).deepLink)
-                                )
-                            ) {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                try {
-                                    startActivity(intent)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
+                                ).apply {
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                })
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
                         }
 
