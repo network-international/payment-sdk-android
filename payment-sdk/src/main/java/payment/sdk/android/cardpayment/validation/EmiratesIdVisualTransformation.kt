@@ -5,14 +5,14 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 
-class EmiratesIdVisualTransformation : VisualTransformation {
+internal class EmiratesIdVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
-        val trimmed = if (text.text.length > 15) text.text.substring(0, 15) else text.text
-        val out = StringBuilder()
+        val userInput = if (text.text.length > 12) text.text.substring(0, 12) else text.text
+        val out = StringBuilder(FIXED_PREFIX)
 
-        for (i in trimmed.indices) {
-            out.append(trimmed[i])
-            if (i == 2 || i == 6 || i == 13) {
+        for (i in userInput.indices) {
+            out.append(userInput[i])
+            if (i == 3 || i == 10) {
                 out.append('-')
             }
         }
@@ -20,25 +20,25 @@ class EmiratesIdVisualTransformation : VisualTransformation {
         val translation = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
                 return when {
-                    offset <= 2 -> offset
-                    offset <= 6 -> offset + 1
-                    offset <= 13 -> offset + 2
-                    offset <= 15 -> offset + 3
+                    offset <= 3 -> offset + FIXED_PREFIX.length
+                    offset <= 10 -> offset + FIXED_PREFIX.length + 1
                     else -> out.length
                 }
             }
 
             override fun transformedToOriginal(offset: Int): Int {
                 return when {
-                    offset <= 3 -> offset
-                    offset <= 8 -> offset - 1
-                    offset <= 16 -> offset - 2
-                    offset <= 19 -> offset - 3
-                    else -> trimmed.length
+                    offset <= FIXED_PREFIX.length -> 0
+                    offset <= FIXED_PREFIX.length + 4 -> offset - FIXED_PREFIX.length
+                    offset <= FIXED_PREFIX.length + 12 -> offset - FIXED_PREFIX.length - 1
+                    else -> userInput.length
                 }
             }
         }
-
         return TransformedText(AnnotatedString(out.toString()), translation)
+    }
+
+    companion object {
+        private const val FIXED_PREFIX = "784-"
     }
 }

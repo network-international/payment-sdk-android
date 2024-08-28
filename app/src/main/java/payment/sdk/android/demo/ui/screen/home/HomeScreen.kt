@@ -94,7 +94,6 @@ fun HomeScreen(
                 }
 
                 when (state.state) {
-                    MainViewModelStateType.INIT -> {}
                     MainViewModelStateType.LOADING -> CircularProgressDialog(message = state.message)
                     MainViewModelStateType.PAYMENT_SUCCESS,
                     MainViewModelStateType.ERROR,
@@ -111,6 +110,8 @@ fun HomeScreen(
                             dialogText = message
                         )
                     }
+
+                    MainViewModelStateType.INIT, MainViewModelStateType.PAYMENT_PROCESSING -> {}
                 }
             }
         }

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CountryCodeView() {
+internal fun CountryCodeView() {
     Surface(
         shape = MaterialTheme.shapes.small,
         color = Color.White,

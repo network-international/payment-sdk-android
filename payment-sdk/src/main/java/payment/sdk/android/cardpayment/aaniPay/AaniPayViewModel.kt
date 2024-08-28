@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.AaniPayRequest
@@ -27,7 +26,7 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 
-class AaniPayViewModel(
+internal class AaniPayViewModel(
     private val authApiInteractor: AuthApiInteractor,
     private val aaniPayApiInterator: AaniPayApiInterator,
     private val getPayerIpInteractor: GetPayerIpInteractor,
@@ -62,7 +61,7 @@ class AaniPayViewModel(
     }
 
     fun onSubmit(
-        args: AaniPayActivityArgs,
+        args: AaniPayLauncher.Config,
         accessToken: String,
         alias: AaniIDType,
         value: String
