@@ -1,17 +1,12 @@
 package payment.sdk.android
 
 import android.app.Activity
-import android.content.Intent
-import android.util.Log
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
-import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.cardpayment.aaniPay.AaniPayActivity
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
 import payment.sdk.android.cardpayment.savedCard.SavedCardActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
@@ -147,17 +142,6 @@ class PaymentClient(
             intent,
             code
         )
-    }
-
-    fun initiateAaniPay(order: Order, code: Int) {
-        try {
-            context.startActivityForResult(
-                AaniPayActivityArgs.getArgs(order = order).toIntent(context),
-                code
-            )
-        } catch (e: IllegalArgumentException) {
-            Log.e("initiateAaniPay", e.message.orEmpty())
-        }
     }
 
     fun launchSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {

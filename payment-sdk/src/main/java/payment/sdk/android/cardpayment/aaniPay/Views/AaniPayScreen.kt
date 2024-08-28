@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay
+package payment.sdk.android.cardpayment.aaniPay.Views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,22 +30,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.cardpayment.aaniPay.Views.AliasTypeView
-import payment.sdk.android.cardpayment.aaniPay.Views.CountryCodeView
 import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
 import payment.sdk.android.cardpayment.widget.PayButton
 import payment.sdk.android.sdk.R
 
 @Composable
-fun AaniPayScreen(
+internal fun AaniPayScreen(
     onSubmit: (alias: AaniIDType, value: String) -> Unit
 ) {
     var selectedInputType by remember { mutableStateOf(AaniIDType.MOBILE_NUMBER) }
-    var inputValue by remember { mutableStateOf(TextFieldValue("")) }
+    var inputValue by remember { mutableStateOf("") }
     var isInputValid by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val inputTypes = AaniIDType.entries
@@ -77,13 +73,8 @@ fun AaniPayScreen(
             onSelected = {
                 expanded = !expanded
                 selectedInputType = it
-                inputValue = TextFieldValue(
-                    text = if (it == AaniIDType.EMIRATES_ID) "784" else "",
-                    selection = if (it == AaniIDType.EMIRATES_ID) TextRange(
-                        3,
-                        3
-                    ) else TextRange.Zero
-                )
+                inputValue = ""
+                isInputValid = false
             }
         )
 
@@ -107,11 +98,12 @@ fun AaniPayScreen(
                     .weight(1f)
                     .focusRequester(focusRequester)
                     .background(Color.White),
-                onValueChange = {
-                    if (selectedInputType.length >= it.text.length) {
-                        inputValue = it
+                onValueChange = { text ->
+                    if (selectedInputType.length >= text.length) {
+                        inputValue =
+                            if (selectedInputType.isDigitOnly) text.filter { it.isDigit() } else text
                         isInputValid = selectedInputType.validate(
-                            selectedInputType.inputFormatter.filter(AnnotatedString(it.text)).text.text
+                            selectedInputType.inputFormatter.filter(AnnotatedString(text)).text.text
                         )
                     }
                 },
@@ -133,7 +125,7 @@ fun AaniPayScreen(
             text = stringResource(R.string.make_payment),
             isValid = isInputValid
         ) {
-            onSubmit(selectedInputType, inputValue.text)
+            onSubmit(selectedInputType, inputValue)
         }
     }
 }

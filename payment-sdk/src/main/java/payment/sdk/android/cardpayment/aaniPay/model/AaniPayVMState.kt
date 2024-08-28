@@ -2,7 +2,7 @@ package payment.sdk.android.cardpayment.aaniPay.model
 
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 
-sealed class AaniPayVMState {
+internal sealed class AaniPayVMState {
     data object Init : AaniPayVMState()
 
     data class Loading(val message: LoadingMessage) : AaniPayVMState()
