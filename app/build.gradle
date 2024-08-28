@@ -38,6 +38,22 @@ android {
         }
     }
 
+    flavorDimensions "version"
+    productFlavors {
+        demoDebug {
+            dimension "version"
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            resValue "string", "app_name", "Demo App (Debug)"
+        }
+
+        demoRelease {
+            dimension "version"
+            signingConfig signingConfigs.release
+            resValue "string", "app_name", "Demo App"
+        }
+    }
+
     buildFeatures {
         compose = true
     }

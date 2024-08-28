@@ -21,7 +21,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
 import payment.sdk.android.core.AaniPayResponse
 import payment.sdk.android.core.interactor.AaniPayApiInterator
@@ -220,7 +219,7 @@ class AaniPayViewModelTest {
 
     companion object {
         private val args =
-            AaniPayActivityArgs(100.0, "link", "AED", "anniPaymentLink", "")
+            AaniPayLauncher.Config(100.0, "link", "AED", "anniPaymentLink", "")
         private const val authUrl = "authUrl"
         private const val paymentUrl = "https://test.com/?code=authCode"
         private const val authCode = "authCode"
