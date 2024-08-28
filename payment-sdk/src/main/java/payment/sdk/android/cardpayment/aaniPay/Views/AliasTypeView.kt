@@ -1,6 +1,5 @@
 package payment.sdk.android.cardpayment.aaniPay.Views
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
 
 @Composable
-fun AliasTypeView(
+internal fun AliasTypeView(
     options: List<AaniIDType>,
     type: AaniIDType,
     expanded: Boolean,

@@ -8,13 +8,12 @@ class AaniIDTypeTest {
     @Test
     fun emailIDValidation() {
         val validEmails = listOf(
-            "username@example.com",
-            "user+name@example.com",
-            "user.name+tag+sorting@example.com",
-            "user@domain.com",
-            "user.name@domain.com"
+            "example.email@domain.com",
+            "user.name123@sub.domain.co",
+            "test_user.name@domain.co.uk",
+            "my.email@domain.io",
+            "first.last123@subdomain.domain.com"
         )
-
         validEmails.forEach { assertTrue(AaniIDType.EMAIL_ID.validate(it)) }
     }
 

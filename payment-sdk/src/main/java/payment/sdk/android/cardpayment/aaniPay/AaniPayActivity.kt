@@ -24,16 +24,16 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayActivityArgs
+import payment.sdk.android.cardpayment.aaniPay.Views.AaniPayScreen
+import payment.sdk.android.cardpayment.aaniPay.Views.AaniPayTimerScreen
 import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
 
-    private val inputArgs: AaniPayActivityArgs? by lazy {
-        AaniPayActivityArgs.fromIntent(intent = intent)
+    private val inputArgs: AaniPayLauncher.Config? by lazy {
+        AaniPayLauncher.Config.fromIntent(intent = intent)
     }
 
     private val viewModel: AaniPayViewModel by viewModels { AaniPayViewModel.Factory }
@@ -46,7 +46,7 @@ class AaniPayActivity : AppCompatActivity() {
                 "AaniPayActivity input arguments were not found"
             }
         }.getOrElse {
-            finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+            finishWithData(AaniPayLauncher.Result.Failed(it.message.orEmpty()))
             return
         }
 
@@ -69,7 +69,7 @@ class AaniPayActivity : AppCompatActivity() {
                     backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
                     navigationIcon = {
                         if (state !is AaniPayVMState.Pooling) {
-                            IconButton(onClick = { }) {
+                            IconButton(onClick = { finishWithData(AaniPayLauncher.Result.Canceled) }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
@@ -95,12 +95,7 @@ class AaniPayActivity : AppCompatActivity() {
                         }
 
                         is AaniPayVMState.Error -> {
-                            finishWithData(
-                                CardPaymentData(
-                                    CardPaymentData.STATUS_PAYMENT_FAILED,
-                                    (state as AaniPayVMState.Error).message
-                                )
-                            )
+                            finishWithData(AaniPayLauncher.Result.Failed((state as AaniPayVMState.Error).message))
                         }
 
                         AaniPayVMState.Init -> viewModel.authorize(args.authUrl, args.payPageUrl)
@@ -126,7 +121,7 @@ class AaniPayActivity : AppCompatActivity() {
                         }
 
                         AaniPayVMState.Success -> {
-                            finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
+                            finishWithData(AaniPayLauncher.Result.Success)
                         }
                     }
                 }
@@ -149,9 +144,9 @@ class AaniPayActivity : AppCompatActivity() {
         setIntent(intent)
     }
 
-    private fun finishWithData(cardPaymentData: CardPaymentData) {
+    private fun finishWithData(result: AaniPayLauncher.Result) {
         val intent = Intent().apply {
-            putExtra(CardPaymentData.INTENT_DATA_KEY, cardPaymentData)
+            putExtra(AaniPayLauncherContract.EXTRA_RESULT, result)
         }
         setResult(Activity.RESULT_OK, intent)
         finish()
