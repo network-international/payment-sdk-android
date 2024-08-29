@@ -20,6 +20,10 @@
         tools:targetApi="m">
 
         <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true" />
+
+        <meta-data
             android:name="debug_mode"
             android:value="Y" />
         <meta-data

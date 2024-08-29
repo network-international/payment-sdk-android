@@ -69,6 +69,9 @@ class Order {
         @SerializedName(value = "self")
         var selfLink: Href? = null
 
+        @SerializedName(value = "payment:google_pay")
+        var googlePayLink: Href? = null
+
         @SerializedName(value = "payment:partial-auth-accept")
         var partialAuthAccept: Href? = null
 
