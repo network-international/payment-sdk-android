@@ -129,6 +129,8 @@ fun HomeScreen(
                             dialogText = message
                         )
                     }
+
+                    MainViewModelStateType.PAYMENT_PROCESSING -> { }
                 }
             }
         }
