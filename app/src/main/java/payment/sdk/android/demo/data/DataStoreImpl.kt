@@ -7,6 +7,7 @@ import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.model.Product
 import com.google.gson.Gson
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.model.AppCurrency
 
 class DataStoreImpl(private val context: Context) : DataStore {
     override fun saveEnvironment(environment: Environment) {
@@ -99,6 +100,15 @@ class DataStoreImpl(private val context: Context) : DataStore {
         }
     }
 
+    override fun getCurrency(): AppCurrency {
+        val currency = context.getPreferences().getString(KEY_CURRENCY, "")
+        return AppCurrency.entries.firstOrNull { it.code == currency } ?: AppCurrency.AED
+    }
+
+    override fun setCurrency(currency: AppCurrency) {
+        context.getPreferences().edit().putString(KEY_CURRENCY, currency.code).apply()
+    }
+
     override fun saveCard(savedCard: SavedCard) {
         val savedCards = getSavedCards().toMutableList()
         if (savedCards.firstOrNull { it.cardToken == savedCard.cardToken } == null) {
@@ -109,6 +119,7 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     companion object {
+        const val KEY_CURRENCY = "currency"
         const val KEY_SAVED_CARDS = "saved_cards"
         const val KEY_SAVED_CARD = "saved_card"
         const val KEY_ORDER_ACTION = "order_action"

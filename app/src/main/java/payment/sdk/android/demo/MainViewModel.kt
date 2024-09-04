@@ -39,7 +39,7 @@ class MainViewModel(
     private val getOrderApiInteractor: GetOrderApiInteractor,
     private val dataStore: DataStore,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : ViewModel(), SamsungPayResponse {
+) : ViewModel() {
 
     private var _state: MutableStateFlow<MainViewModelState> =
         MutableStateFlow(MainViewModelState())
@@ -55,7 +55,8 @@ class MainViewModel(
                 isSamsungPayAvailable = false,
                 total = 0.0,
                 savedCard = dataStore.getSavedCard(),
-                savedCards = dataStore.getSavedCards()
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
             )
         }
         paymentClient.getSupportedPaymentMethods(object :
@@ -72,150 +73,19 @@ class MainViewModel(
         })
     }
 
-    fun onPayBySavedCard(savedCard: SavedCard) {
-        getEnvironment()?.let { environment ->
-            _state.update {
-                it.copy(state = MainViewModelStateType.LOADING, message = "Authenticating...")
-            }
-            viewModelScope.launch(dispatcher) {
-                val result = createOrderApiInteractor.createOrder(
-                    environment,
-                    OrderRequest(
-                        action = dataStore.getOrderAction(),
-                        amount = PaymentOrderAmount(
-                            value = state.value.total,
-                            currencyCode = "AED"
-                        ),
-                        language = Locale.getDefault().language,
-                        merchantAttributes = dataStore.getMerchantAttributes()
-                            .filter { it.isActive }
-                            .associate { it.key to it.value },
-                        savedCard = savedCard
-                    )
-                )
-                when (result) {
-                    is Result.Error -> {
-                        _state.update {
-                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
-                        }
-                    }
-
-                    is Result.Success -> {
-                        paymentClient.launchSavedCardPayment(
-                            order = result.data,
-                            code = CARD_PAYMENT_REQUEST_CODE
-                        )
-                        _state.update {
-                            it.copy(
-                                state = MainViewModelStateType.INIT,
-                                selectedProducts = listOf(),
-                                total = 0.0
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun onPayByCard() {
-        getEnvironment()?.let { environment ->
-            _state.update {
-                it.copy(state = MainViewModelStateType.LOADING, message = "Creating Order...")
-            }
-            viewModelScope.launch(dispatcher) {
-                val result = createOrderApiInteractor.createOrder(environment, OrderRequest(
-                    action = dataStore.getOrderAction(),
-                    amount = PaymentOrderAmount(
-                        value = state.value.total,
-                        currencyCode = "AED"
-                    ),
-                    language = Locale.getDefault().language,
-                    merchantAttributes = dataStore.getMerchantAttributes()
-                        .filter { it.isActive }
-                        .associate { it.key to it.value }
-                ))
-
-                when (result) {
-                    is Result.Error -> {
-                        _state.update {
-                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
-                        }
-                    }
-
-                    is Result.Success -> {
-                        val authUrl: String =
-                            result.data.links?.paymentAuthorizationUrl?.href.orEmpty()
-                        val code = result.data.links?.paymentUrl?.href
-                            ?.takeIf { it.isNotBlank() }
-                            ?.split("=")
-                            ?.getOrNull(1)
-                            .orEmpty()
-                        paymentClient.launchCardPayment(
-                            request = CardPaymentRequest.builder()
-                                .gatewayUrl(authUrl)
-                                .code(code)
-                                .build(),
-                            requestCode = CARD_PAYMENT_REQUEST_CODE
-                        )
-                        _state.update {
-                            it.copy(
-                                state = MainViewModelStateType.INIT,
-                                orderReference = result.data.reference,
-                                selectedProducts = listOf(),
-                                total = 0.0
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun onSamsungPay() {
-        getEnvironment()?.let { environment ->
-            _state.update {
-                it.copy(state = MainViewModelStateType.LOADING, message = "Authenticating...")
-            }
-            viewModelScope.launch(dispatcher) {
-                val result = createOrderApiInteractor.createOrder(
-                    environment,
-                    OrderRequest(
-                        action = dataStore.getOrderAction(),
-                        amount = PaymentOrderAmount(
-                            value = state.value.total,
-                            currencyCode = "AED"
-                        ),
-                        language = Locale.getDefault().language,
-                        merchantAttributes = dataStore.getMerchantAttributes()
-                            .filter { it.isActive }
-                            .associate { it.key to it.value }
-                    )
-                )
-                when (result) {
-                    is Result.Error -> {
-                        _state.update {
-                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
-                        }
-                    }
-
-                    is Result.Success -> {
-                        paymentClient.launchSamsungPay(
-                            order = result.data,
-                            "Merchant Name",
-                            this@MainViewModel
-                        )
-                        _state.update {
-                            it.copy(
-                                state = MainViewModelStateType.INIT,
-                                selectedProducts = listOf(),
-                                total = 0.0
-                            )
-                        }
-                    }
-                }
-            }
-        }
+    fun createOrderRequest(savedCard: SavedCard? = null): OrderRequest {
+        return OrderRequest(
+            action = dataStore.getOrderAction(),
+            amount = PaymentOrderAmount(
+                value = state.value.total,
+                currencyCode = dataStore.getCurrency().code
+            ),
+            language = Locale.getDefault().language,
+            merchantAttributes = dataStore.getMerchantAttributes()
+                .filter { it.isActive }
+                .associate { it.key to it.value },
+            savedCard = savedCard
+        )
     }
 
     fun onCardPaymentResponse(data: CardPaymentData) {
@@ -228,13 +98,23 @@ class MainViewModel(
 
             CardPaymentData.STATUS_PAYMENT_FAILED, CardPaymentData.STATUS_GENERIC_ERROR ->
                 _state.update {
-                    it.copy(state = MainViewModelStateType.PAYMENT_FAILED)
+                    it.copy(state = MainViewModelStateType.ERROR, message = data.reason.orEmpty())
                 }
 
             CardPaymentData.STATUS_POST_AUTH_REVIEW -> _state.update {
-                it.copy(
-                    state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW
-                )
+                it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
+            }
+
+            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
+            }
+
+            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
+            }
+
+            CardPaymentData.STATUS_PARTIALLY_AUTHORISED -> _state.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
             }
 
             else -> _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
@@ -316,6 +196,59 @@ class MainViewModel(
         _state.update { it.copy(savedCard = savedCard) }
     }
 
+    fun onRefresh() {
+        _state.update {
+            MainViewModelState(
+                products = dataStore.getProducts(),
+                savedCard = dataStore.getSavedCard(),
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
+            )
+        }
+    }
+
+    fun onSuccess() {
+        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS) }
+    }
+
+    fun onFailure(error: String) {
+        _state.update { it.copy(state = MainViewModelStateType.ERROR, message = error) }
+    }
+
+    fun onCanceled() {
+        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
+    }
+
+    fun createOrder(paymentType: PaymentType, orderRequest: OrderRequest) {
+        getEnvironment()?.let { environment ->
+            _state.update {
+                it.copy(state = MainViewModelStateType.LOADING, message = "Creating Order...")
+            }
+            viewModelScope.launch(dispatcher) {
+                val result = createOrderApiInteractor.createOrder(environment, orderRequest)
+
+                when (result) {
+                    is Result.Error -> {
+                        _state.update {
+                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
+                        }
+                    }
+
+                    is Result.Success -> {
+                        _state.update {
+                            it.copy(
+                                state = MainViewModelStateType.PAYMENT_PROCESSING,
+                                paymentType = paymentType,
+                                order = result.data,
+                                orderReference = result.data.reference
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
 
         const val CARD_PAYMENT_REQUEST_CODE = 123
@@ -332,7 +265,7 @@ class MainViewModel(
                     modelClass: Class<T>,
                     handle: SavedStateHandle
                 ): T {
-                    val client = PaymentClient(activity, "DEMO_VAL")
+                    val client = PaymentClient(activity, "FOC")
                     return MainViewModel(
                         paymentClient = client,
                         createOrderApiInteractor = CreateOrderApiInteractor(
@@ -349,13 +282,5 @@ class MainViewModel(
                     ) as T
                 }
             }
-    }
-
-    override fun onSuccess() {
-        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS) }
-    }
-
-    override fun onFailure(error: String) {
-        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
     }
 }

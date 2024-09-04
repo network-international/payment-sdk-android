@@ -4,6 +4,7 @@ import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.demo.model.AppCurrency
 
 interface DataStore {
     fun saveEnvironment(environment: Environment)
@@ -43,4 +44,8 @@ interface DataStore {
     fun deleteSavedCard(savedCard: SavedCard)
 
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute)
+
+    fun getCurrency(): AppCurrency
+
+    fun setCurrency(currency: AppCurrency)
 }
