@@ -78,7 +78,7 @@ class MainViewModel(
             action = dataStore.getOrderAction(),
             amount = PaymentOrderAmount(
                 value = state.value.total,
-                currencyCode = "AED"
+                currencyCode = dataStore.getCurrency().code
             ),
             language = Locale.getDefault().language,
             merchantAttributes = dataStore.getMerchantAttributes()
