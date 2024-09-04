@@ -46,9 +46,16 @@ class GooglePayLauncher(
     class Config(
         val amount: Double,
         val googlePayLink: String,
+        val merchantName: String,
         val currencyCode: String,
         val authUrl: String,
         val payPageUrl: String,
+        val apiVersion: Int = 2,
+        val apiVersionMinor: Int = 0,
+        val emailRequired: Boolean,
+        val billingAddressRequired: Boolean,
+        val shippingAddressRequired: Boolean,
+        val publishingKey: String
     ): Parcelable {
         private fun toBundle() = bundleOf(EXTRA_ARGS to this)
 
@@ -63,8 +70,8 @@ class GooglePayLauncher(
         }
 
         companion object {
-            private const val EXTRA_ARGS = "aani_pay_args"
-            private const val EXTRA_INTENT = "aani_pay_args_intent"
+            private const val EXTRA_ARGS = "google_pay_args"
+            private const val EXTRA_INTENT = "google_pay_args_intent"
 
             fun fromIntent(intent: Intent): Config? {
                 val inputIntent = intent.getBundleExtra(EXTRA_INTENT)
@@ -74,6 +81,11 @@ class GooglePayLauncher(
             @Throws(IllegalArgumentException::class)
             fun create(
                 order: Order,
+                merchantName: String,
+                publishingKey: String,
+                emailRequired: Boolean = false,
+                billingAddressRequired: Boolean = false,
+                shippingAddressRequired: Boolean = false
             ): Config {
                 return Config(
                     amount = requireNotNull(order.amount?.value) {
@@ -83,10 +95,15 @@ class GooglePayLauncher(
                         "Currency Code not found"
                     },
                     googlePayLink = requireNotNull(order.embedded?.payment?.first()?.links?.googlePayLink?.href) {
-                        "Aani Payment Link not found"
+                        "Google Payment Link not found"
                     },
                     payPageUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
                     authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) { "Auth URL not found " },
+                    merchantName = merchantName,
+                    publishingKey = publishingKey,
+                    emailRequired = emailRequired,
+                    billingAddressRequired = billingAddressRequired,
+                    shippingAddressRequired = shippingAddressRequired
                 )
             }
         }
