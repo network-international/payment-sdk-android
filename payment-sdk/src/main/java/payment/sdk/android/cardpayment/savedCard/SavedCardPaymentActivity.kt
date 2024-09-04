@@ -1,23 +1,24 @@
 package payment.sdk.android.cardpayment.savedCard
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.view.SavedCardPaymentView
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.OrderAmount
@@ -29,9 +30,18 @@ class SavedCardPaymentActivity : ComponentActivity() {
         SavedCardActivityArgs.fromIntent(intent = intent)
     }
 
+    private val partialAuthActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            finishWithData(CardPaymentData.getFromIntent(result.data!!))
+        } else {
+            finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+        }
+    }
+
     private val viewModel: SavedPaymentViewModel by viewModels { SavedPaymentViewModel.Factory }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setOnBackPressed()
@@ -58,11 +68,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     payPageUrl = args.paymentUrl
                 )
 
-                is SavedCardPaymentState.Failed -> finishWithData(
-                    CardPaymentData(
-                        CardPaymentData.STATUS_PAYMENT_FAILED
-                    )
-                )
+                is SavedCardPaymentState.Failed ->
+                    finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
 
                 SavedCardPaymentState.Init -> viewModel.authorize(
                     authUrl = args.authUrl,
@@ -115,7 +122,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 }
 
                 is SavedCardPaymentState.InitiateThreeDSTwo -> {
-                    val response = (state as SavedCardPaymentState.InitiateThreeDSTwo).threeDSecureTwoDto
+                    val response =
+                        (state as SavedCardPaymentState.InitiateThreeDSTwo).threeDSecureTwoDto
                     startActivityForResult(
                         ThreeDSecureTwoWebViewActivity.getIntent(
                             context = this,
@@ -139,8 +147,12 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
                 is SavedCardPaymentState.Loading -> CircularProgressDialog((state as SavedCardPaymentState.Loading).message)
                 SavedCardPaymentState.Captured -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-                SavedCardPaymentState.PaymentAuthorised -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
-                SavedCardPaymentState.PostAuthReview -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+                SavedCardPaymentState.PaymentAuthorised ->
+                    finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
+
+                SavedCardPaymentState.PostAuthReview ->
+                    finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+
                 SavedCardPaymentState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
                 is SavedCardPaymentState.ShowVisaPlans -> {
                     val response = (state as SavedCardPaymentState.ShowVisaPlans)
@@ -161,14 +173,28 @@ class SavedCardPaymentActivity : ComponentActivity() {
                         VISA_INSTALMENT_SELECTION_KEY
                     )
                 }
+
+                is SavedCardPaymentState.InitiatePartialAuth -> {
+                    startPartialAuthActivity((state as SavedCardPaymentState.InitiatePartialAuth).partialAuthIntent)
+                }
             }
+        }
+    }
+
+    private fun startPartialAuthActivity(partialAuthIntent: PartialAuthIntent) {
+        try {
+            partialAuthActivityLauncher.launch(
+                PartialAuthActivityArgs.getArgs(partialAuthIntent).toIntent(this)
+            )
+        } catch (e: IllegalArgumentException) {
+            finishWithData(CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, e.message))
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_CANCELED) {
-            setResult(Activity.RESULT_CANCELED, Intent())
+            setResult(RESULT_CANCELED, Intent())
             finish()
             return
         }
@@ -185,6 +211,12 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     "CAPTURED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
                     "FAILED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
                     "POST_AUTH_REVIEW" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
+                    "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
+                        (data.getParcelableExtra(INTENT_CHALLENGE_RESPONSE) as? PartialAuthIntent)?.let { intent ->
+                            startPartialAuthActivity(intent)
+                        }
+                    }
+
                     else -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
                 }
             } else {
@@ -204,7 +236,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, cardPaymentData)
         }
-        setResult(Activity.RESULT_OK, intent)
+        setResult(RESULT_OK, intent)
         finish()
     }
 
@@ -214,7 +246,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 if (SDKConfig.showCancelAlert) {
                     showDialog()
                 } else {
-                    setResult(Activity.RESULT_CANCELED, Intent())
+                    setResult(RESULT_CANCELED, Intent())
                     finish()
                 }
             }
@@ -230,7 +262,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 setResult(RESULT_CANCELED, intent)
                 finish()
             }
-            setNegativeButton(R.string.cancel_alert ) { dialog: DialogInterface, _: Int ->
+            setNegativeButton(R.string.cancel_alert) { dialog: DialogInterface, _: Int ->
                 dialog.cancel()
             }
             show()

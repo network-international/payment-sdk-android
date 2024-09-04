@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import payment.sdk.android.demo.model.AppCurrency
 
 class EnvironmentViewModel(
     private val dataStore: DataStore
@@ -70,6 +71,12 @@ class EnvironmentViewModel(
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
         dataStore.updateMerchantAttribute(merchantAttribute)
         _state.update { it.copy(merchantAttributes = dataStore.getMerchantAttributes()) }
+    }
+
+    fun getCurrency() = dataStore.getCurrency()
+
+    fun setCurrency(currency: AppCurrency) {
+        dataStore.setCurrency(currency)
     }
 
     companion object {

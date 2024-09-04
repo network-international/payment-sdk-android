@@ -1,8 +1,9 @@
 package payment.sdk.android.core
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
-
+@Keep
 class PaymentResponse {
     @SerializedName(value = "_links")
     var links: Links? = null
@@ -14,6 +15,8 @@ class PaymentResponse {
     var paymentMethods: PaymentMethods? = null
     var authenticationCode: String? = null
 
+    var paymentMethod: PaymentMethod? = null
+
     @SerializedName(value = "3ds2")
     var threeDSTwo: ThreeDSTwo? = null
 
@@ -23,14 +26,24 @@ class PaymentResponse {
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
+    var authResponse: AuthResponse? = null
+
     var state: String? = null
     // Other classes
+    @Keep
     class Amount {
         var currencyCode: String? = null
         var value: Int? = 0
     }
 
+    @Keep
     class Links {
+        @SerializedName(value = "payment:partial-auth-accept")
+        var partialAuthAccept: Href? = null
+
+        @SerializedName(value = "payment:partial-auth-decline")
+        var partialAuthDecline: Href? = null
+
         @SerializedName(value = "payment-authorization")
         var paymentAuthorizationUrl: Href? = null
 
@@ -47,20 +60,24 @@ class PaymentResponse {
         var threeDSOneUrl: Href? = null
     }
 
+    @Keep
     class Embedded {
         lateinit var payment: Array<Payment>
     }
 
+    @Keep
     class Payment {
         @SerializedName(value = "_links")
         var links: PaymentLinks? = null
     }
 
+    @Keep
     class PaymentLinks {
         @SerializedName(value = "payment:samsung_pay")
         var samsungPayLink: Href? = null
     }
 
+    @Keep
     class Href {
         var href: String? = null
     }

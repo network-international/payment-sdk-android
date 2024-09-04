@@ -11,12 +11,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import payment.sdk.android.SDKConfig
+import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.STATUS_AWAITING_PARTIAL_AUTH_APPROVAL
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
 import payment.sdk.android.core.OrderAmount
@@ -29,6 +34,16 @@ import payment.sdk.android.sdk.R
 class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
     private lateinit var presenter: CardPaymentContract.Presenter
+
+    private val partialAuthActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            finishWithData(CardPaymentData.getFromIntent(result.data!!))
+        } else {
+            onPaymentFailed()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,17 +171,34 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         )
     }
 
+    override fun onPartialAuth(partialAuthIntent: PartialAuthIntent) {
+        try {
+            partialAuthActivityLauncher.launch(PartialAuthActivityArgs.getArgs(partialAuthIntent).toIntent(this))
+        } catch (e: IllegalArgumentException) {
+            finishWithData(CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, e.message))
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == THREE_D_SECURE_REQUEST_KEY ||
             requestCode == THREE_D_SECURE_TWO_REQUEST_KEY
         ) {
             if (resultCode == RESULT_OK && data != null) {
-                presenter.onHandle3DSecurePaymentSate(
-                    data.getStringExtra(
-                        ThreeDSecureWebViewActivity.KEY_3DS_STATE
-                    )!!
-                )
+                val state = data.getStringExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE)
+                if (state != null) {
+                    if (state == STATUS_AWAITING_PARTIAL_AUTH_APPROVAL) {
+                        val intent = data.getParcelableExtra(INTENT_CHALLENGE_RESPONSE) as? PartialAuthIntent
+                        if (intent != null) {
+                            onPartialAuth(intent)
+                        } else {
+                            onPaymentFailed()
+                        }
+                    } else {
+                        presenter.onHandle3DSecurePaymentSate(data.getStringExtra(ThreeDSecureWebViewActivity.KEY_3DS_STATE)!!)
+                    }
+                }
+
             } else {
                 onPaymentFailed()
             }

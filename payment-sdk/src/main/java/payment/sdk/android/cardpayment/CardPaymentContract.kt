@@ -1,6 +1,7 @@
 package payment.sdk.android.cardpayment
 
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
@@ -120,6 +121,8 @@ interface CardPaymentContract {
             newCardDto: NewCardDto,
             orderAmount: OrderAmount
         )
+
+        fun onPartialAuth(partialAuthIntent: PartialAuthIntent)
     }
 
     interface StatefulInput {
