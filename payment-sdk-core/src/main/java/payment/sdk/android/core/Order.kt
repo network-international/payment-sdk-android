@@ -49,6 +49,10 @@ class Order {
         var links: PaymentLinks? = null
         var reference: String? = null
         var savedCard: SavedCard? = null
+        var paymentMethod: PaymentMethod? = null
+        var state: String? = null
+        var amount: Order.Amount? = null
+        var authResponse: AuthResponse? = null
     }
 
     @Keep
@@ -64,6 +68,12 @@ class Order {
 
         @SerializedName(value = "self")
         var selfLink: Href? = null
+
+        @SerializedName(value = "payment:partial-auth-accept")
+        var partialAuthAccept: Href? = null
+
+        @SerializedName(value = "payment:partial-auth-decline")
+        var partialAuthDecline: Href? = null
     }
 
     @Keep

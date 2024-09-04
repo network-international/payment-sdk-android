@@ -20,12 +20,14 @@ import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.core.Order
+import payment.sdk.android.core.ThreeDSAuthResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResources
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R
 import java.net.URLEncoder
-import java.util.*
+import java.util.Stack
 
 
 open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
@@ -201,14 +203,19 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                 val state = authResponse.getString("state")
                 val threeDSData = authResponse.getJSONObject("3ds2")
                 if (state != "FAILED") {
-                    val transStatus = threeDSData.getString("transStatus")
-                    if (transStatus == "C") {
-                        val base64EncodedCReq = threeDSData.getString("base64EncodedCReq")
-                        val acsURL = threeDSData.getString("acsURL")
-                        // Open Challenge
-                        openChallenge(base64EncodedCReq, acsURL)
+                    if (state == STATUS_AWAITING_PARTIAL_AUTH_APPROVAL) {
+                        val threeDSAuthResponse = Gson().fromJson(authResponse.toString(), ThreeDSAuthResponse::class.java)
+                        finishWithResult(state, threeDSAuthResponse.toIntent(paymentCookie))
                     } else {
-                        finishWithResult(state)
+                        val transStatus = threeDSData.getString("transStatus")
+                        if (transStatus == "C") {
+                            val base64EncodedCReq = threeDSData.getString("base64EncodedCReq")
+                            val acsURL = threeDSData.getString("acsURL")
+                            // Open Challenge
+                            openChallenge(base64EncodedCReq, acsURL)
+                        } else {
+                            finishWithResult(state)
+                        }
                     }
                 } else {
                     finishWithResult(state)
@@ -238,12 +245,13 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                         orderUrl = orderUrl!!,
                         paymentCookie = paymentCookie!!,
                         success = { _, _, _, _, _, _, order ->
+                            val orderResponse = Gson().fromJson(order.toString(), Order::class.java)
                             val orderState: String? = order
                                 .getJSONObject("_embedded")
                                 ?.getJSONArray("payment")
                                 ?.getJSONObject(0)
                                 ?.getString("state")
-                            finishWithResult(orderState)
+                            finishWithResult(orderState, orderResponse.toIntent(paymentCookie))
                         },
                         error = {
                             finishWithResult()
@@ -264,6 +272,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         val currentWebView = threeDSecureWebViews.last()
         currentWebView.visibility = View.GONE
         val browserDataJS = "browserLanguage: window.navigator.language," +
+                "acceptBrowserLanguages: window.navigator.languages," +
                 "browserJavaEnabled: window.navigator.javaEnabled ? window.navigator.javaEnabled() : false," +
                 "browserColorDepth: window.screen.colorDepth.toString()," +
                 "browserScreenHeight: window.screen.height.toString()," +
@@ -325,11 +334,14 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         }
     }
 
-    fun finishWithResult(state: String? = null) {
+    fun finishWithResult(state: String? = null, partialAuthIntent: PartialAuthIntent? = null) {
         if(state != null) {
             val intent = Intent().apply {
                 putExtra(KEY_3DS_STATE, state)
                 putExtra(INTENT_DATA_KEY, handleCardPaymentResponse(state))
+                if (state == STATUS_AWAITING_PARTIAL_AUTH_APPROVAL) {
+                    putExtra(INTENT_CHALLENGE_RESPONSE, partialAuthIntent)
+                }
             }
             setResult(Activity.RESULT_OK, intent)
         } else {
@@ -456,6 +468,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val STATUS_PAYMENT_FAILED = "FAILED"
         @VisibleForTesting
         internal const val STATUS_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
+        internal const val STATUS_AWAITING_PARTIAL_AUTH_APPROVAL = "AWAITING_PARTIAL_AUTH_APPROVAL"
         internal const val INTENT_DATA_KEY = "data"
+        const val INTENT_CHALLENGE_RESPONSE = "INTENT_CHALLENGE_RESPONSE"
     }
 }
