@@ -106,6 +106,8 @@ interface CardPaymentContract {
 
         fun onPaymentCaptured()
 
+        fun onAuthorized(accessToken: String, amount: Double, currencyCode: String)
+
         fun onPaymentFailed()
 
         fun onGenericError(message: String?)
