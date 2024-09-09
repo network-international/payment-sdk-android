@@ -18,6 +18,7 @@ import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
+import payment.sdk.android.core.AuthResponse
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.PaymentResponse
@@ -220,6 +221,11 @@ internal class CardPaymentPresenter(
                 var paymentRef = ""
                 try {
                     val order = Gson().fromJson(orderJson.toString(), Order::class.java)
+                    interactions.onAuthorized(
+                        payment.sdk.android.core.interactor.AuthResponse.Success(cookies, orderUrl).getAccessToken(),
+                        order.amount?.value ?: 0.0,
+                        order.amount?.currencyCode.orEmpty()
+                    )
                     paymentRef = order?.embedded?.payment?.get(0)?.reference ?: ""
                     this.payPageUrl = order?.links?.paymentUrl?.href ?: ""
                 } catch (e: Exception) {

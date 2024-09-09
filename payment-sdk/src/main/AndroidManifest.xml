@@ -4,6 +4,7 @@
     <application>
         <activity
             android:name="payment.sdk.android.googlepay.GooglePayActivity"
+            android:theme="@style/SdkTheme.Translucent"
             android:exported="false" />
         <activity
             android:name="payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsActivity"

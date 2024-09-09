@@ -19,6 +19,7 @@ import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
 import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
+import payment.sdk.android.googlepay.GooglePayLauncher
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
 class MainActivity : ComponentActivity(), SamsungPayResponse {
@@ -33,47 +34,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                if (state.state == MainViewModelStateType.PAYMENT_PROCESSING) {
-                    when (state.paymentType) {
-                        PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
-                            state.order,
-                            "",
-                            this@MainActivity
-                        )
-
-                        PaymentType.CARD -> {
-                            val authUrl: String =
-                                state.order.links?.paymentAuthorizationUrl?.href.orEmpty()
-                            val code = state.order.links?.paymentUrl?.href
-                                ?.takeIf { it.isNotBlank() }
-                                ?.split("=")
-                                ?.getOrNull(1)
-                                .orEmpty()
-                            paymentClient.launchCardPayment(
-                                request = CardPaymentRequest.builder()
-                                    .gatewayUrl(authUrl)
-                                    .code(code)
-                                    .build(),
-                                requestCode = CARD_PAYMENT_REQUEST_CODE
-                            )
-                        }
-
-                        PaymentType.SAVED_CARD -> {
-                            try {
-                                paymentClient.launchSavedCardPayment(
-                                    order = state.order,
-                                    code = CARD_PAYMENT_REQUEST_CODE
-                                )
-                            } catch (e: IllegalArgumentException) {
-                                viewModel.onFailure(e.message.orEmpty())
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        handlePayments()
         setContent {
             val navController = rememberNavController()
             val state by viewModel.state.collectAsState()
@@ -139,6 +100,50 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                     }
                 }
 
+            }
+        }
+    }
+
+    private fun handlePayments() {
+        lifecycleScope.launch {
+            viewModel.state.collect { state ->
+                if (state.state == MainViewModelStateType.PAYMENT_PROCESSING) {
+                    when (state.paymentType) {
+                        PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
+                            state.order,
+                            "",
+                            this@MainActivity
+                        )
+
+                        PaymentType.CARD -> {
+                            val authUrl: String =
+                                state.order.links?.paymentAuthorizationUrl?.href.orEmpty()
+                            val code = state.order.links?.paymentUrl?.href
+                                ?.takeIf { it.isNotBlank() }
+                                ?.split("=")
+                                ?.getOrNull(1)
+                                .orEmpty()
+                            paymentClient.launchCardPayment(
+                                request = CardPaymentRequest.builder()
+                                    .gatewayUrl(authUrl)
+                                    .code(code)
+                                    .build(),
+                                requestCode = CARD_PAYMENT_REQUEST_CODE
+                            )
+                        }
+
+                        PaymentType.SAVED_CARD -> {
+                            try {
+                                paymentClient.launchSavedCardPayment(
+                                    order = state.order,
+                                    code = CARD_PAYMENT_REQUEST_CODE
+                                )
+                            } catch (e: IllegalArgumentException) {
+                                viewModel.onFailure(e.message.orEmpty())
+                            }
+                        }
+                    }
+                }
             }
         }
     }
