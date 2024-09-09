@@ -60,6 +60,14 @@
         android:textSize="@dimen/error_text_font_size"
         android:visibility="gone" />
 
+    <com.google.android.gms.wallet.button.PayButton
+        android:id="@+id/google_pay_button"
+        android:layout_width="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:layout_height="wrap_content"
+        />
+
     <Button
         android:id="@+id/pay_button"
         android:layout_width="match_parent"
