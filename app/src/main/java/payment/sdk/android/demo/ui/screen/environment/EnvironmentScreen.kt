@@ -1,5 +1,10 @@
 package payment.sdk.android.demo.ui.screen.environment
 
+import android.app.LocaleManager
+import android.content.Context
+import android.os.Build
+import android.os.LocaleList
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,17 +35,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.BuildConfig
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.demo.MainActivity
 import payment.sdk.android.demo.isTablet
+import payment.sdk.android.demo.model.AppCurrency
+import payment.sdk.android.demo.model.AppLanguage
 import payment.sdk.android.demo.ui.screen.SectionView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnvironmentScreen(
-    onNavUp: () -> Unit
+    onNavUp: () -> Unit,
+    onLanguageChange: (AppLanguage) -> Unit
 ) {
     val activity = LocalContext.current as MainActivity
     val viewModel: EnvironmentViewModel = viewModel(
@@ -136,8 +145,22 @@ fun EnvironmentScreen(
 
                 HorizontalDivider()
 
-                CurrencyPickerView(viewModel.getCurrency()) {
-                    viewModel.setCurrency(it)
+                PickerView(
+                    title = "Language",
+                    items = AppLanguage.entries,
+                    selectedItem = viewModel.getLanguage()
+                ) {
+                    viewModel.setLanguage(it as AppLanguage)
+                }
+
+                HorizontalDivider()
+
+                PickerView(
+                    title = "Currency",
+                    items = AppCurrency.entries,
+                    selectedItem = viewModel.getCurrency()
+                ) {
+                    viewModel.setCurrency(it as AppCurrency)
                 }
 
                 HorizontalDivider()
@@ -193,4 +216,15 @@ fun EnvironmentScreen(
             }
         }
     )
+}
+
+fun localeSelection(context: Context, localeTag: String) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        context.getSystemService(LocaleManager::class.java).applicationLocales =
+            LocaleList.forLanguageTags(localeTag)
+    } else {
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.forLanguageTags(localeTag)
+        )
+    }
 }

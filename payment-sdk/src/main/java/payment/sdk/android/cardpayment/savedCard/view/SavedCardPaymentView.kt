@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.SDKTheme
 import payment.sdk.android.cardpayment.savedCard.SavedCardDto
+import payment.sdk.android.core.CardMapping
 import payment.sdk.android.sdk.R
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -92,7 +93,12 @@ fun SavedCardPaymentView(
                 .fillMaxSize()
         ) {
 
-            CardView(savedCard = savedCard)
+            CreditCardView(
+                cardNumber = savedCard.maskedPan,
+                cardholderName = savedCard.cardholderName,
+                cardScheme = CardMapping.getCardTypeFromString(savedCard.scheme),
+                expiry = savedCard.expiry
+            )
 
             Column {
                 TextField(

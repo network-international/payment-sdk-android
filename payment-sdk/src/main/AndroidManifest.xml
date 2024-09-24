@@ -2,14 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
         <activity
-            android:name="payment.sdk.android.googlepay.GooglePayActivity"
-            android:theme="@style/SdkTheme.Translucent"
+            android:name="payment.sdk.android.cardPayments.PaymentsActivity"
             android:exported="false" />
         <activity
             android:name="payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/SdkTheme.ThreeDSecure" />
+            android:theme="@style/SdkTheme.ThreeDSecure"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
             android:screenOrientation="behind"
@@ -23,8 +31,8 @@
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/SdkTheme.ThreeDSecure" />
+            android:theme="@style/SdkTheme.ThreeDSecure"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"
