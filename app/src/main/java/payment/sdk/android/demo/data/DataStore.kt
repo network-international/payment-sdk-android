@@ -5,6 +5,7 @@ import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
+import payment.sdk.android.demo.model.AppLanguage
 
 interface DataStore {
     fun saveEnvironment(environment: Environment)
@@ -48,4 +49,8 @@ interface DataStore {
     fun getCurrency(): AppCurrency
 
     fun setCurrency(currency: AppCurrency)
+
+    fun setLanguage(language: AppLanguage)
+
+    fun getLanguage(): AppLanguage
 }

@@ -13,6 +13,7 @@ class Order {
     var outletId: String? = null
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
+    var language: String = "en"
 
     @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
@@ -71,6 +72,9 @@ class Order {
 
         @SerializedName(value = "payment:google_pay")
         var googlePayLink: Href? = null
+
+        @SerializedName(value = "config:google_pay")
+        var googlePayConfigLink: Href? = null
 
         @SerializedName(value = "payment:partial-auth-accept")
         var partialAuthAccept: Href? = null

@@ -206,7 +206,7 @@ class SavedCardViewModelTest {
             } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
             coEvery {
-                visaInstalmentPlanInteractor.getPlans(any(), any(), any())
+                visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any())
             } returns VisaPlansResponse.Success(visaResponse)
 
             sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "cardToken", true, cvv, listOf(
@@ -241,7 +241,7 @@ class SavedCardViewModelTest {
             } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
             coEvery {
-                visaInstalmentPlanInteractor.getPlans(any(), any(), any())
+                visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any())
             } returns VisaPlansResponse.Success(visaResponse)
 
             sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "cardToken", true, null, listOf())

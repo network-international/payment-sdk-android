@@ -36,6 +36,7 @@ class ExpireDateEditTextTest {
             arrayOf("11/12", false),
             arrayOf("11/12", false),
             arrayOf("00/11", false),
-            arrayOf("00/00", false)
+            arrayOf("00/00", false),
+            arrayOf("invalid_input", false)
     )
 }

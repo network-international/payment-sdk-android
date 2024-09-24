@@ -12,22 +12,8 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.wallet.AutoResolveHelper
-import com.google.android.gms.wallet.PaymentsClient
-import com.google.android.gms.wallet.Wallet
-import com.google.android.gms.wallet.WalletConstants
-import com.google.android.gms.wallet.button.ButtonConstants
-import com.google.android.gms.wallet.button.ButtonOptions
-import com.google.android.gms.wallet.button.PayButton
-import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
@@ -42,36 +28,12 @@ import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
-import payment.sdk.android.googlepay.ButtonTheme
-import payment.sdk.android.googlepay.GooglePayVMState
-import payment.sdk.android.googlepay.GooglePayViewModel
 import payment.sdk.android.sdk.R
 
 
 class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
     private lateinit var presenter: CardPaymentContract.Presenter
-
-    private val viewModel: GooglePayViewModel by viewModels { GooglePayViewModel.Factory }
-
-    private val paymentDataLauncher = registerForActivityResult(GetPaymentDataResult()) { taskResult ->
-        when (taskResult.status.statusCode) {
-            CommonStatusCodes.SUCCESS -> {
-                taskResult.result!!.let {
-                    Log.i("Google Pay result:", it.toJson())
-                }
-            }
-            CommonStatusCodes.CANCELED -> {
-                Log.i("Google Pay result:", "CANCELED")
-            }
-            AutoResolveHelper.RESULT_ERROR -> {
-                Log.i("Google Pay result:", "RESULT_ERROR")
-            }
-            CommonStatusCodes.INTERNAL_ERROR -> {
-                Log.i("Google Pay result:", "INTERNAL_ERROR")
-            }
-        }
-    }
 
     private val partialAuthActivityLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -81,14 +43,6 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         } else {
             onPaymentFailed()
         }
-    }
-
-    fun createPaymentsClient(context: Context): PaymentsClient {
-        val walletOptions = Wallet.WalletOptions.Builder()
-            .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
-            .build()
-
-        return Wallet.getPaymentsClient(context, walletOptions)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,27 +59,6 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                 }
             }
         })
-
-        val googlePayButton = findViewById<PayButton>(R.id.google_pay_button)
-        val client = createPaymentsClient(this)
-        lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                if (state is GooglePayVMState.Submit) {
-                    googlePayButton.initialize(
-                        ButtonOptions.newBuilder()
-                            .setButtonTheme(ButtonTheme.Dark.value)
-                            .setButtonType(ButtonConstants.ButtonType.PAY)
-                            .setCornerRadius(32)
-                            .setAllowedPaymentMethods(state.allowedPaymentMethods)
-                            .build()
-                    )
-                    googlePayButton.setOnClickListener {
-                        val task = client.loadPaymentData(state.paymentDataRequest)
-                        task.addOnCompleteListener(paymentDataLauncher::launch)
-                    }
-                }
-            }
-        }
         setToolBar()
         val url = intent.getStringExtra(URL_KEY)
         val code = intent.getStringExtra(CODE)
@@ -198,10 +131,6 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
 
     override fun onPaymentCaptured() {
         finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-    }
-
-    override fun onAuthorized(accessToken: String, amount: Double, currencyCode: String) {
-        viewModel.getGooglePayConfig(accessToken, currencyCode, amount)
     }
 
     override fun onPaymentFailed() {

@@ -4,7 +4,7 @@ import payment.sdk.android.core.Order
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.core.SavedCard
 
-data class MainViewModelState(
+data class MainViewModelUiState(
     val state: MainViewModelStateType = MainViewModelStateType.INIT,
     val products: List<Product> = listOf(),
     val selectedProducts: List<Product> = listOf(),
@@ -14,9 +14,12 @@ data class MainViewModelState(
     val orderReference: String? = null,
     val savedCard: SavedCard? = null,
     val savedCards: List<SavedCard> = listOf(),
-    val currency: String = "",
-    val order: Order = Order(),
-    val paymentType: PaymentType = PaymentType.CARD
+    val currency: String = ""
+)
+
+data class MainViewModelEffect(
+    val order: Order,
+    val type: PaymentType
 )
 
 enum class PaymentType {
@@ -34,6 +37,7 @@ enum class MainViewModelStateType {
     PAYMENT_PROCESSING,
     PAYMENT_POST_AUTH_REVIEW,
     ERROR,
+    AUTHORIZED,
     PAYMENT_PARTIAL_AUTH_DECLINED,
     PAYMENT_PARTIAL_AUTH_DECLINE_FAILED,
     PAYMENT_PARTIALLY_AUTHORISED,
@@ -70,5 +74,9 @@ fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, S
         )
 
         MainViewModelStateType.PAYMENT_PROCESSING -> Pair("", "")
+        MainViewModelStateType.AUTHORIZED -> Pair(
+            "Payment Authorized",
+            "Payment Authorized"
+        )
     }
 }

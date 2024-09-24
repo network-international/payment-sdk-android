@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import androidx.annotation.Keep
 import com.google.gson.Gson
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.api.Body
@@ -69,8 +70,11 @@ class CardPaymentInteractor(
     }
 }
 
+@Keep
 sealed class CardPaymentResponse {
+    @Keep
     data class Success(val paymentResponse: PaymentResponse) : CardPaymentResponse()
 
+    @Keep
     data class Error(val error: Exception) : CardPaymentResponse()
 }
