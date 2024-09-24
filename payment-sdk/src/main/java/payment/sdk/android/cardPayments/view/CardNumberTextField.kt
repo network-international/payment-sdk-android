@@ -49,11 +49,11 @@ fun CardNumberTextField(
     onValueChanged: (String) -> Unit
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.End) {
-//        Box {
+        Box {
             TextField(
                 label = { Text(stringResource(R.string.card_number_label_title)) },
                 value = pan,
-//                isError = pan.length > 5 && Luhn.isValidPan(pan) && paymentCard == null,
+                isError = pan.length > 5 && Luhn.isValidPan(pan) && paymentCard == null,
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = onValueChanged,
                 visualTransformation = CreditCardVisualTransformation(
@@ -66,22 +66,22 @@ fun CardNumberTextField(
                 colors = SDKTextFieldColors(),
                 placeholder = { Text("0000 0000 0000 0000") },
             )
-//            androidx.compose.animation.AnimatedVisibility(
-//                visible = paymentCard != null,
-//                modifier = Modifier
-//                    .height(8.dp)
-//                    .padding(horizontal = 2.dp)
-//                    .align(Alignment.CenterEnd),
-//                enter = scaleIn(animationSpec = tween(500)),  // Expand from center
-//                exit = scaleOut(animationSpec = tween(500))   // Shrink towards center
-//            ) {
-//                Image(
-//                    painter = getCardImage(paymentCard?.type, isWhiteBackground = true),
-//                    contentDescription = "Image",
-//                    contentScale = ContentScale.Fit
-//                )
-//            }
-//        }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = paymentCard != null,
+                modifier = Modifier
+                    .height(8.dp)
+                    .padding(horizontal = 2.dp)
+                    .align(Alignment.CenterEnd),
+                enter = scaleIn(animationSpec = tween(500)),  // Expand from center
+                exit = scaleOut(animationSpec = tween(500))   // Shrink towards center
+            ) {
+                Image(
+                    painter = getCardImage(paymentCard?.type, isWhiteBackground = true),
+                    contentDescription = "Image",
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
 
         Spacer(Modifier.height(8.dp))
 
