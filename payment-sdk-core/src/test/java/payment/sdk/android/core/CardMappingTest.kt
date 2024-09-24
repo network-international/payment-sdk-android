@@ -70,4 +70,19 @@ class CardMappingTest {
         val mapping = CardMapping.mapSupportedCards(listOf("", "", "", ""))
         assertThat(mapping, Matchers.empty())
     }
+
+    @Test
+    fun getCardTypeFromString_shouldReturnCorrectCardTypeForValidScheme() {
+        assertEquals(CardType.Visa, CardMapping.getCardTypeFromString("VISA"))
+        assertEquals(CardType.MasterCard, CardMapping.getCardTypeFromString("MASTERCARD"))
+        assertEquals(CardType.AmericanExpress, CardMapping.getCardTypeFromString("AMERICAN_EXPRESS"))
+        assertEquals(CardType.Discover, CardMapping.getCardTypeFromString("DISCOVER"))
+        assertEquals(CardType.JCB, CardMapping.getCardTypeFromString("JCB"))
+        assertEquals(CardType.DinersClubInternational, CardMapping.getCardTypeFromString("DINERS_CLUB_INTERNATIONAL"))
+    }
+
+    @Test
+    fun getCardTypeFromString_shouldReturnNullForInvalidScheme() {
+        assertEquals(null, CardMapping.getCardTypeFromString("INVALID_SCHEME"))
+    }
 }

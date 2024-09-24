@@ -82,11 +82,13 @@ class PaymentResponse {
         var href: String? = null
     }
 
+    @Keep
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
     }
 
+    @Keep
     class ThreeDSOne {
         @SerializedName(value = "acsUrl")
         var acsUrl: String? = null
@@ -96,8 +98,11 @@ class PaymentResponse {
 
         @SerializedName(value = "acsMd")
         var acsMd: String? = null
+
+        var summaryText: String? = null
     }
 
+    @Keep
     class ThreeDSTwo {
         var messageVersion: String? = null
         var threeDSMethodURL: String? = null

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.AppCurrency
+import payment.sdk.android.demo.model.PickerItem
 
 @Composable
 fun CurrencyPickerView(setCurrency: AppCurrency, onCurrencySelected: (AppCurrency) -> Unit) {
@@ -59,10 +60,64 @@ fun CurrencyPickerView(setCurrency: AppCurrency, onCurrencySelected: (AppCurrenc
         ) {
             currencies.forEach { currency ->
                 DropdownMenuItem(
-                    text = { Text("${currency.code} (${currency.countryName})") },
+                    text = { Text("${currency.code} (${currency.displayValue})") },
                     onClick = {
                         selectedCurrency = currency
                         onCurrencySelected(currency)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PickerView(
+    title: String,
+    items: List<PickerItem>,
+    selectedItem: PickerItem,
+    onItemSelected: (PickerItem) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf(selectedItem) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                selected.displayValue.takeIf { it.length < 15 } ?: selected.code,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Icon(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Keyboard Arrow Down"
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text("${item.displayValue} (${item.code})") },
+                    onClick = {
+                        selected = item
+                        onItemSelected(item)
                         expanded = false
                     }
                 )

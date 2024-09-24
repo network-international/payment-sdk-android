@@ -42,6 +42,10 @@ abstract class Body(protected val parameters: Map<String, Any>) {
         }
     }
 
+    class StringBody(val value: String): Body(emptyMap()) {
+        override fun encode() = value
+    }
+
     class Empty : Body(emptyMap()) {
         override fun encode() = ""
 

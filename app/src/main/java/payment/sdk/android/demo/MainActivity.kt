@@ -1,25 +1,29 @@
 package payment.sdk.android.demo
 
-import android.content.Intent
+import android.app.LocaleManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
+import payment.sdk.android.cardPayments.CardPaymentsLauncher
+import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
-import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
-import payment.sdk.android.googlepay.GooglePayLauncher
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
 class MainActivity : ComponentActivity(), SamsungPayResponse {
@@ -32,12 +36,19 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         MainViewModel.provideFactory(this, this)
     }
 
+    private val cardPaymentsClient = CardPaymentsLauncher(this) { result ->
+        viewModel.onPaymentResult(result)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        localeSelection(this, "en")
         handlePayments()
         setContent {
             val navController = rememberNavController()
-            val state by viewModel.state.collectAsState()
+            val state by viewModel.uiState.collectAsState()
+
+            Log.i("MainActivity123", "onCreate: $state")
 
             NewMerchantAppTheme {
                 NavHost(
@@ -95,68 +106,58 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                         EnvironmentScreen(
                             onNavUp = {
                                 navController.popBackStack()
+                            },
+                            onLanguageChange = {
+                                localeSelection(this@MainActivity, it.code)
                             }
                         )
                     }
                 }
-
             }
+        }
+    }
+
+    private fun localeSelection(context: Context, localeTag: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.getSystemService(LocaleManager::class.java).applicationLocales =
+                LocaleList.forLanguageTags(localeTag)
+        } else {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(localeTag)
+            )
         }
     }
 
     private fun handlePayments() {
         lifecycleScope.launch {
-            viewModel.state.collect { state ->
-                if (state.state == MainViewModelStateType.PAYMENT_PROCESSING) {
-                    when (state.paymentType) {
-                        PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
-                            state.order,
-                            "",
-                            this@MainActivity
-                        )
+            viewModel.effect.collect { effect ->
+                when (effect.type) {
+                    PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
+                        effect.order,
+                        "",
+                        this@MainActivity
+                    )
 
-                        PaymentType.CARD -> {
-                            val authUrl: String =
-                                state.order.links?.paymentAuthorizationUrl?.href.orEmpty()
-                            val code = state.order.links?.paymentUrl?.href
-                                ?.takeIf { it.isNotBlank() }
-                                ?.split("=")
-                                ?.getOrNull(1)
-                                .orEmpty()
-                            paymentClient.launchCardPayment(
-                                request = CardPaymentRequest.builder()
-                                    .gatewayUrl(authUrl)
-                                    .code(code)
-                                    .build(),
-                                requestCode = CARD_PAYMENT_REQUEST_CODE
+                    PaymentType.CARD -> {
+                        Log.i("CardPaymentsActivity12", "PaymentType.CARD ")
+                        cardPaymentsClient.launch(
+                            CardPaymentsLauncher.CardPaymentsIntent.create(
+                                effect.order
                             )
-                        }
+                        )
+                    }
 
-                        PaymentType.SAVED_CARD -> {
-                            try {
-                                paymentClient.launchSavedCardPayment(
-                                    order = state.order,
-                                    code = CARD_PAYMENT_REQUEST_CODE
-                                )
-                            } catch (e: IllegalArgumentException) {
-                                viewModel.onFailure(e.message.orEmpty())
-                            }
+                    PaymentType.SAVED_CARD -> {
+                        try {
+                            paymentClient.launchSavedCardPayment(
+                                order = effect.order,
+                                code = CARD_PAYMENT_REQUEST_CODE
+                            )
+                        } catch (e: IllegalArgumentException) {
+                            viewModel.onFailure(e.message.orEmpty())
                         }
                     }
                 }
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == MainViewModel.CARD_PAYMENT_REQUEST_CODE) {
-            when (resultCode) {
-                RESULT_OK -> viewModel.onCardPaymentResponse(
-                    CardPaymentData.getFromIntent(data!!)
-                )
-
-                RESULT_CANCELED -> viewModel.onCardPaymentCancelled()
             }
         }
     }

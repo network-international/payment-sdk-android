@@ -3,7 +3,7 @@ package payment.sdk.android.demo
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
-class MainViewModelStateKtTest {
+class MainViewModelUiStateKtTest {
     @Test
     fun `getAlertMessage returns correct messages for all states`() {
         val initState = MainViewModelStateType.INIT

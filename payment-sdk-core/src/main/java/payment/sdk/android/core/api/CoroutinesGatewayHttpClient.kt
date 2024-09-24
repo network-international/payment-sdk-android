@@ -154,17 +154,9 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     return Pair(connection.headerFields, JSONObject(reader.readText()))
                 }
                 // Not Discerned
-                -1 -> {
-                    val message = connection.inputStream.bufferedReader().readText()
-                    println(message)
-                    throw IllegalStateException("Http response code can't be discerned: -1")
-                }
+                -1 -> throw IllegalStateException("Http response code can't be discerned: -1")
                 // Other HTTP Codes
-                else -> {
-                    val message = connection.inputStream.bufferedReader().readText()
-                    println(message)
-                    throw IllegalStateException("HTTP: $responseCode")
-                }
+                else -> throw IllegalStateException("HTTP: $responseCode")
             }
         } catch (e: Exception) {
             throw e

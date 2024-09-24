@@ -82,10 +82,10 @@ class MainViewModelTest {
 
     @Test
     fun `test on select product`() = runTest {
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getProducts() } returns listOf()
@@ -102,10 +102,10 @@ class MainViewModelTest {
             Order::class.java
         )
 
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getSelectedEnvironment() } returns environment
@@ -137,10 +137,10 @@ class MainViewModelTest {
     @Test
     fun `test createOrder if selected environment is not set`() = runTest {
 
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getSelectedEnvironment() } returns null
@@ -163,10 +163,10 @@ class MainViewModelTest {
     @Test
     fun `test onPayByCard if getAccessToken failed`() = runTest {
 
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getSelectedEnvironment() } returns environment
@@ -194,10 +194,10 @@ class MainViewModelTest {
 
     @Test
     fun closeDialogTest() = runTest {
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
         sut.closeDialog()
         assertEquals(states[0].state, MainViewModelStateType.INIT)
@@ -205,10 +205,10 @@ class MainViewModelTest {
 
     @Test
     fun onDeleteProductTest() = runTest {
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getProducts() } returns listOf()
@@ -221,10 +221,10 @@ class MainViewModelTest {
 
     @Test
     fun deleteSavedCardTest() = runTest {
-        val states: MutableList<MainViewModelState> = mutableListOf()
+        val states: MutableList<MainViewModelUiState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
-            sut.state.toList(states)
+            sut.uiState.toList(states)
         }
 
         coEvery { dataStore.getProducts() } returns listOf()

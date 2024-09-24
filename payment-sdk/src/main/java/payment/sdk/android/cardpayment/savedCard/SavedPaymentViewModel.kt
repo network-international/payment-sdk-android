@@ -29,7 +29,7 @@ import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 
-class SavedPaymentViewModel(
+internal class SavedPaymentViewModel(
     private val authApiInteractor: AuthApiInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
     private val getPayerIpInteractor: GetPayerIpInteractor,
