@@ -8,8 +8,6 @@ import payment.sdk.android.core.api.SDKHttpResponse
 class GooglePayAcceptInteractor(private val httpClient: HttpClient) {
 
     suspend fun accept(url: String, accessToken: String, paymentData: String): SDKHttpResponse {
-        val json = Body.Json(mapOf("token" to paymentData)).encode()
-        println(json)
         return httpClient.post(
             url, headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
