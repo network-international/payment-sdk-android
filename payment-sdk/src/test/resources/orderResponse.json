@@ -1,0 +1,92 @@
+{
+  "_id": "urn:order:d4877b25-5e39-4458-93e0-900620fcb3da",
+  "_links": {
+    "cancel": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/cancel"
+    },
+    "cnp:payment-link": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payment-link"
+    },
+    "payment-authorization": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/paymentAuthorization"
+    },
+    "self": {
+      "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da"
+    },
+    "tenant-brand": {
+      "href": "http://config-service/config/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/configs/tenant-brand"
+    },
+    "payment": {
+      "href": "https://paypage-dev.ngenius-payments.com/?code=680d5f15f757f596"
+    },
+    "merchant-brand": {
+      "href": "http://config-service/config/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/configs/merchant-brand"
+    }
+  },
+  "type": "SINGLE",
+  "merchantDefinedData": {},
+  "action": "AUTH",
+  "amount": {
+    "currencyCode": "AED",
+    "value": 565600
+  },
+  "language": "en",
+  "merchantAttributes": {},
+  "reference": "d4877b25-5e39-4458-93e0-900620fcb3da",
+  "outletId": "b4a6e21a-6168-4e16-bd93-995625cab406",
+  "createDateTime": "2024-09-17T09:38:50.048948441Z",
+  "paymentMethods": {
+    "wallet": [
+      "GOOGLE_PAY",
+      "SAMSUNG_PAY"
+    ],
+    "card": [
+      "MASTERCARD",
+      "VISA"
+    ]
+  },
+  "referrer": "urn:Ecom:d4877b25-5e39-4458-93e0-900620fcb3da",
+  "formattedOrderSummary": {},
+  "formattedAmount": "د.إ.‏ 5,656",
+  "formattedOriginalAmount": "",
+  "_embedded": {
+    "payment": [
+      {
+        "_id": "urn:payment:b82b7930-d6bb-46cb-a00d-80014249af2c",
+        "_links": {
+          "config:google_pay": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/config/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/configs/google-pay"
+          },
+          "self": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payments/b82b7930-d6bb-46cb-a00d-80014249af2c"
+          },
+          "payment:google_pay": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payments/b82b7930-d6bb-46cb-a00d-80014249af2c/google-pay/accept"
+          },
+          "payment:card": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payments/b82b7930-d6bb-46cb-a00d-80014249af2c/card"
+          },
+          "payment:samsung_pay": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payments/b82b7930-d6bb-46cb-a00d-80014249af2c/samsung-pay"
+          },
+          "curies": [
+            {
+              "name": "cnp",
+              "href": "https://api-gateway-dev.ngenius-payments.com/docs/rels/{rel}",
+              "templated": true
+            }
+          ]
+        },
+        "reference": "b82b7930-d6bb-46cb-a00d-80014249af2c",
+        "state": "STARTED",
+        "amount": {
+          "currencyCode": "AED",
+          "value": 565600
+        },
+        "updateDateTime": "2024-09-17T09:38:50.048948441Z",
+        "outletId": "b4a6e21a-6168-4e16-bd93-995625cab406",
+        "orderReference": "d4877b25-5e39-4458-93e0-900620fcb3da"
+      }
+    ]
+  }
+}

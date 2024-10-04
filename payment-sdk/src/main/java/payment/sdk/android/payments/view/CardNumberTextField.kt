@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments.view
+package payment.sdk.android.payments.view
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.cardPayments.CreditCardVisualTransformation
+import payment.sdk.android.payments.CreditCardVisualTransformation
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns

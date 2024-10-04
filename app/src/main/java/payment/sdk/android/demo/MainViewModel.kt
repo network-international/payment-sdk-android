@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
-import payment.sdk.android.cardPayments.CardPaymentsLauncher
+import payment.sdk.android.payments.CardPaymentsLauncher
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore

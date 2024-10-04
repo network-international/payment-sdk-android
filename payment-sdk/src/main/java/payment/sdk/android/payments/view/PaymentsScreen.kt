@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments.view
+package payment.sdk.android.payments.view
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -47,18 +46,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.SDKConfig
-import payment.sdk.android.cardPayments.GooglePayConfig
+import payment.sdk.android.payments.GooglePayConfig
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.savedCard.view.CreditCardBack
 import payment.sdk.android.cardpayment.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
-import payment.sdk.android.cardpayment.widget.ExpireDateEditText
 import payment.sdk.android.core.CardType
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.sdk.R
-import kotlin.math.abs
 
 @Composable
 fun PaymentsScreen(
@@ -172,8 +169,8 @@ fun PaymentsScreen(
                             expiry = newValue
                         },
                         focusCvv = {
-                        // TODO fix focus
-                        //  cvvFocus.requestFocus()
+                            // TODO fix focus
+                            cvvFocus.requestFocus()
                         }
                     )
 
@@ -296,9 +293,14 @@ fun PaymentsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Image(painter = painterResource(id = R.drawable.network_international_logo), "")
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f),
+                painter = painterResource(id = R.drawable.network_international_logo),
+                contentDescription = ""
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments
+package payment.sdk.android.payments
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping

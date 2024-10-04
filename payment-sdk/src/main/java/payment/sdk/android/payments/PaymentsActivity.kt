@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments
+package payment.sdk.android.payments
 
 import android.app.Activity
 import android.app.LocaleManager
@@ -34,7 +34,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import kotlinx.coroutines.launch
-import payment.sdk.android.cardPayments.view.PaymentsScreen
+import payment.sdk.android.payments.view.PaymentsScreen
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -96,7 +96,6 @@ class PaymentsActivity : AppCompatActivity() {
             finishWithData(CardPaymentsLauncher.Result.Failed("intent args not found"))
             return
         }
-        localeSelection(this, args.language)
         initEffects()
         setContent {
             Scaffold(
@@ -125,8 +124,6 @@ class PaymentsActivity : AppCompatActivity() {
                 },
             ) { contentPadding ->
                 val state by viewModel.uiState.collectAsState()
-                val isLTR =
-                    TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
                 when (state) {
                     is PaymentsVMUiState.Authorized -> {
                         val authState = (state as PaymentsVMUiState.Authorized)
@@ -138,18 +135,20 @@ class PaymentsActivity : AppCompatActivity() {
                             googlePayConfig = authState.googlePayConfig,
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
                                 viewModel.makeCardPayment(
+                                    selfUrl = authState.selfUrl,
+                                    cardPaymentUrl = authState.cardPaymentUrl,
                                     accessToken = authState.accessToken,
                                     paymentCookie = authState.paymentCookie,
                                     cardNumber = cardNumber,
                                     expiry = expiry,
                                     cvv = cvv,
                                     cardholderName = cardholderName,
-                                    orderUrl = authState.orderUrl
+                                    orderUrl = authState.orderUrl,
+                                    amount = authState.amount,
+                                    currencyCode = authState.currencyCode
                                 )
                             },
-                            formattedAmount = authState.orderAmount.formattedCurrencyString2Decimal(
-                                isLTR
-                            ),
+                            formattedAmount = authState.orderAmount,
                             showWallets = authState.showWallets,
                             onGooglePay = {
                                 authState.googlePayConfig?.task?.addOnCompleteListener(
@@ -251,12 +250,12 @@ class PaymentsActivity : AppCompatActivity() {
                                 paymentCookie = it.paymentCookie,
                                 savedCardUrl = null,
                                 visaPlans = it.visaPlans,
-                                paymentUrl = args.cardPaymentUrl,
+                                paymentUrl = it.cardPaymentUrl,
                                 newCard = it.newCardDto,
-                                payPageUrl = args.payPageUrl,
+                                payPageUrl = args.paymentUrl,
                                 savedCard = null,
                                 orderUrl = it.orderUrl,
-                                orderAmount = OrderAmount(args.amount, args.currencyCode),
+                                orderAmount = OrderAmount(it.amount, it.currencyCode),
                                 accessToken = it.paymentCookie
                             ).toIntent(this@PaymentsActivity),
                             VISA_INSTALMENT_SELECTION_KEY
