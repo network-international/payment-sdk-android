@@ -12,7 +12,7 @@
         </service>
 
         <activity
-            android:name="payment.sdk.android.cardPayments.PaymentsActivity"
+            android:name="payment.sdk.android.payments.PaymentsActivity"
             android:exported="false" />
         <activity
             android:name="payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsActivity"

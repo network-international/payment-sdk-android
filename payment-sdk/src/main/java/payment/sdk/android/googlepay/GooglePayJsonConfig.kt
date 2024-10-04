@@ -7,15 +7,12 @@ import payment.sdk.android.core.MerchantInfo
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-internal class GooglePayJsonConfig(
-    amount: Double,
-    currencyCode: String,
-) {
+internal class GooglePayJsonConfig() {
     private val baseRequest = JSONObject()
         .put("apiVersion", 2)
         .put("apiVersionMinor", 0)
 
-    private val getTransactionInfo: JSONObject =
+    private fun getTransactionInfo(amount: Double, currencyCode: String): JSONObject =
         JSONObject()
             .put("totalPrice", amount.centsToString())
             .put("totalPriceStatus", "FINAL")
@@ -107,9 +104,11 @@ internal class GooglePayJsonConfig(
      * @return String representation of the payment request.
      */
     fun create(
-        googlePayConfigResponse: GooglePayConfigResponse
+        googlePayConfigResponse: GooglePayConfigResponse,
+        amount: Double,
+        currencyCode: String,
     ): String = getPaymentDataRequest(
-        transactionInfo = getTransactionInfo,
+        transactionInfo = getTransactionInfo(amount, currencyCode),
         allowedPaymentMethods = getAllowedPaymentMethods(
             allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods,
             allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods

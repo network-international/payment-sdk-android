@@ -20,6 +20,8 @@ class Order {
 
     var savedCard: SavedCard? = null
 
+    var formattedAmount: String? = null
+
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
@@ -110,3 +112,15 @@ class Order {
         }
     }
 }
+
+fun Order.getAuthorizationUrl() = links?.paymentAuthorizationUrl?.href
+
+fun Order.getPayPageUrl() = links?.paymentUrl?.href
+
+fun Order.getGooglePayUrl() = embedded?.payment?.firstOrNull()?.links?.googlePayLink?.href
+
+fun Order.getGooglePayConfigUrl() = embedded?.payment?.firstOrNull()?.links?.googlePayConfigLink?.href
+
+fun Order.getCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.card?.href
+
+fun Order.getSelfUrl() = embedded?.payment?.firstOrNull()?.links?.selfLink?.href

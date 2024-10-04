@@ -43,7 +43,7 @@ internal class GooglePayConfigFactoryTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         sut =
-            GooglePayConfigFactory(paymentsClient, googlePayJsonConfig, googlePayConfigInteractor, listOf("GOOGLE_PAY"))
+            GooglePayConfigFactory(paymentsClient, googlePayJsonConfig, googlePayConfigInteractor)
     }
 
     @After
@@ -62,7 +62,7 @@ internal class GooglePayConfigFactoryTest {
             } returns googlePayConfigResponse
 
 
-            every { googlePayJsonConfig.create(any()) } returns paymentDataRequestJson
+            every { googlePayJsonConfig.create(any(), any(), any()) } returns paymentDataRequestJson
 
             coEvery {
                 googlePayJsonConfig.baseCardPaymentMethod(any(), any())
@@ -71,7 +71,7 @@ internal class GooglePayConfigFactoryTest {
             coEvery { paymentsClient.isReadyToPay(any()) } returns TestUtils.mockTask<Boolean>(value = true)
 
             // When
-            val result = sut.checkGooglePayConfig(googlePayConfigUrl, accessToken)
+            val result = sut.checkGooglePayConfig(googlePayConfigUrl, accessToken, 0.0, "AED", "acceptUrl")
 
             // Then
             assertNotNull(result)
@@ -93,7 +93,7 @@ internal class GooglePayConfigFactoryTest {
             } returns null
 
             // When
-            val result = sut.checkGooglePayConfig(googlePayConfigUrl, accessToken)
+            val result = sut.checkGooglePayConfig(googlePayConfigUrl, accessToken, 0.0, "AED", "acceptUrl")
 
             // Then
             assertNull(result)

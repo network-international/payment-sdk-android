@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments
+package payment.sdk.android.payments
 
 import android.content.Context
 import android.content.Intent
@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
-import payment.sdk.android.core.Order
 
 class CardPaymentsLauncher(
     private val activityResultLauncher: ActivityResultLauncher<CardPaymentsIntent>,
@@ -18,7 +17,7 @@ class CardPaymentsLauncher(
     constructor(
         activity: ComponentActivity,
         resultCallback: CardPaymentsResultCallback,
-    ): this(
+    ) : this(
         activityResultLauncher = activity.registerForActivityResult(
             PaymentsLauncherContract(),
             resultCallback::onResult
@@ -51,24 +50,19 @@ class CardPaymentsLauncher(
         data object Cancelled : Result()
     }
 
-    fun launch(cardPaymentsIntent: CardPaymentsIntent) {
-        activityResultLauncher.launch(cardPaymentsIntent)
+    fun launch(paymentsRequest: PaymentsRequest) {
+        activityResultLauncher.launch(
+            CardPaymentsIntent(
+                authorizationUrl = paymentsRequest.authorizationUrl,
+                paymentUrl = paymentsRequest.paymentUrl
+            )
+        )
     }
 
     @Parcelize
     class CardPaymentsIntent(
-        val selfUrl: String,
-        val authUrl: String,
-        val payPageUrl: String,
-        val outletId: String,
-        val cardPaymentUrl: String,
-        val amount: Double,
-        val currencyCode: String,
-        val googlePayUrl: String?,
-        val googlePayConfigUrl: String?,
-        val allowedWallets: List<String>,
-        val allowedCards: List<String>,
-        val language: String
+        val authorizationUrl: String,
+        val paymentUrl: String,
     ) : Parcelable {
         private fun toBundle() = bundleOf(EXTRA_ARGS to this)
 
@@ -89,37 +83,6 @@ class CardPaymentsLauncher(
             fun fromIntent(intent: Intent): CardPaymentsIntent? {
                 val inputIntent = intent.getBundleExtra(EXTRA_INTENT)
                 return inputIntent?.getParcelable(EXTRA_ARGS)
-            }
-
-            @Throws(IllegalArgumentException::class)
-            fun create(
-                order: Order,
-            ): CardPaymentsIntent {
-                val paymentLinks = order.embedded?.payment?.first()?.links
-                return CardPaymentsIntent(
-                    selfUrl = requireNotNull(paymentLinks?.selfLink?.href),
-                    amount = requireNotNull(order.amount?.value) {
-                        "Order Amount Not found"
-                    },
-                    authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) {
-                        "Currency Code not found"
-                    },
-                    outletId = requireNotNull(order.outletId) {
-                        "Outlet ID not found"
-                    },
-                    payPageUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
-                    currencyCode = requireNotNull(order.amount?.currencyCode) {
-                        "Currency Code not found"
-                    },
-                    googlePayUrl = paymentLinks?.googlePayLink?.href,
-                    cardPaymentUrl = requireNotNull(paymentLinks?.card?.href) {
-                        "Card Payment URL not found"
-                    },
-                    allowedCards = order.paymentMethods?.card ?: emptyList(),
-                    allowedWallets = order.paymentMethods?.wallet?.asList() ?: emptyList(),
-                    googlePayConfigUrl = paymentLinks?.googlePayConfigLink?.href,
-                    language = order.language
-                )
             }
         }
     }

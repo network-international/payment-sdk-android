@@ -103,9 +103,14 @@ class MainViewModelTest {
         )
 
         val states: MutableList<MainViewModelUiState> = mutableListOf()
+        val effects: MutableList<MainViewModelEffect> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.uiState.toList(states)
+        }
+
+        backgroundScope.launch(testDispatcher) {
+            sut.effect.toList(effects)
         }
 
         coEvery { dataStore.getSelectedEnvironment() } returns environment
@@ -128,10 +133,10 @@ class MainViewModelTest {
         assertEquals(states[0].state, MainViewModelStateType.INIT)
         assertEquals(states[1].state, MainViewModelStateType.LOADING)
         assertEquals(states[1].message, "Creating Order...")
-        assertEquals(states[2].state, MainViewModelStateType.PAYMENT_PROCESSING)
-        assertEquals(states[2].orderReference, orderResponse.reference)
-        assertEquals(states[2].selectedProducts, emptyList<Product>())
-        assertEquals(states[2].total, 0.0)
+        assertEquals(effects.last().type, PaymentType.CARD)
+        assertEquals(effects.last().order.reference, orderResponse.reference)
+        assertEquals(states.last().selectedProducts, emptyList<Product>())
+        assertEquals(states.last().total, 0.0)
     }
 
     @Test

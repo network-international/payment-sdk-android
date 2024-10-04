@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments
+package payment.sdk.android.payments
 
 import android.app.Application
 import androidx.annotation.Keep
@@ -24,14 +24,18 @@ import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardMapping
-import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
+import payment.sdk.android.core.getCardPaymentUrl
+import payment.sdk.android.core.getGooglePayConfigUrl
+import payment.sdk.android.core.getGooglePayUrl
+import payment.sdk.android.core.getSelfUrl
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.GooglePayConfigInteractor
@@ -50,6 +54,7 @@ internal class PaymentsViewModel(
     private val googlePayConfigFactory: GooglePayConfigFactory,
     private val threeDSecureFactory: ThreeDSecureFactory,
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor,
+    private val getOrderApiInteractor: GetOrderApiInteractor,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -65,55 +70,98 @@ internal class PaymentsViewModel(
     fun authorize() {
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.AUTH) }
         viewModelScope.launch(dispatcher) {
-            val authCode = cardPaymentsIntent.payPageUrl.getQueryParameter("code")
+            val authCode = cardPaymentsIntent.paymentUrl.getQueryParameter("code")
             if (authCode.isNullOrBlank()) {
                 return@launch
             }
             val authResponse = authApiInteractor.authenticate(
-                authUrl = cardPaymentsIntent.authUrl, authCode = authCode
+                authUrl = cardPaymentsIntent.authorizationUrl, authCode = authCode
             )
             when (authResponse) {
                 is AuthResponse.Error -> _effects.emit(PaymentsVMEffects.Failed(authResponse.error.message.orEmpty()))
 
                 is AuthResponse.Success -> {
-                    val googlePayConfig = googlePayConfigFactory.checkGooglePayConfig(
-                        googlePayConfigUrl = cardPaymentsIntent.googlePayConfigUrl,
-                        accessToken = authResponse.getAccessToken()
+                    getOrder(
+                        authResponse.orderUrl,
+                        authResponse.getAccessToken(),
+                        authResponse.getPaymentCookie()
                     )
-                    _uiState.update {
-                        PaymentsVMUiState.Authorized(
-                            accessToken = authResponse.getAccessToken(),
-                            paymentCookie = authResponse.getPaymentCookie(),
-                            orderUrl = authResponse.orderUrl,
-                            supportedCards = CardMapping.mapSupportedCards(cardPaymentsIntent.allowedCards),
-                            googlePayConfig = googlePayConfig,
-                            showWallets = googlePayConfig?.canUseGooglePay ?: false,
-                            orderAmount = OrderAmount(
-                                cardPaymentsIntent.amount,
-                                cardPaymentsIntent.currencyCode
-                            )
-                        )
-                    }
                 }
             }
         }
     }
 
+    suspend fun getOrder(orderUrl: String, accessToken: String, paymentCookie: String) {
+        val order = requireNotNull(getOrderApiInteractor.getOrder(orderUrl, accessToken)) {
+            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order details"))
+            return
+        }
+
+        val amount = requireNotNull(order.amount?.value) {
+            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order amount"))
+            return
+        }
+
+        val currencyCode = requireNotNull(order.amount?.currencyCode) {
+            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order currencyCode"))
+            return
+        }
+
+        val supportedWallets = order.paymentMethods?.wallet.orEmpty()
+
+        val googlePayUrl = order.getGooglePayUrl()
+        val googlePayConfig = takeIf { supportedWallets.contains("GOOGLE_PAY") && googlePayUrl != null }?.run {
+            googlePayConfigFactory.checkGooglePayConfig(
+                googlePayConfigUrl = order.getGooglePayConfigUrl(),
+                accessToken = accessToken,
+                amount = amount,
+                currencyCode = currencyCode,
+                googlePayAcceptUrl = googlePayUrl.orEmpty()
+            )
+        }
+
+        val supportedCards = order.paymentMethods?.card.orEmpty()
+
+        if (supportedCards.isEmpty()) {
+            _effects.emit(PaymentsVMEffects.Failed("No supported card scheme found"))
+            return
+        }
+        _uiState.update {
+            PaymentsVMUiState.Authorized(
+                accessToken = accessToken,
+                paymentCookie = paymentCookie,
+                orderUrl = orderUrl,
+                supportedCards = CardMapping.mapSupportedCards(supportedCards),
+                googlePayConfig = googlePayConfig,
+                showWallets = googlePayConfig?.canUseGooglePay ?: false,
+                orderAmount = order.formattedAmount.orEmpty(),
+                cardPaymentUrl = order.getCardPaymentUrl().orEmpty(),
+                amount = amount,
+                currencyCode = currencyCode,
+                selfUrl = order.getSelfUrl().orEmpty()
+            )
+        }
+    }
+
     fun makeCardPayment(
+        selfUrl: String,
+        cardPaymentUrl: String,
         accessToken: String,
         paymentCookie: String,
         cardNumber: String,
         orderUrl: String,
         expiry: String,
         cvv: String,
-        cardholderName: String
+        cardholderName: String,
+        amount: Double,
+        currencyCode: String
     ) {
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
             val response = visaInstalmentPlanInteractor.getPlans(
                 cardNumber = cardholderName,
                 token = accessToken,
-                selfUrl = cardPaymentsIntent.selfUrl
+                selfUrl = selfUrl
             )
 
             if (response is VisaPlansResponse.Success) {
@@ -124,6 +172,9 @@ internal class PaymentsViewModel(
                         orderUrl = orderUrl,
                         accessToken = accessToken,
                         cvv = cvv,
+                        cardPaymentUrl = cardPaymentUrl,
+                        amount = amount,
+                        currencyCode = currencyCode,
                         newCardDto = NewCardDto(
                             cardNumber = cardNumber,
                             expiry = DateFormatter.formatExpireDateForApi(expiry),
@@ -133,8 +184,9 @@ internal class PaymentsViewModel(
                     )
                 )
             } else {
-                val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.payPageUrl)
+                val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.paymentUrl)
                 initiateCardPayment(
+                    cardPaymentUrl = cardPaymentUrl,
                     paymentCookie = paymentCookie,
                     orderUrl = orderUrl,
                     cardNumber = cardNumber,
@@ -150,13 +202,13 @@ internal class PaymentsViewModel(
     fun acceptGooglePay(paymentDataJson: String) {
         viewModelScope.launch(dispatcher) {
             val currentState = uiState.value
-            val googlePayUrl = cardPaymentsIntent.googlePayUrl
 
-            if (currentState !is PaymentsVMUiState.Authorized || googlePayUrl == null) {
+            if (currentState !is PaymentsVMUiState.Authorized || currentState.googlePayConfig?.googlePayAcceptUrl == null) {
                 _effects.emit(PaymentsVMEffects.Failed("Authorization or Google Pay URL is missing"))
                 return@launch
             }
 
+            val googlePayUrl = currentState.googlePayConfig.googlePayAcceptUrl
             val accessToken = currentState.accessToken
             val response =
                 googlePayAcceptInteractor.accept(googlePayUrl, accessToken, paymentDataJson)
@@ -169,6 +221,7 @@ internal class PaymentsViewModel(
     }
 
     private suspend fun initiateCardPayment(
+        cardPaymentUrl: String,
         paymentCookie: String,
         orderUrl: String,
         cardNumber: String,
@@ -179,7 +232,7 @@ internal class PaymentsViewModel(
     ) {
         val response = cardPaymentInteractor.makeCardPayment(
             paymentCookie = paymentCookie,
-            paymentUrl = cardPaymentsIntent.cardPaymentUrl,
+            paymentUrl = cardPaymentUrl,
             pan = cardNumber,
             expiry = DateFormatter.formatExpireDateForApi(expiry),
             cvv = cvv,
@@ -248,16 +301,11 @@ internal class PaymentsViewModel(
                     paymentsClient = Wallet.getPaymentsClient(
                         extras.requireApplication(), walletOptions
                     ),
-                    allowedWallets = cardPaymentsIntent.allowedWallets.toMutableList().apply {
-                        add("GOOGLE_PAY")
-                    },
-                    googlePayJsonConfig = GooglePayJsonConfig(
-                        cardPaymentsIntent.amount,
-                        cardPaymentsIntent.currencyCode
-                    ),
+                    googlePayJsonConfig = GooglePayJsonConfig(),
                     googlePayConfigInteractor = GooglePayConfigInteractor(httpClient)
                 ),
-                googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient)
+                googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient),
+                getOrderApiInteractor = GetOrderApiInteractor(httpClient)
             ) as T
         }
     }
