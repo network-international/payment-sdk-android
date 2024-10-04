@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.cardPayments
+package payment.sdk.android.cardpayment.payments
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
@@ -21,13 +21,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import payment.sdk.android.cardPayments.PaymentsVMEffects
-import payment.sdk.android.cardPayments.CardPaymentsLauncher
-import payment.sdk.android.cardPayments.PaymentsVMUiState
-import payment.sdk.android.cardPayments.PaymentsViewModel
-import payment.sdk.android.cardPayments.GooglePayConfig
+import payment.sdk.android.payments.PaymentsVMEffects
+import payment.sdk.android.payments.CardPaymentsLauncher
+import payment.sdk.android.payments.PaymentsVMUiState
+import payment.sdk.android.payments.PaymentsViewModel
+import payment.sdk.android.payments.GooglePayConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
+import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.SDKHttpResponse
@@ -35,6 +36,7 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
@@ -51,18 +53,8 @@ class PaymentsViewModelTest {
 
     private val intent: CardPaymentsLauncher.CardPaymentsIntent =
         CardPaymentsLauncher.CardPaymentsIntent(
-            allowedCards = emptyList(),
-            cardPaymentUrl = "",
-            payPageUrl = "https://paypage.sandbox.ngenius-payments.com/?code=323eas",
-            amount = 0.0,
-            currencyCode = "AED",
-            selfUrl = "",
-            authUrl = "",
-            outletId = "",
-            googlePayUrl = "url",
-            allowedWallets = listOf("GOOGLE_PAY"),
-            googlePayConfigUrl = "url",
-            language = "en"
+            paymentUrl = TEST_PAYMENT_URL,
+            authorizationUrl = "authUrl"
         )
 
     private val authApiInteractor: AuthApiInteractor = mockk(relaxed = true)
@@ -72,6 +64,7 @@ class PaymentsViewModelTest {
     private val getPayerIpInteractor: GetPayerIpInteractor = mockk(relaxed = true)
     private val googlePayConfigFactory: GooglePayConfigFactory = mockk(relaxed = true)
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor = mockk(relaxed = true)
+    private val getOrderApiInteractor: GetOrderApiInteractor = mockk(relaxed = true)
 
     private lateinit var sut: PaymentsViewModel
 
@@ -87,6 +80,7 @@ class PaymentsViewModelTest {
             threeDSecureFactory = threeDSecureFactory,
             googlePayConfigFactory = googlePayConfigFactory,
             googlePayAcceptInteractor = googlePayAcceptInteractor,
+            getOrderApiInteractor = getOrderApiInteractor,
             dispatcher = testDispatcher
         )
     }
@@ -100,6 +94,10 @@ class PaymentsViewModelTest {
     fun `test authorize success without googlePayConfig`() = runTest {
         val states: MutableList<PaymentsVMUiState> = mutableListOf()
 
+        val orderResponse = Gson().fromJson(
+            ClassLoader.getSystemResource("orderResponse.json").readText(),
+            Order::class.java
+        )
         backgroundScope.launch(testDispatcher) {
             sut.uiState.toList(states)
         }
@@ -108,7 +106,17 @@ class PaymentsViewModelTest {
             listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
         )
 
-        coEvery { googlePayConfigFactory.checkGooglePayConfig(any(), any()) } returns null
+        coEvery {
+            googlePayConfigFactory.checkGooglePayConfig(
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns null
+
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
 
         sut.authorize()
 
@@ -123,7 +131,12 @@ class PaymentsViewModelTest {
     fun `test authorize success without with googlePayConfig but cannot pay with googlePay`() =
         runTest {
             val states: MutableList<PaymentsVMUiState> = mutableListOf()
+            val orderResponse = Gson().fromJson(
+                ClassLoader.getSystemResource("orderResponse.json").readText(),
+                Order::class.java
+            )
 
+            coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
             backgroundScope.launch(testDispatcher) {
                 sut.uiState.toList(states)
             }
@@ -135,12 +148,16 @@ class PaymentsViewModelTest {
             coEvery {
                 googlePayConfigFactory.checkGooglePayConfig(
                     any(),
+                    any(),
+                    any(),
+                    any(),
                     any()
                 )
             } returns GooglePayConfig(
                 allowedPaymentMethods = "",
                 task = mockk(),
-                canUseGooglePay = false
+                canUseGooglePay = false,
+                googlePayAcceptUrl = ""
             )
 
             sut.authorize()
@@ -208,13 +225,17 @@ class PaymentsViewModelTest {
         } returns CardPaymentResponse.Success(response)
 
         sut.makeCardPayment(
+            "selfUrl",
+            "cardPaymentUrl",
             "accessToken",
             "paymentCookie",
             "1234567812345678",
             "orderUrl",
             "12/24",
             "123",
-            "John Doe"
+            "John Doe",
+            0.0,
+            "AED"
         )
 
         coVerify(exactly = 1) {
@@ -260,13 +281,17 @@ class PaymentsViewModelTest {
         } returns "1.1.1.1"
 
         sut.makeCardPayment(
+            "selfUrl",
+            "cardPaymentUrl",
             "accessToken",
             "paymentCookie",
             "1234567812345678",
             "orderUrl",
             "12/24",
             "123",
-            "John Doe"
+            "John Doe",
+            0.0,
+            "AED"
         )
 
         coVerify(exactly = 1) {
@@ -312,13 +337,17 @@ class PaymentsViewModelTest {
         } returns VisaPlansResponse.Success(visaResponse)
 
         sut.makeCardPayment(
+            "selfUrl",
+            "cardPaymentUrl",
             "accessToken",
             "paymentCookie",
             "1234567812345678",
             "orderUrl",
             "12/24",
             "123",
-            "John Doe"
+            "John Doe",
+            0.0,
+            "AED"
         )
 
         coVerify(exactly = 1) { visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any()) }
@@ -363,13 +392,17 @@ class PaymentsViewModelTest {
         } returns ThreeDSecureDto("", "", "", "")
 
         sut.makeCardPayment(
+            "selfUrl",
+            "cardPaymentUrl",
             "accessToken",
             "paymentCookie",
             "1234567812345678",
             "orderUrl",
             "12/24",
             "123",
-            "John Doe"
+            "John Doe",
+            0.0,
+            "AED"
         )
 
         coVerify(exactly = 1) { threeDSecureFactory.buildThreeDSecureTwoDto(any(), any(), any()) }
@@ -390,8 +423,26 @@ class PaymentsViewModelTest {
             listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
         )
 
-        coEvery { googlePayConfigFactory.checkGooglePayConfig(any(), any()) } returns null
+        coEvery {
+            googlePayConfigFactory.checkGooglePayConfig(
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns GooglePayConfig(
+            allowedPaymentMethods = "",
+            task = mockk(),
+            canUseGooglePay = false,
+            googlePayAcceptUrl = ""
+        )
+        val orderResponse = Gson().fromJson(
+            ClassLoader.getSystemResource("orderResponse.json").readText(),
+            Order::class.java
+        )
 
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
         sut.authorize()
 
         coEvery {
@@ -430,13 +481,10 @@ class PaymentsViewModelTest {
             emptyMap(), ""
         )
 
-
-        // Trigger the acceptGooglePay function
         sut.acceptGooglePay("paymentDataJson")
 
         coVerify(exactly = 0) { googlePayAcceptInteractor.accept(any(), any(), any()) }
 
-        // Verify the Failed effect was emitted
         assertTrue(effects.isNotEmpty())
         assertTrue(effects.first() is PaymentsVMEffects.Failed)
         assertEquals(
@@ -452,12 +500,30 @@ class PaymentsViewModelTest {
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
         }
+        val orderResponse = Gson().fromJson(
+            ClassLoader.getSystemResource("orderResponse.json").readText(),
+            Order::class.java
+        )
 
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
         coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
             listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
         )
 
-        coEvery { googlePayConfigFactory.checkGooglePayConfig(any(), any()) } returns null
+        coEvery {
+            googlePayConfigFactory.checkGooglePayConfig(
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns GooglePayConfig(
+            allowedPaymentMethods = "",
+            task = mockk(),
+            canUseGooglePay = false,
+            googlePayAcceptUrl = ""
+        )
 
         sut.authorize()
 

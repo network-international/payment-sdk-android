@@ -101,6 +101,9 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest-library:1.3"
     testImplementation "io.mockk:mockk:1.13.7"
 
+    implementation "androidx.compose.ui:ui-tooling-preview:1.6.7"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.6.7"
+
 //    implementation "com.github.network-international.payment-sdk-android:payment-sdk-core:3.1.7"
 //    implementation "com.github.network-international.payment-sdk-android:payment-sdk:3.1.7"
 //    implementation "com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:3.1.7"

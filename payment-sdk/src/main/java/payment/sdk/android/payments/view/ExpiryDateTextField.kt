@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments.view
+package payment.sdk.android.payments.view
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Text
@@ -25,32 +25,26 @@ fun ExpiryDateTextField(
         onValueChange = { newValue ->
             if (newValue.text.length <= 5) {
                 var rawText = newValue.text.filter { it.isDigit() }
+                if (rawText.isBlank()) {
+                    onValueChange(newValue.copy(text = "", selection = TextRange(0)))
+                    return@TextField
+                }
 
                 rawText = if (rawText.length >= 3) {
                     rawText.take(2) + "/" + rawText.drop(2)
                 } else {
                     rawText
                 }
-
-                if (rawText.isNotBlank()) {
-                    if (ExpireDateEditText.isValidExpire(rawText)) {
-                        onValueChange(
-                            newValue.copy(
-                                text = rawText,
-                                selection = TextRange(rawText.length)
-                            )
-                        )
-                        if (rawText.length == 5) {
-                            focusCvv()
-                        }
-                    }
-                } else {
+                if (ExpireDateEditText.isValidExpire(rawText)) {
                     onValueChange(
                         newValue.copy(
-                            text = "",
-                            selection = TextRange(0)
+                            text = rawText,
+                            selection = TextRange(rawText.length)
                         )
                     )
+                    if (rawText.length == 5) {
+                        focusCvv()
+                    }
                 }
             }
         },

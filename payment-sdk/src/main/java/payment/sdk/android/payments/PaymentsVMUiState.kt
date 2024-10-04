@@ -1,4 +1,4 @@
-package payment.sdk.android.cardPayments
+package payment.sdk.android.payments
 
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.PaymentData
@@ -8,7 +8,6 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
-import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
 
 sealed class PaymentsVMUiState {
@@ -23,7 +22,11 @@ sealed class PaymentsVMUiState {
         val supportedCards: Set<CardType>,
         val googlePayConfig: GooglePayConfig? = null,
         val showWallets: Boolean,
-        val orderAmount: OrderAmount
+        val selfUrl: String,
+        val orderAmount: String,
+        val cardPaymentUrl: String,
+        val amount: Double,
+        val currencyCode: String,
     ) : PaymentsVMUiState()
 }
 
@@ -45,12 +48,16 @@ sealed class PaymentsVMEffects {
         val accessToken: String,
         val orderUrl: String,
         val cvv: String?,
-        val newCardDto: NewCardDto
+        val newCardDto: NewCardDto,
+        val cardPaymentUrl: String,
+        val amount: Double,
+        val currencyCode: String
     ) : PaymentsVMEffects()
 }
 
 data class GooglePayConfig(
     val allowedPaymentMethods: String,
+    val googlePayAcceptUrl: String,
     val canUseGooglePay: Boolean,
     val task: Task<PaymentData>
 )

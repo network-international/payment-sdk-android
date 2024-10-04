@@ -4,7 +4,7 @@ import com.google.android.gms.wallet.IsReadyToPayRequest
 import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.PaymentsClient
 import kotlinx.coroutines.tasks.await
-import payment.sdk.android.cardPayments.GooglePayConfig
+import payment.sdk.android.payments.GooglePayConfig
 import payment.sdk.android.core.GooglePayConfigResponse
 import payment.sdk.android.core.interactor.GooglePayConfigInteractor
 
@@ -12,17 +12,22 @@ internal class GooglePayConfigFactory(
     private val paymentsClient: PaymentsClient,
     private val googlePayJsonConfig: GooglePayJsonConfig,
     private val googlePayConfigInteractor: GooglePayConfigInteractor,
-    private val allowedWallets: List<String>
 ) {
     suspend fun checkGooglePayConfig(
         googlePayConfigUrl: String?,
         accessToken: String,
+        amount: Double,
+        currencyCode: String,
+        googlePayAcceptUrl: String
     ): GooglePayConfig? {
-        return allowedWallets
-            .takeIf { it.contains(KEY_GOOGLE_PAY) }
-            ?.let { checkForGooglePay(googlePayConfigUrl, accessToken) }
+        return checkForGooglePay(googlePayConfigUrl, accessToken)
             ?.let { googlePayConfigResponse ->
-                createGooglePayRequest(googlePayConfigResponse = googlePayConfigResponse)
+                createGooglePayRequest(
+                    googlePayConfigResponse = googlePayConfigResponse,
+                    amount = amount,
+                    currencyCode = currencyCode,
+                    googlePayAcceptUrl = googlePayAcceptUrl
+                )
             }
     }
 
@@ -31,11 +36,16 @@ internal class GooglePayConfigFactory(
     ) = url?.let { googlePayConfigInteractor.getConfig(url = it, accessToken = accessToken) }
 
     private suspend fun createGooglePayRequest(
-        googlePayConfigResponse: GooglePayConfigResponse
+        googlePayConfigResponse: GooglePayConfigResponse,
+        googlePayAcceptUrl: String,
+        amount: Double,
+        currencyCode: String
     ): GooglePayConfig? {
         try {
             val paymentDataRequestJson = googlePayJsonConfig.create(
-                googlePayConfigResponse = googlePayConfigResponse
+                googlePayConfigResponse = googlePayConfigResponse,
+                amount = amount,
+                currencyCode = currencyCode
             )
             val request = PaymentDataRequest.fromJson(paymentDataRequestJson)
             val allowedPaymentMethods = googlePayJsonConfig.getAllowedPaymentMethods(
@@ -49,7 +59,8 @@ internal class GooglePayConfigFactory(
                     )
                 ),
                 allowedPaymentMethods = allowedPaymentMethods.toString(),
-                task = paymentsClient.loadPaymentData(request)
+                task = paymentsClient.loadPaymentData(request),
+                googlePayAcceptUrl = googlePayAcceptUrl
             )
         } catch (e: Exception) {
             e.printStackTrace()

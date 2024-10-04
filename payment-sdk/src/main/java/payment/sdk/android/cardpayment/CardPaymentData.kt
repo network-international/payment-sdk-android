@@ -3,7 +3,7 @@ package payment.sdk.android.cardpayment
 import android.content.Intent
 import android.os.Parcel
 import android.os.Parcelable
-import payment.sdk.android.cardPayments.CardPaymentsLauncher
+import payment.sdk.android.payments.CardPaymentsLauncher
 import java.lang.IllegalStateException
 
 class CardPaymentData constructor(

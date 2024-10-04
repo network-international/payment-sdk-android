@@ -19,11 +19,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
-import payment.sdk.android.cardPayments.CardPaymentsLauncher
+import payment.sdk.android.core.getAuthorizationUrl
+import payment.sdk.android.core.getPayPageUrl
+import payment.sdk.android.payments.CardPaymentsLauncher
 import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
+import payment.sdk.android.payments.PaymentsRequest
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
 class MainActivity : ComponentActivity(), SamsungPayResponse {
@@ -139,11 +142,13 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                     )
 
                     PaymentType.CARD -> {
-                        Log.i("CardPaymentsActivity12", "PaymentType.CARD ")
                         cardPaymentsClient.launch(
-                            CardPaymentsLauncher.CardPaymentsIntent.create(
-                                effect.order
-                            )
+                            PaymentsRequest.builder()
+                                .gatewayAuthorizationUrl(
+                                    effect.order.getAuthorizationUrl().orEmpty()
+                                )
+                                .payPageUrl(effect.order.getPayPageUrl().orEmpty())
+                                .build()
                         )
                     }
 
