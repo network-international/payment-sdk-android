@@ -4,7 +4,7 @@ import com.google.android.gms.wallet.IsReadyToPayRequest
 import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.PaymentsClient
 import kotlinx.coroutines.tasks.await
-import payment.sdk.android.payments.GooglePayConfig
+import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.core.GooglePayConfigResponse
 import payment.sdk.android.core.interactor.GooglePayConfigInteractor
 
@@ -19,7 +19,7 @@ internal class GooglePayConfigFactory(
         amount: Double,
         currencyCode: String,
         googlePayAcceptUrl: String
-    ): GooglePayConfig? {
+    ): GooglePayUiConfig? {
         return checkForGooglePay(googlePayConfigUrl, accessToken)
             ?.let { googlePayConfigResponse ->
                 createGooglePayRequest(
@@ -40,7 +40,7 @@ internal class GooglePayConfigFactory(
         googlePayAcceptUrl: String,
         amount: Double,
         currencyCode: String
-    ): GooglePayConfig? {
+    ): GooglePayUiConfig? {
         try {
             val paymentDataRequestJson = googlePayJsonConfig.create(
                 googlePayConfigResponse = googlePayConfigResponse,
@@ -52,7 +52,7 @@ internal class GooglePayConfigFactory(
                 allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
                 allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods
             )
-            return GooglePayConfig(
+            return GooglePayUiConfig(
                 canUseGooglePay = fetchCanUseGooglePay(
                     googlePayJsonConfig.isReadyToPayRequest(
                         allowedPaymentMethods = allowedPaymentMethods

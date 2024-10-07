@@ -5,8 +5,8 @@ import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
 
 internal class PaymentsLauncherContract :
-    ActivityResultContract<CardPaymentsLauncher.CardPaymentsIntent, CardPaymentsLauncher.Result>() {
-    override fun createIntent(context: Context, input: CardPaymentsLauncher.CardPaymentsIntent): Intent {
+    ActivityResultContract<PaymentsRequest, CardPaymentsLauncher.Result>() {
+    override fun createIntent(context: Context, input: PaymentsRequest): Intent {
         return input.toIntent(context)
     }
 

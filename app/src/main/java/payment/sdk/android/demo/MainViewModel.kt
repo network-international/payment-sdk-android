@@ -251,6 +251,8 @@ class MainViewModel(
         }
     }
 
+    fun getLanguageCode() = dataStore.getLanguage().code
+
     companion object {
 
         const val CARD_PAYMENT_REQUEST_CODE = 123
