@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.LocaleList
-import android.view.View
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
-import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
@@ -49,13 +47,12 @@ import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
-import java.util.Locale
 
 class PaymentsActivity : AppCompatActivity() {
 
     private val viewModel: PaymentsViewModel by viewModels { PaymentsViewModel.Factory(args) }
 
-    private lateinit var args: CardPaymentsLauncher.CardPaymentsIntent
+    private lateinit var args: PaymentsRequest
 
     private val paymentDataLauncher =
         registerForActivityResult(GetPaymentDataResult()) { taskResult ->
@@ -89,7 +86,7 @@ class PaymentsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         args = runCatching {
-            requireNotNull(CardPaymentsLauncher.CardPaymentsIntent.fromIntent(intent)) {
+            requireNotNull(PaymentsRequest.fromIntent(intent)) {
                 "GooglePayActivity input arguments were not found"
             }
         }.getOrElse {
@@ -97,6 +94,7 @@ class PaymentsActivity : AppCompatActivity() {
             return
         }
         initEffects()
+        localeSelection(this, args.language)
         setContent {
             Scaffold(
                 backgroundColor = Color(0xFFD6D6D6),
@@ -132,7 +130,7 @@ class PaymentsActivity : AppCompatActivity() {
                             supportedCards = authState.supportedCards.toMutableSet().apply {
                                 add(CardType.Visa)
                             },
-                            googlePayConfig = authState.googlePayConfig,
+                            googlePayUiConfig = authState.googlePayUiConfig,
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
                                 viewModel.makeCardPayment(
                                     selfUrl = authState.selfUrl,
@@ -151,7 +149,7 @@ class PaymentsActivity : AppCompatActivity() {
                             formattedAmount = authState.orderAmount,
                             showWallets = authState.showWallets,
                             onGooglePay = {
-                                authState.googlePayConfig?.task?.addOnCompleteListener(
+                                authState.googlePayUiConfig?.task?.addOnCompleteListener(
                                     paymentDataLauncher::launch
                                 )
                             }

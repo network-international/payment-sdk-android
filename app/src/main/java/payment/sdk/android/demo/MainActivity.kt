@@ -1,18 +1,11 @@
 package payment.sdk.android.demo
 
-import android.app.LocaleManager
-import android.content.Context
-import android.os.Build
 import android.os.Bundle
-import android.os.LocaleList
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,11 +14,11 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.core.getAuthorizationUrl
 import payment.sdk.android.core.getPayPageUrl
-import payment.sdk.android.payments.CardPaymentsLauncher
 import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
+import payment.sdk.android.payments.CardPaymentsLauncher
 import payment.sdk.android.payments.PaymentsRequest
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
@@ -39,19 +32,18 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         MainViewModel.provideFactory(this, this)
     }
 
-    private val cardPaymentsClient = CardPaymentsLauncher(this) { result ->
+    private val cardPaymentsClient = CardPaymentsLauncher(
+        this,
+    ) { result ->
         viewModel.onPaymentResult(result)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        localeSelection(this, "en")
         handlePayments()
         setContent {
             val navController = rememberNavController()
             val state by viewModel.uiState.collectAsState()
-
-            Log.i("MainActivity123", "onCreate: $state")
 
             NewMerchantAppTheme {
                 NavHost(
@@ -109,25 +101,11 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                         EnvironmentScreen(
                             onNavUp = {
                                 navController.popBackStack()
-                            },
-                            onLanguageChange = {
-                                localeSelection(this@MainActivity, it.code)
                             }
                         )
                     }
                 }
             }
-        }
-    }
-
-    private fun localeSelection(context: Context, localeTag: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.getSystemService(LocaleManager::class.java).applicationLocales =
-                LocaleList.forLanguageTags(localeTag)
-        } else {
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(localeTag)
-            )
         }
     }
 
@@ -148,6 +126,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                                     effect.order.getAuthorizationUrl().orEmpty()
                                 )
                                 .payPageUrl(effect.order.getPayPageUrl().orEmpty())
+                                .setLanguageCode(viewModel.getLanguageCode())
                                 .build()
                         )
                     }

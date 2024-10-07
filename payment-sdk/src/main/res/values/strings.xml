@@ -10,6 +10,8 @@
 
     <string name="expires_end_label" translatable="false">EXPIRES\nEND</string>
 
+    <string name="payments_wallets_title">OR PAY USING</string>
+
     <!-- Title name in payment page -->
     <string name="make_payment">Make Payment</string>
 

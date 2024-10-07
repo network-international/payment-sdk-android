@@ -22,10 +22,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import payment.sdk.android.payments.PaymentsVMEffects
-import payment.sdk.android.payments.CardPaymentsLauncher
 import payment.sdk.android.payments.PaymentsVMUiState
 import payment.sdk.android.payments.PaymentsViewModel
-import payment.sdk.android.payments.GooglePayConfig
+import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.core.Order
@@ -42,6 +41,7 @@ import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
+import payment.sdk.android.payments.PaymentsRequest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PaymentsViewModelTest {
@@ -51,11 +51,11 @@ class PaymentsViewModelTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    private val intent: CardPaymentsLauncher.CardPaymentsIntent =
-        CardPaymentsLauncher.CardPaymentsIntent(
-            paymentUrl = TEST_PAYMENT_URL,
-            authorizationUrl = "authUrl"
-        )
+    private val intent: PaymentsRequest = PaymentsRequest.Builder()
+        .payPageUrl(TEST_PAYMENT_URL)
+        .gatewayAuthorizationUrl("authUrl")
+        .setLanguageCode("en")
+        .build()
 
     private val authApiInteractor: AuthApiInteractor = mockk(relaxed = true)
     private val cardPaymentInteractor: CardPaymentInteractor = mockk(relaxed = true)
@@ -153,7 +153,7 @@ class PaymentsViewModelTest {
                     any(),
                     any()
                 )
-            } returns GooglePayConfig(
+            } returns GooglePayUiConfig(
                 allowedPaymentMethods = "",
                 task = mockk(),
                 canUseGooglePay = false,
@@ -431,7 +431,7 @@ class PaymentsViewModelTest {
                 any(),
                 any()
             )
-        } returns GooglePayConfig(
+        } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
             task = mockk(),
             canUseGooglePay = false,
@@ -518,7 +518,7 @@ class PaymentsViewModelTest {
                 any(),
                 any()
             )
-        } returns GooglePayConfig(
+        } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
             task = mockk(),
             canUseGooglePay = false,
