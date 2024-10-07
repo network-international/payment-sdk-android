@@ -49,7 +49,6 @@ import payment.sdk.android.demo.ui.screen.SectionView
 @Composable
 fun EnvironmentScreen(
     onNavUp: () -> Unit,
-    onLanguageChange: (AppLanguage) -> Unit
 ) {
     val activity = LocalContext.current as MainActivity
     val viewModel: EnvironmentViewModel = viewModel(

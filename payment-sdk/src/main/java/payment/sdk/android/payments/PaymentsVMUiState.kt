@@ -20,13 +20,14 @@ sealed class PaymentsVMUiState {
         val paymentCookie: String,
         val orderUrl: String,
         val supportedCards: Set<CardType>,
-        val googlePayConfig: GooglePayConfig? = null,
+        val googlePayUiConfig: GooglePayUiConfig? = null,
         val showWallets: Boolean,
         val selfUrl: String,
         val orderAmount: String,
         val cardPaymentUrl: String,
         val amount: Double,
         val currencyCode: String,
+        val locale: String
     ) : PaymentsVMUiState()
 }
 
@@ -55,7 +56,7 @@ sealed class PaymentsVMEffects {
     ) : PaymentsVMEffects()
 }
 
-data class GooglePayConfig(
+data class GooglePayUiConfig(
     val allowedPaymentMethods: String,
     val googlePayAcceptUrl: String,
     val canUseGooglePay: Boolean,

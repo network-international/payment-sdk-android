@@ -39,6 +39,8 @@
     Credit or Debit e-card cardholder name. -->
     <string name="card_cardholder_label_title">إسم صاحب البطاقة</string>
 
+    <string name="payments_wallets_title">أو الدفع باستخدام</string>
+
     <!-- Error Message. The creditcard number is not valid. Please check the number on the card. -->
     <string name="error_message_pan_invalid">رقم بطاقة الائتمان غير صالح. يرجى التحقق من الرقم الموجود على البطاقة</string>
 

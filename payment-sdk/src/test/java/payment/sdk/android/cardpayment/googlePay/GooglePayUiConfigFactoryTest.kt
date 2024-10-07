@@ -27,7 +27,7 @@ import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.googlepay.GooglePayJsonConfig
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class GooglePayConfigFactoryTest {
+internal class GooglePayUiConfigFactoryTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 

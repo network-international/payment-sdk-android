@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.android.gms.wallet.Wallet
-import com.google.android.gms.wallet.WalletConstants
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,10 +42,11 @@ import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.googlepay.GooglePayJsonConfig
+import payment.sdk.android.googlepay.env
 
 @Keep
 internal class PaymentsViewModel(
-    private val cardPaymentsIntent: CardPaymentsLauncher.CardPaymentsIntent,
+    private val cardPaymentsIntent: PaymentsRequest,
     private val authApiInteractor: AuthApiInteractor,
     private val cardPaymentInteractor: CardPaymentInteractor,
     private val visaInstalmentPlanInteractor: VisaInstallmentPlanInteractor,
@@ -63,7 +63,7 @@ internal class PaymentsViewModel(
 
     val uiState: StateFlow<PaymentsVMUiState> = _uiState.asStateFlow()
 
-    private var _effects = MutableSharedFlow<PaymentsVMEffects>()
+    private var _effects = MutableSharedFlow<PaymentsVMEffects>(replay = 1)
 
     val effect = _effects.asSharedFlow()
 
@@ -110,15 +110,16 @@ internal class PaymentsViewModel(
         val supportedWallets = order.paymentMethods?.wallet.orEmpty()
 
         val googlePayUrl = order.getGooglePayUrl()
-        val googlePayConfig = takeIf { supportedWallets.contains("GOOGLE_PAY") && googlePayUrl != null }?.run {
-            googlePayConfigFactory.checkGooglePayConfig(
-                googlePayConfigUrl = order.getGooglePayConfigUrl(),
-                accessToken = accessToken,
-                amount = amount,
-                currencyCode = currencyCode,
-                googlePayAcceptUrl = googlePayUrl.orEmpty()
-            )
-        }
+        val googlePayConfig =
+            takeIf { supportedWallets.contains("GOOGLE_PAY") && googlePayUrl != null }?.run {
+                googlePayConfigFactory.checkGooglePayConfig(
+                    googlePayConfigUrl = order.getGooglePayConfigUrl(),
+                    accessToken = accessToken,
+                    amount = amount,
+                    currencyCode = currencyCode,
+                    googlePayAcceptUrl = googlePayUrl.orEmpty()
+                )
+            }
 
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
@@ -132,13 +133,14 @@ internal class PaymentsViewModel(
                 paymentCookie = paymentCookie,
                 orderUrl = orderUrl,
                 supportedCards = CardMapping.mapSupportedCards(supportedCards),
-                googlePayConfig = googlePayConfig,
+                googlePayUiConfig = googlePayConfig,
                 showWallets = googlePayConfig?.canUseGooglePay ?: false,
                 orderAmount = order.formattedAmount.orEmpty(),
                 cardPaymentUrl = order.getCardPaymentUrl().orEmpty(),
                 amount = amount,
                 currencyCode = currencyCode,
-                selfUrl = order.getSelfUrl().orEmpty()
+                selfUrl = order.getSelfUrl().orEmpty(),
+                locale = order.language
             )
         }
     }
@@ -203,18 +205,23 @@ internal class PaymentsViewModel(
         viewModelScope.launch(dispatcher) {
             val currentState = uiState.value
 
-            if (currentState !is PaymentsVMUiState.Authorized || currentState.googlePayConfig?.googlePayAcceptUrl == null) {
+            if (currentState !is PaymentsVMUiState.Authorized || currentState.googlePayUiConfig?.googlePayAcceptUrl == null) {
                 _effects.emit(PaymentsVMEffects.Failed("Authorization or Google Pay URL is missing"))
                 return@launch
             }
 
-            val googlePayUrl = currentState.googlePayConfig.googlePayAcceptUrl
+            val googlePayUrl = currentState.googlePayUiConfig.googlePayAcceptUrl
             val accessToken = currentState.accessToken
             val response =
                 googlePayAcceptInteractor.accept(googlePayUrl, accessToken, paymentDataJson)
 
             when (response) {
-                is SDKHttpResponse.Failed -> _effects.emit(PaymentsVMEffects.Failed("Google Pay accept failed: ${response.error.message}"))
+                is SDKHttpResponse.Failed -> _effects.emit(
+                    PaymentsVMEffects.Failed(
+                        error = "Google Pay accept failed: ${response.error.message}"
+                    )
+                )
+
                 is SDKHttpResponse.Success -> _effects.emit(PaymentsVMEffects.Captured)
             }
         }
@@ -280,14 +287,15 @@ internal class PaymentsViewModel(
         }
     }
 
-    internal class Factory(private val cardPaymentsIntent: CardPaymentsLauncher.CardPaymentsIntent) :
+    internal class Factory(private val cardPaymentsIntent: PaymentsRequest) :
         ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>, extras: CreationExtras
         ): T {
             val walletOptions =
-                Wallet.WalletOptions.Builder().setEnvironment(WalletConstants.ENVIRONMENT_TEST)
+                Wallet.WalletOptions.Builder()
+                    .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
                     .build()
             val httpClient = CoroutinesGatewayHttpClient()
             return PaymentsViewModel(

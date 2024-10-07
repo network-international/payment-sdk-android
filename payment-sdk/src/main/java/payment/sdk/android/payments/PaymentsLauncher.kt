@@ -1,19 +1,14 @@
 package payment.sdk.android.payments
 
-import android.content.Context
-import android.content.Intent
 import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
 
-class CardPaymentsLauncher(
-    private val activityResultLauncher: ActivityResultLauncher<CardPaymentsIntent>,
-) {
+class CardPaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
     constructor(
         activity: ComponentActivity,
         resultCallback: CardPaymentsResultCallback,
@@ -21,7 +16,7 @@ class CardPaymentsLauncher(
         activityResultLauncher = activity.registerForActivityResult(
             PaymentsLauncherContract(),
             resultCallback::onResult
-        )
+        ),
     )
 
     sealed class Result : Parcelable {
@@ -51,40 +46,7 @@ class CardPaymentsLauncher(
     }
 
     fun launch(paymentsRequest: PaymentsRequest) {
-        activityResultLauncher.launch(
-            CardPaymentsIntent(
-                authorizationUrl = paymentsRequest.authorizationUrl,
-                paymentUrl = paymentsRequest.paymentUrl
-            )
-        )
-    }
-
-    @Parcelize
-    class CardPaymentsIntent(
-        val authorizationUrl: String,
-        val paymentUrl: String,
-    ) : Parcelable {
-        private fun toBundle() = bundleOf(EXTRA_ARGS to this)
-
-        fun toIntent(context: Context) = Intent(
-            context,
-            PaymentsActivity::class.java
-        ).apply {
-            putExtra(
-                EXTRA_INTENT,
-                toBundle()
-            )
-        }
-
-        companion object {
-            private const val EXTRA_ARGS = "aani_pay_args"
-            private const val EXTRA_INTENT = "aani_pay_args_intent"
-
-            fun fromIntent(intent: Intent): CardPaymentsIntent? {
-                val inputIntent = intent.getBundleExtra(EXTRA_INTENT)
-                return inputIntent?.getParcelable(EXTRA_ARGS)
-            }
-        }
+        activityResultLauncher.launch(paymentsRequest)
     }
 }
 
@@ -100,9 +62,5 @@ fun rememberGooglePayLauncher(
         PaymentsLauncherContract(),
         resultCallback::onResult
     )
-    return remember {
-        CardPaymentsLauncher(
-            activityResultLauncher = activityResultLauncher,
-        )
-    }
+    return remember { CardPaymentsLauncher(activityResultLauncher = activityResultLauncher) }
 }

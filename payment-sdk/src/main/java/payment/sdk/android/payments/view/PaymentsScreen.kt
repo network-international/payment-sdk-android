@@ -24,6 +24,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +37,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,9 +46,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.SDKConfig
-import payment.sdk.android.payments.GooglePayConfig
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
@@ -55,6 +57,7 @@ import payment.sdk.android.cardpayment.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
 import payment.sdk.android.core.CardType
 import payment.sdk.android.googlepay.GooglePayButton
+import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -62,7 +65,7 @@ fun PaymentsScreen(
     modifier: Modifier = Modifier,
     supportedCards: Set<CardType>,
     showWallets: Boolean,
-    googlePayConfig: GooglePayConfig?,
+    googlePayUiConfig: GooglePayUiConfig?,
     formattedAmount: String,
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
     onGooglePay: () -> Unit
@@ -129,124 +132,126 @@ fun PaymentsScreen(
             }
         }
 
-        Surface(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(8.dp),
-            elevation = 8.dp,
-            color = Color.White
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 8.dp)
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = 8.dp,
+                color = Color.White
             ) {
-                CardNumberTextField(
-                    pan = pan,
-                    paymentCard = paymentCard,
-                    supportedCards = supportedCards,
-                ) { text ->
-                    val maxLength = paymentCard?.binRange?.length?.value ?: 16
-                    if (text.length <= maxLength) {
-                        pan = text.filter { it.isDigit() }
-                        if (pan.length == maxLength) {
-                            expiryFocus.requestFocus()
-                        }
-                        paymentCard = takeIf { pan.isNotEmpty() }?.let {
-                            cardDetector.detect(pan)
+                Column(
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    CardNumberTextField(
+                        pan = pan,
+                        paymentCard = paymentCard,
+                        supportedCards = supportedCards,
+                    ) { text ->
+                        val maxLength = paymentCard?.binRange?.length?.value ?: 16
+                        if (text.length <= maxLength) {
+                            pan = text.filter { it.isDigit() }
+                            if (pan.length == maxLength) {
+                                expiryFocus.requestFocus()
+                            }
+                            paymentCard = takeIf { pan.isNotEmpty() }?.let {
+                                cardDetector.detect(pan)
+                            }
                         }
                     }
-                }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ExpiryDateTextField(
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(expiryFocus),
-                        text = expiry,
-                        onValueChange = { newValue ->
-                            expiry = newValue
-                        },
-                        focusCvv = {
-                            // TODO fix focus
-                            cvvFocus.requestFocus()
-                        }
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ExpiryDateTextField(
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(expiryFocus),
+                            text = expiry,
+                            onValueChange = { newValue ->
+                                expiry = newValue
+                            },
+                            focusCvv = {
+                                cvvFocus.requestFocus()
+                            }
+                        )
+
+                        TextField(
+                            label = { Text(stringResource(R.string.card_cvv_label_title)) },
+                            value = cvv,
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(cvvFocus)
+                                .onFocusChanged {
+                                    isCvvFocused = it.isFocused
+                                },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Number,
+                            ),
+                            visualTransformation = PasswordVisualTransformation(),
+                            onValueChange = { text ->
+                                val maxLength = paymentCard?.cvv?.length ?: 3
+                                if (text.length <= maxLength) {
+                                    cvv = text
+                                    if (text.length == maxLength) {
+                                        cardHolderFocus.requestFocus()
+                                    }
+                                }
+                            },
+                            colors = SDKTextFieldColors(),
+                        )
+                    }
 
                     TextField(
-                        label = { Text(stringResource(R.string.card_cvv_label_title)) },
-                        value = cvv,
+                        label = { Text(stringResource(R.string.card_cardholder_label_title)) },
+                        value = cardholderName,
                         modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(cvvFocus)
-                            .onFocusChanged {
-                                isCvvFocused = it.isFocused
-                            },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                        ),
-                        visualTransformation = PasswordVisualTransformation(),
+                            .fillMaxWidth()
+                            .focusRequester(cardHolderFocus),
                         onValueChange = { text ->
-                            val maxLength = paymentCard?.cvv?.length ?: 3
-                            if (text.length <= maxLength) {
-                                cvv = text
-                                if (text.length == maxLength) {
-                                    cardHolderFocus.requestFocus()
-                                }
-                            }
+                            cardholderName = text
                         },
                         colors = SDKTextFieldColors(),
                     )
-                }
 
-                TextField(
-                    label = { Text(stringResource(R.string.card_cardholder_label_title)) },
-                    value = cardholderName,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(cardHolderFocus),
-                    onValueChange = { text ->
-                        cardholderName = text
-                    },
-                    colors = SDKTextFieldColors(),
-                )
-
-                val animated = animateColorAsState(
-                    if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
-                    label = ""
-                )
-                TextButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .height(46.dp)
-                        .background(
-                            color = animated.value,
-                            shape = RoundedCornerShape(percent = 15)
-                        ),
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = Color.White,
-                    ),
-                    onClick = {
-                        onMakePayment(
-                            pan,
-                            expiry.text.filter { it.isDigit() },
-                            cvv,
-                            cardholderName
-                        )
-                    },
-                    enabled = isFormValid,
-                    shape = RoundedCornerShape(percent = 15),
-                ) {
-                    val title = if (SDKConfig.showOrderAmount) stringResource(
-                        R.string.pay_button_title,
-                        formattedAmount
-                    ) else stringResource(R.string.make_payment)
-                    Text(
-                        text = title,
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    val animated = animateColorAsState(
+                        if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
+                        label = ""
                     )
+                    TextButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .height(46.dp)
+                            .background(
+                                color = animated.value,
+                                shape = RoundedCornerShape(percent = 15)
+                            ),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = Color.White,
+                        ),
+                        onClick = {
+                            onMakePayment(
+                                pan,
+                                expiry.text.filter { it.isDigit() },
+                                cvv,
+                                cardholderName
+                            )
+                        },
+                        enabled = isFormValid,
+                        shape = RoundedCornerShape(percent = 15),
+                    ) {
+                        val title = if (SDKConfig.showOrderAmount) stringResource(
+                            R.string.pay_button_title,
+                            formattedAmount
+                        ) else stringResource(R.string.make_payment)
+                        Text(
+                            text = title,
+                            color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        )
+                    }
                 }
             }
         }
@@ -265,14 +270,14 @@ fun PaymentsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
-                        text = "Or pay using".uppercase(),
+                        text = stringResource(R.string.payments_wallets_title),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.subtitle2
                     )
 
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                    googlePayConfig?.let {
+                    googlePayUiConfig?.let {
                         GooglePayButton(
                             onClick = onGooglePay,
                             radius = 8.dp,
@@ -320,7 +325,7 @@ fun Preview() {
             ),
             showWallets = false,
             formattedAmount = "100 AED",
-            googlePayConfig = null,
+            googlePayUiConfig = null,
             onMakePayment = { _, _, _, _ -> },
             onGooglePay = {}
         )
