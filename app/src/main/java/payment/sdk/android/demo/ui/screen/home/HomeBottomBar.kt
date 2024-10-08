@@ -47,7 +47,7 @@ fun HomeBottomBar(
     onClickSamsungPay: () -> Unit,
     onSelectCard: (SavedCard) -> Unit,
     onDeleteSavedCard: (SavedCard) -> Unit,
-    onPaySavedCard: (SavedCard) -> Unit
+    onPaySavedCard: (SavedCard) -> Unit,
 ) {
     var expandSavedCards by remember { mutableStateOf(false) }
     Surface(
@@ -136,6 +136,7 @@ fun HomeBottomBar(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

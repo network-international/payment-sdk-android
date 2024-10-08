@@ -44,7 +44,7 @@ fun HomeScreen(
     onSelectSavedCard: (SavedCard) -> Unit,
     onDeleteSavedCard: (SavedCard) -> Unit,
     onPaySavedCard: (SavedCard) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(LocalLifecycleOwner.current) {
@@ -107,7 +107,7 @@ fun HomeScreen(
                         savedCards = state.savedCards,
                         onSelectCard = onSelectSavedCard,
                         onDeleteSavedCard = onDeleteSavedCard,
-                        onPaySavedCard = onPaySavedCard
+                        onPaySavedCard = onPaySavedCard,
                     )
                 }
 

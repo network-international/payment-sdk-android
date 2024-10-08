@@ -159,9 +159,3 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         viewModel.onFailure(error)
     }
 }
-
-
-
-
-
-

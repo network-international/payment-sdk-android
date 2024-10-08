@@ -1,13 +1,11 @@
 package payment.sdk.android
 
 import android.app.Activity
-import android.content.Intent
 import com.samsung.android.sdk.samsungpay.v2.StatusListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
-import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
 import payment.sdk.android.cardpayment.savedCard.SavedCardActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
