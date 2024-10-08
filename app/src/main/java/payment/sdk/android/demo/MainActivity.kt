@@ -13,12 +13,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
+import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.CardPaymentRequest
+import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
-import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
 class MainActivity : ComponentActivity(), SamsungPayResponse {
@@ -26,13 +27,19 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
     private val paymentClient: PaymentClient by lazy {
         PaymentClient(this, "DEMO_VAL")
     }
-
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.provideFactory(this, this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val launcher = AaniPayLauncher(this) { result ->
+            when (result) {
+                AaniPayLauncher.Result.Success -> viewModel.onSuccess()
+                is AaniPayLauncher.Result.Failed -> viewModel.onFailure(result.error)
+                AaniPayLauncher.Result.Canceled -> viewModel.onCanceled()
+            }
+        }
         lifecycleScope.launch {
             viewModel.state.collect { state ->
                 if (state.state == MainViewModelStateType.PAYMENT_PROCESSING) {
@@ -42,6 +49,14 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                             "",
                             this@MainActivity
                         )
+
+                        PaymentType.AANI_PAY -> {
+                            try {
+                                launcher.launch(AaniPayLauncher.Config.create(state.order))
+                            } catch (e: IllegalArgumentException) {
+                                viewModel.onFailure(e.message.orEmpty())
+                            }
+                        }
 
                         PaymentType.CARD -> {
                             val authUrl: String =
@@ -126,6 +141,12 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                                     viewModel.createOrderRequest(it)
                                 )
                             },
+                            onClickAaniPay = {
+                                viewModel.createOrder(
+                                    PaymentType.AANI_PAY,
+                                    viewModel.createOrderRequest()
+                                )
+                            },
                             onRefresh = viewModel::onRefresh
                         )
                     }
@@ -145,7 +166,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == MainViewModel.CARD_PAYMENT_REQUEST_CODE) {
+        if (requestCode == CARD_PAYMENT_REQUEST_CODE) {
             when (resultCode) {
                 RESULT_OK -> viewModel.onCardPaymentResponse(
                     CardPaymentData.getFromIntent(data!!)

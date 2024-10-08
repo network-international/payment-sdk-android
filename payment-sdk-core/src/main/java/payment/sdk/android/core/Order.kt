@@ -74,6 +74,9 @@ class Order {
 
         @SerializedName(value = "payment:partial-auth-decline")
         var partialAuthDecline: Href? = null
+
+        @SerializedName(value = "payment:aani")
+        var aaniPayment: Href? = null
     }
 
     @Keep

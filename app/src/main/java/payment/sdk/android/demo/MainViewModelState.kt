@@ -13,8 +13,8 @@ data class MainViewModelState(
     val total: Double = 0.0,
     val orderReference: String? = null,
     val savedCard: SavedCard? = null,
-    val savedCards: List<SavedCard> = listOf(),
     val currency: String = "",
+    val savedCards: List<SavedCard> = listOf(),
     val order: Order = Order(),
     val paymentType: PaymentType = PaymentType.CARD
 )
@@ -23,6 +23,7 @@ enum class PaymentType {
     SAMSUNG_PAY,
     CARD,
     SAVED_CARD,
+    AANI_PAY
 }
 
 enum class MainViewModelStateType {
@@ -36,7 +37,7 @@ enum class MainViewModelStateType {
     ERROR,
     PAYMENT_PARTIAL_AUTH_DECLINED,
     PAYMENT_PARTIAL_AUTH_DECLINE_FAILED,
-    PAYMENT_PARTIALLY_AUTHORISED,
+    PAYMENT_PARTIALLY_AUTHORISED
 }
 
 fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, String> {
