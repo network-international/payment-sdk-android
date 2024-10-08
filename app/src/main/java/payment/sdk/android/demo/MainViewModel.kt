@@ -53,7 +53,8 @@ class MainViewModel(
                 isSamsungPayAvailable = false,
                 total = 0.0,
                 savedCard = dataStore.getSavedCard(),
-                savedCards = dataStore.getSavedCards()
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
             )
         }
         paymentClient.getSupportedPaymentMethods(object :
@@ -75,7 +76,7 @@ class MainViewModel(
             action = dataStore.getOrderAction(),
             amount = PaymentOrderAmount(
                 value = state.value.total,
-                currencyCode = "AED"
+                currencyCode = dataStore.getCurrency().code
             ),
             language = Locale.getDefault().language,
             merchantAttributes = dataStore.getMerchantAttributes()
@@ -191,6 +192,17 @@ class MainViewModel(
     fun setSavedCard(savedCard: SavedCard) {
         dataStore.setSavedCard(savedCard)
         _state.update { it.copy(savedCard = savedCard) }
+    }
+
+    fun onRefresh() {
+        _state.update {
+            it.copy(
+                products = dataStore.getProducts(),
+                savedCard = dataStore.getSavedCard(),
+                savedCards = dataStore.getSavedCards(),
+                currency = dataStore.getCurrency().code
+            )
+        }
     }
 
     fun onSuccess() {

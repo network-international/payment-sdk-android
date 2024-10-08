@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay.Views
+package payment.sdk.android.aaniPay.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,7 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
+import payment.sdk.android.aaniPay.model.AaniIDType
 
 @Composable
 internal fun AliasTypeView(

@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay.Views
+package payment.sdk.android.aaniPay.views
 
 import android.view.View
 import androidx.compose.foundation.background
@@ -36,7 +36,7 @@ import java.util.Locale
 
 @Composable
 internal fun AaniPayTimerScreen(amount: Double, currencyCode: String) {
-    var remainingTime by remember { mutableIntStateOf(3 * 60) } // 3 minutes in seconds
+    var remainingTime by remember { mutableIntStateOf(6 * 60) }
     val minutes = remainingTime / 60
     val seconds = remainingTime % 60
     val isLtr =
@@ -44,7 +44,7 @@ internal fun AaniPayTimerScreen(amount: Double, currencyCode: String) {
     val formattedAmount = OrderAmount(amount, currencyCode).formattedCurrencyString2Decimal(isLtr)
     LaunchedEffect(Unit) {
         while (remainingTime > 0) {
-            delay(1000L) // 1 second delay
+            delay(1000L)
             remainingTime -= 1
         }
     }
@@ -111,6 +111,6 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
 @Composable
 fun TimerViewPreview() {
     Box(modifier = Modifier.background(Color.White)) {
-        TimerView(Modifier, 29, 42, "AED 100")
+        TimerView(Modifier, 6, 0, "AED 100")
     }
 }

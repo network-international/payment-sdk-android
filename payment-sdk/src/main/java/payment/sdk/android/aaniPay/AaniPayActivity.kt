@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay
+package payment.sdk.android.aaniPay
 
 import android.app.Activity
 import android.content.Intent
@@ -24,9 +24,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import payment.sdk.android.cardpayment.aaniPay.Views.AaniPayScreen
-import payment.sdk.android.cardpayment.aaniPay.Views.AaniPayTimerScreen
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
+import payment.sdk.android.aaniPay.views.AaniPayScreen
+import payment.sdk.android.aaniPay.views.AaniPayTimerScreen
+import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
 

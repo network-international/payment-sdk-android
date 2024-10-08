@@ -2,6 +2,7 @@ package payment.sdk.android.cardpayment.aaniPay.model
 
 import org.junit.Assert.*
 import org.junit.Test
+import payment.sdk.android.aaniPay.model.AaniIDType
 
 class AaniIDTypeTest {
 

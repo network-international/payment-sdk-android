@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay
+package payment.sdk.android.aaniPay
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
+import payment.sdk.android.aaniPay.model.AaniIDType
+import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.AaniPayRequest
 import payment.sdk.android.core.MobileNumber

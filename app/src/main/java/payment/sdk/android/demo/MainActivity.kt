@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.cardpayment.aaniPay.AaniPayLauncher
+import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
@@ -146,7 +146,8 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                                     PaymentType.AANI_PAY,
                                     viewModel.createOrderRequest()
                                 )
-                            }
+                            },
+                            onRefresh = viewModel::onRefresh
                         )
                     }
 
