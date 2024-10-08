@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.CardPaymentRequest
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -29,7 +28,6 @@ import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
-import payment.sdk.android.samsungpay.SamsungPayResponse
 import java.util.Locale
 
 @Keep
@@ -198,7 +196,7 @@ class MainViewModel(
 
     fun onRefresh() {
         _state.update {
-            MainViewModelState(
+            it.copy(
                 products = dataStore.getProducts(),
                 savedCard = dataStore.getSavedCard(),
                 savedCards = dataStore.getSavedCards(),
