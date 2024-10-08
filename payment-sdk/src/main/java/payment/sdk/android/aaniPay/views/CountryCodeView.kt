@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay.Views
+package payment.sdk.android.aaniPay.views
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.height

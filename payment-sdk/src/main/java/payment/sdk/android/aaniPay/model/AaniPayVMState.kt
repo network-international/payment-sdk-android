@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay.model
+package payment.sdk.android.aaniPay.model
 
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 

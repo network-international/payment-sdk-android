@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.aaniPay
+package payment.sdk.android.aaniPay
 
 import android.content.Context
 import android.content.Intent
