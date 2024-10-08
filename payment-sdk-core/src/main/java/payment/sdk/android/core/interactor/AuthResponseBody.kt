@@ -1,4 +1,5 @@
 package payment.sdk.android.core.interactor
+
 import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import payment.sdk.android.core.Order
