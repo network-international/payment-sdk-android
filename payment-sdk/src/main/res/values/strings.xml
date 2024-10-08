@@ -109,4 +109,15 @@
     <string name="partial_auth_message">Your issuing bank has approved %1$s instead of the full amount of %2$s.</string>
     <string name="partial_auth_message_question">Do you wish to process the transaction with the reduced amount?</string>
 
+
+    <string name="aani">AANI</string>
+    <string name="aani_mobile_number">Mobile number</string>
+    <string name="aani_emirates_id">Emirates ID</string>
+    <string name="aani_passport_id">Passport ID</string>
+    <string name="aani_email_id">Email ID</string>
+    <string name="aani_alias_type">Alias type</string>
+    <string name="aani_paying_amount">Paying %1$s</string>
+    <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
+    <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
+
 </resources>
