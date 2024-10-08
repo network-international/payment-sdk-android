@@ -36,7 +36,7 @@ import java.util.Locale
 
 @Composable
 internal fun AaniPayTimerScreen(amount: Double, currencyCode: String) {
-    var remainingTime by remember { mutableIntStateOf(6 * 60) }
+    var remainingTime by remember { mutableIntStateOf(5 * 60) }
     val minutes = remainingTime / 60
     val seconds = remainingTime % 60
     val isLtr =
