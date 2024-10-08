@@ -20,8 +20,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import payment.sdk.android.cardpayment.aaniPay.model.AaniIDType
-import payment.sdk.android.cardpayment.aaniPay.model.AaniPayVMState
+import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.aaniPay.AaniPayViewModel
+import payment.sdk.android.aaniPay.model.AaniIDType
+import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.core.AaniPayResponse
 import payment.sdk.android.core.interactor.AaniPayApiInterator
 import payment.sdk.android.core.interactor.AaniPayApiResponse

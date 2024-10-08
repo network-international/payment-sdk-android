@@ -41,6 +41,7 @@ fun HomeBottomBar(
     total: Double,
     isSamsungPayAvailable: Boolean,
     savedCard: SavedCard?,
+    currency: String,
     savedCards: List<SavedCard>,
     onClickPayByCard: () -> Unit,
     onClickSamsungPay: () -> Unit,
@@ -118,7 +119,7 @@ fun HomeBottomBar(
                             .height(42.dp),
                         onClick = onClickPayByCard
                     ) {
-                        Text(text = "Pay AED ${"%.2f".format(Locale.ENGLISH, total)}")
+                        Text(text = "Pay $currency ${"%.2f".format(Locale.ENGLISH, total)}")
                     }
                     if (isSamsungPayAvailable) {
                         Spacer(modifier = Modifier.height(8.dp))
