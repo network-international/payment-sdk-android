@@ -20,7 +20,22 @@
         <activity
             android:name="payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/SdkTheme.ThreeDSecure" />
+            android:theme="@style/SdkTheme.ThreeDSecure"/>
+        <activity
+            android:name="payment.sdk.android.aaniPay.AaniPayActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true"
+            android:theme="@style/SdkTheme.ThreeDSecure">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="niannipay" android:host="open" />
+            </intent-filter>
+        </activity>
         <activity
             android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"

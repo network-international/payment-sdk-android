@@ -1,5 +1,8 @@
 package payment.sdk.android.core.interactor
 
+import androidx.annotation.Keep
+
+@Keep
 sealed class AuthResponse {
     data class Success(val cookies: List<String>, val orderUrl: String) : AuthResponse() {
 
