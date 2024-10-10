@@ -1,17 +1,12 @@
 package payment.sdk.android.payments
 
 import android.app.Activity
-import android.app.LocaleManager
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.os.LocaleList
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -26,13 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import kotlinx.coroutines.launch
-import payment.sdk.android.payments.view.PaymentsScreen
+import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -46,6 +40,7 @@ import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActiv
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.payments.view.PaymentsScreen
 import payment.sdk.android.sdk.R
 
 class PaymentsActivity : AppCompatActivity() {
@@ -83,18 +78,25 @@ class PaymentsActivity : AppCompatActivity() {
         }
     }
 
+    private val aaniPayLauncher = AaniPayLauncher(this) { result ->
+        when (result) {
+            AaniPayLauncher.Result.Success -> finishWithData(CardPaymentsLauncher.Result.Success)
+            is AaniPayLauncher.Result.Failed -> finishWithData(CardPaymentsLauncher.Result.Failed("Aani Pay failed"))
+            AaniPayLauncher.Result.Canceled -> {}
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         args = runCatching {
             requireNotNull(PaymentsRequest.fromIntent(intent)) {
-                "GooglePayActivity input arguments were not found"
+                "Payments input arguments were not found"
             }
         }.getOrElse {
             finishWithData(CardPaymentsLauncher.Result.Failed("intent args not found"))
             return
         }
         initEffects()
-        localeSelection(this, args.language)
         setContent {
             Scaffold(
                 backgroundColor = Color(0xFFD6D6D6),
@@ -143,7 +145,8 @@ class PaymentsActivity : AppCompatActivity() {
                                     cardholderName = cardholderName,
                                     orderUrl = authState.orderUrl,
                                     amount = authState.amount,
-                                    currencyCode = authState.currencyCode
+                                    currencyCode = authState.currencyCode,
+                                    payerIp = authState.payerIp
                                 )
                             },
                             formattedAmount = authState.orderAmount,
@@ -152,6 +155,10 @@ class PaymentsActivity : AppCompatActivity() {
                                 authState.googlePayUiConfig?.task?.addOnCompleteListener(
                                     paymentDataLauncher::launch
                                 )
+                            },
+                            aaniConfig = authState.aaniConfig,
+                            onClickAaniPay = { config ->
+                                aaniPayLauncher.launch(config)
                             }
                         )
                     }
@@ -165,17 +172,6 @@ class PaymentsActivity : AppCompatActivity() {
                     }
                 }
             }
-        }
-    }
-
-    private fun localeSelection(context: Context, localeTag: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.getSystemService(LocaleManager::class.java).applicationLocales =
-                LocaleList.forLanguageTags(localeTag)
-        } else {
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(localeTag)
-            )
         }
     }
 

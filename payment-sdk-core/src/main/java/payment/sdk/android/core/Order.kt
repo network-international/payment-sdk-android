@@ -97,6 +97,7 @@ class Order {
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
+        var apm: Array<String>? = null
     }
 
     @Keep
@@ -127,3 +128,5 @@ fun Order.getGooglePayConfigUrl() = embedded?.payment?.firstOrNull()?.links?.goo
 fun Order.getCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.card?.href
 
 fun Order.getSelfUrl() = embedded?.payment?.firstOrNull()?.links?.selfLink?.href
+
+fun Order.getAaniPayLink() = embedded?.payment?.firstOrNull()?.links?.aaniPayment?.href

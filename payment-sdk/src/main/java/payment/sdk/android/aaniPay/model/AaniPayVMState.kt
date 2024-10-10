@@ -7,8 +7,6 @@ internal sealed class AaniPayVMState {
 
     data class Loading(val message: LoadingMessage) : AaniPayVMState()
 
-    data class Authorized(val accessToken: String) : AaniPayVMState()
-
     data class Pooling(val amount: Double, val currencyCode: String, val deepLink: String) : AaniPayVMState()
 
     data object Success : AaniPayVMState()

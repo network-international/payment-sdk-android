@@ -2,6 +2,7 @@ package payment.sdk.android.payments
 
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.PaymentData
+import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
@@ -21,13 +22,15 @@ sealed class PaymentsVMUiState {
         val orderUrl: String,
         val supportedCards: Set<CardType>,
         val googlePayUiConfig: GooglePayUiConfig? = null,
+        val aaniConfig: AaniPayLauncher.Config? = null,
         val showWallets: Boolean,
         val selfUrl: String,
         val orderAmount: String,
         val cardPaymentUrl: String,
         val amount: Double,
         val currencyCode: String,
-        val locale: String
+        val locale: String,
+        val payerIp: String
     ) : PaymentsVMUiState()
 }
 
