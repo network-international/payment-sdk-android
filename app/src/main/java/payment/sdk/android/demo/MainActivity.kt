@@ -1,11 +1,17 @@
 package payment.sdk.android.demo
 
+import android.app.LocaleManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -101,11 +107,25 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                         EnvironmentScreen(
                             onNavUp = {
                                 navController.popBackStack()
+                            },
+                            onChangeLanguage = {
+                                localeSelection(this@MainActivity, it.code)
                             }
                         )
                     }
                 }
             }
+        }
+    }
+
+    fun localeSelection(context: Context, localeTag: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.getSystemService(LocaleManager::class.java).applicationLocales =
+                LocaleList.forLanguageTags(localeTag)
+        } else {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(localeTag)
+            )
         }
     }
 
