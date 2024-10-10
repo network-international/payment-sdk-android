@@ -49,6 +49,7 @@ import payment.sdk.android.demo.ui.screen.SectionView
 @Composable
 fun EnvironmentScreen(
     onNavUp: () -> Unit,
+    onChangeLanguage: (AppLanguage) -> Unit
 ) {
     val activity = LocalContext.current as MainActivity
     val viewModel: EnvironmentViewModel = viewModel(
@@ -149,6 +150,7 @@ fun EnvironmentScreen(
                     items = AppLanguage.entries,
                     selectedItem = viewModel.getLanguage()
                 ) {
+                    onChangeLanguage(it as AppLanguage)
                     viewModel.setLanguage(it as AppLanguage)
                 }
 
@@ -215,15 +217,4 @@ fun EnvironmentScreen(
             }
         }
     )
-}
-
-fun localeSelection(context: Context, localeTag: String) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        context.getSystemService(LocaleManager::class.java).applicationLocales =
-            LocaleList.forLanguageTags(localeTag)
-    } else {
-        AppCompatDelegate.setApplicationLocales(
-            LocaleListCompat.forLanguageTags(localeTag)
-        )
-    }
 }

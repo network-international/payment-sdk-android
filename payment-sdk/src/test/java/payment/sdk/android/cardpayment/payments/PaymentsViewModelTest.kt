@@ -102,6 +102,8 @@ class PaymentsViewModelTest {
             sut.uiState.toList(states)
         }
 
+        coEvery { getPayerIpInteractor.getPayerIp(any()) } returns "1.1.1.1"
+
         coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
             listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
         )
@@ -121,6 +123,8 @@ class PaymentsViewModelTest {
         sut.authorize()
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(any(), any()) }
+
+        coVerify(exactly = 1) { getPayerIpInteractor.getPayerIp(any()) }
 
         assertTrue(states[0] is PaymentsVMUiState.Init)
         assertTrue(states[1] is PaymentsVMUiState.Loading)
@@ -170,7 +174,7 @@ class PaymentsViewModelTest {
 
             val state = (states.last() as PaymentsVMUiState.Authorized)
 
-            assertFalse(state.showWallets)
+            assertTrue(state.showWallets)
         }
 
     @Test
@@ -235,7 +239,8 @@ class PaymentsViewModelTest {
             "123",
             "John Doe",
             0.0,
-            "AED"
+            "AED",
+            "1.1.1.1"
         )
 
         coVerify(exactly = 1) {
@@ -276,10 +281,6 @@ class PaymentsViewModelTest {
             Exception()
         )
 
-        coEvery {
-            getPayerIpInteractor.getPayerIp(TEST_PAYMENT_URL)
-        } returns "1.1.1.1"
-
         sut.makeCardPayment(
             "selfUrl",
             "cardPaymentUrl",
@@ -291,7 +292,8 @@ class PaymentsViewModelTest {
             "123",
             "John Doe",
             0.0,
-            "AED"
+            "AED",
+            "1.1.1.1"
         )
 
         coVerify(exactly = 1) {
@@ -324,10 +326,6 @@ class PaymentsViewModelTest {
         }
 
         coEvery {
-            getPayerIpInteractor.getPayerIp(TEST_PAYMENT_URL)
-        } returns "1.1.1.1"
-
-        coEvery {
             visaInstalmentPlanInteractor.getPlans(
                 any(),
                 any(),
@@ -347,7 +345,8 @@ class PaymentsViewModelTest {
             "123",
             "John Doe",
             0.0,
-            "AED"
+            "AED",
+            "1.1.1.1"
         )
 
         coVerify(exactly = 1) { visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any()) }
@@ -384,10 +383,6 @@ class PaymentsViewModelTest {
         )
 
         coEvery {
-            getPayerIpInteractor.getPayerIp(TEST_PAYMENT_URL)
-        } returns "1.1.1.1"
-
-        coEvery {
             threeDSecureFactory.buildThreeDSecureDto(any())
         } returns ThreeDSecureDto("", "", "", "")
 
@@ -402,7 +397,8 @@ class PaymentsViewModelTest {
             "123",
             "John Doe",
             0.0,
-            "AED"
+            "AED",
+            "1.1.1.1"
         )
 
         coVerify(exactly = 1) { threeDSecureFactory.buildThreeDSecureTwoDto(any(), any(), any()) }

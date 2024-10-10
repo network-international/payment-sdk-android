@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
@@ -26,6 +27,7 @@ import payment.sdk.android.core.CardMapping
 import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
+import payment.sdk.android.core.getAaniPayLink
 import payment.sdk.android.core.getCardPaymentUrl
 import payment.sdk.android.core.getGooglePayConfigUrl
 import payment.sdk.android.core.getGooglePayUrl
@@ -97,6 +99,8 @@ internal class PaymentsViewModel(
             return
         }
 
+        val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.paymentUrl).orEmpty()
+
         val amount = requireNotNull(order.amount?.value) {
             _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order amount"))
             return
@@ -108,6 +112,7 @@ internal class PaymentsViewModel(
         }
 
         val supportedWallets = order.paymentMethods?.wallet.orEmpty()
+        val apm = order.paymentMethods?.apm.orEmpty()
 
         val googlePayUrl = order.getGooglePayUrl()
         val googlePayConfig =
@@ -120,6 +125,18 @@ internal class PaymentsViewModel(
                     googlePayAcceptUrl = googlePayUrl.orEmpty()
                 )
             }
+
+        val aaniConfig = takeIf {
+            apm.contains("AANI") && !order.getAaniPayLink().isNullOrBlank()
+        }?.let {
+            AaniPayLauncher.Config(
+                amount = amount,
+                currencyCode = currencyCode,
+                payerIp = payerIp,
+                accessToken = accessToken,
+                anniPaymentLink = order.getAaniPayLink().orEmpty()
+            )
+        }
 
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
@@ -134,13 +151,15 @@ internal class PaymentsViewModel(
                 orderUrl = orderUrl,
                 supportedCards = CardMapping.mapSupportedCards(supportedCards),
                 googlePayUiConfig = googlePayConfig,
-                showWallets = googlePayConfig?.canUseGooglePay ?: false,
+                showWallets = supportedWallets.isNotEmpty() || apm.isNotEmpty(),
                 orderAmount = order.formattedAmount.orEmpty(),
                 cardPaymentUrl = order.getCardPaymentUrl().orEmpty(),
                 amount = amount,
                 currencyCode = currencyCode,
                 selfUrl = order.getSelfUrl().orEmpty(),
-                locale = order.language
+                locale = order.language,
+                aaniConfig = aaniConfig,
+                payerIp = payerIp
             )
         }
     }
@@ -156,7 +175,8 @@ internal class PaymentsViewModel(
         cvv: String,
         cardholderName: String,
         amount: Double,
-        currencyCode: String
+        currencyCode: String,
+        payerIp: String
     ) {
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
@@ -186,7 +206,6 @@ internal class PaymentsViewModel(
                     )
                 )
             } else {
-                val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.paymentUrl)
                 initiateCardPayment(
                     cardPaymentUrl = cardPaymentUrl,
                     paymentCookie = paymentCookie,

@@ -2,6 +2,7 @@ package payment.sdk.android.payments.view
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -49,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.SDKConfig
+import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
@@ -67,8 +70,10 @@ fun PaymentsScreen(
     showWallets: Boolean,
     googlePayUiConfig: GooglePayUiConfig?,
     formattedAmount: String,
+    aaniConfig: AaniPayLauncher.Config?,
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
-    onGooglePay: () -> Unit
+    onGooglePay: () -> Unit,
+    onClickAaniPay: (AaniPayLauncher.Config) -> Unit
 ) {
     val cardDetector = remember { CardDetector(supportedCards) }
     var pan by remember { mutableStateOf("") }
@@ -281,11 +286,30 @@ fun PaymentsScreen(
                         GooglePayButton(
                             onClick = onGooglePay,
                             radius = 8.dp,
-                            allowedPaymentMethods = it.allowedPaymentMethods,
+                            allowedPaymentMethods = "",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                         )
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    aaniConfig?.let { config ->
+                        Button(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .height(46.dp),
+                            onClick = { onClickAaniPay(config) },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = Color.White,
+                            ),
+                            border = BorderStroke(width = 1.dp, Color.Gray),
+                            elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
+                            shape = RoundedCornerShape(percent = 15),
+                        ) {
+                            Image(painter = painterResource(R.drawable.aani_logo), "")
+                        }
                         Spacer(Modifier.height(8.dp))
                     }
                 }
@@ -327,7 +351,9 @@ fun Preview() {
             formattedAmount = "100 AED",
             googlePayUiConfig = null,
             onMakePayment = { _, _, _, _ -> },
-            onGooglePay = {}
+            onGooglePay = {},
+            aaniConfig = null,
+            onClickAaniPay = {}
         )
     }
 }
