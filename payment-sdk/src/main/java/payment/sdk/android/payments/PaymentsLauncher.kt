@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.parcelize.Parcelize
 
-class CardPaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
+class PaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
     constructor(
         activity: ComponentActivity,
         resultCallback: CardPaymentsResultCallback,
@@ -51,16 +51,16 @@ class CardPaymentsLauncher(private val activityResultLauncher: ActivityResultLau
 }
 
 fun interface CardPaymentsResultCallback {
-    fun onResult(result: CardPaymentsLauncher.Result)
+    fun onResult(result: PaymentsLauncher.Result)
 }
 
 @Composable
-fun rememberGooglePayLauncher(
+fun rememberPaymentsLauncher(
     resultCallback: CardPaymentsResultCallback
-): CardPaymentsLauncher {
+): PaymentsLauncher {
     val activityResultLauncher = rememberLauncherForActivityResult(
         PaymentsLauncherContract(),
         resultCallback::onResult
     )
-    return remember { CardPaymentsLauncher(activityResultLauncher = activityResultLauncher) }
+    return remember { PaymentsLauncher(activityResultLauncher = activityResultLauncher) }
 }

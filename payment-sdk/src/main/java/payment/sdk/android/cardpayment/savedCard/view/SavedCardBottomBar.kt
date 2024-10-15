@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
-import payment.sdk.android.cardpayment.SDKTheme
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
 import java.util.Locale

@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment
+package payment.sdk.android.payments.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
