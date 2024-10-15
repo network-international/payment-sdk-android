@@ -181,8 +181,8 @@ internal class PaymentsViewModel(
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
             val response = visaInstalmentPlanInteractor.getPlans(
-                cardNumber = cardholderName,
-                token = accessToken,
+                cardNumber = cardNumber,
+                token = paymentCookie,
                 selfUrl = selfUrl
             )
 

@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import payment.sdk.android.cardpayment.SDKTheme
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
 @Composable

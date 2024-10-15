@@ -24,7 +24,7 @@ import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_COD
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
-import payment.sdk.android.payments.CardPaymentsLauncher
+import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.payments.PaymentsRequest
 import payment.sdk.android.samsungpay.SamsungPayResponse
 
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         MainViewModel.provideFactory(this, this)
     }
 
-    private val cardPaymentsClient = CardPaymentsLauncher(
+    private val cardPaymentsClient = PaymentsLauncher(
         this,
     ) { result ->
         viewModel.onPaymentResult(result)

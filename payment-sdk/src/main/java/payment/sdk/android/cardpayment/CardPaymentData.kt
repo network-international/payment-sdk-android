@@ -3,7 +3,7 @@ package payment.sdk.android.cardpayment
 import android.content.Intent
 import android.os.Parcel
 import android.os.Parcelable
-import payment.sdk.android.payments.CardPaymentsLauncher
+import payment.sdk.android.payments.PaymentsLauncher
 import java.lang.IllegalStateException
 
 class CardPaymentData constructor(
@@ -52,21 +52,21 @@ class CardPaymentData constructor(
                 }
             }
 
-        fun getCardPaymentState(intent: Intent?): CardPaymentsLauncher.Result {
+        fun getCardPaymentState(intent: Intent?): PaymentsLauncher.Result {
             return runCatching {
                 val data = requireNotNull(intent?.getParcelableExtra<CardPaymentData>(INTENT_DATA_KEY)) {
                     "Cannot Parse CardPayment Data Intent"
                 }
                 when (data.code) {
-                    STATUS_PAYMENT_AUTHORIZED, STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> CardPaymentsLauncher.Result.Success
-                    STATUS_POST_AUTH_REVIEW -> CardPaymentsLauncher.Result.PostAuthReview
-                    STATUS_PARTIAL_AUTH_DECLINED -> CardPaymentsLauncher.Result.PartialAuthDeclined
-                    STATUS_PARTIAL_AUTH_DECLINE_FAILED -> CardPaymentsLauncher.Result.PartialAuthDeclineFailed
-                    STATUS_PARTIALLY_AUTHORISED -> CardPaymentsLauncher.Result.PartiallyAuthorised
+                    STATUS_PAYMENT_AUTHORIZED, STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> PaymentsLauncher.Result.Success
+                    STATUS_POST_AUTH_REVIEW -> PaymentsLauncher.Result.PostAuthReview
+                    STATUS_PARTIAL_AUTH_DECLINED -> PaymentsLauncher.Result.PartialAuthDeclined
+                    STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsLauncher.Result.PartialAuthDeclineFailed
+                    STATUS_PARTIALLY_AUTHORISED -> PaymentsLauncher.Result.PartiallyAuthorised
                     else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
                 }
             }.getOrElse {
-                CardPaymentsLauncher.Result.Failed(it.message ?: "Unknown error")
+                PaymentsLauncher.Result.Failed(it.message ?: "Unknown error")
             }
         }
     }
