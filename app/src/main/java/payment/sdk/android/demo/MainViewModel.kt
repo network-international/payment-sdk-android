@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
-import payment.sdk.android.payments.CardPaymentsLauncher
+import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -215,37 +215,37 @@ class MainViewModel(
         }
     }
 
-    fun onPaymentResult(result: CardPaymentsLauncher.Result) {
+    fun onPaymentResult(result: PaymentsLauncher.Result) {
         when (result) {
-            CardPaymentsLauncher.Result.Cancelled -> _uiState.update {
+            PaymentsLauncher.Result.Cancelled -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED)
             }
 
-            is CardPaymentsLauncher.Result.Failed -> _uiState.update {
+            is PaymentsLauncher.Result.Failed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.ERROR, message = result.error)
             }
 
-            CardPaymentsLauncher.Result.PartialAuthDeclineFailed -> _uiState.update {
+            PaymentsLauncher.Result.PartialAuthDeclineFailed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
             }
 
-            CardPaymentsLauncher.Result.PartialAuthDeclined -> _uiState.update {
+            PaymentsLauncher.Result.PartialAuthDeclined -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
             }
 
-            CardPaymentsLauncher.Result.PartiallyAuthorised -> _uiState.update {
+            PaymentsLauncher.Result.PartiallyAuthorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
             }
 
-            CardPaymentsLauncher.Result.PostAuthReview -> _uiState.update {
+            PaymentsLauncher.Result.PostAuthReview -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
             }
 
-            CardPaymentsLauncher.Result.Success -> {
+            PaymentsLauncher.Result.Success -> {
                 saveCardFromOrder(uiState.value.orderReference)
             }
 
-            CardPaymentsLauncher.Result.Authorised -> _uiState.update {
+            PaymentsLauncher.Result.Authorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.AUTHORIZED)
             }
         }
