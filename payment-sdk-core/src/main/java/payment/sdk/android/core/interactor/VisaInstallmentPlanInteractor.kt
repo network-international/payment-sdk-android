@@ -24,8 +24,6 @@ class VisaInstallmentPlanInteractor(
             bodyMap.put("pan", cardNumber)
         }
 
-        val bodyStr = Body.Json(bodyMap).encode()
-        println(bodyStr)
         val response = httpClient.post(
             url = "$selfUrl/vis/eligibility-check",
             headers = mapOf(
