@@ -48,7 +48,7 @@ fun MainViewModelStateType.getAlertMessage(message: String = ""): Pair<String, S
         MainViewModelStateType.INIT -> Pair("", "")
         MainViewModelStateType.LOADING -> Pair("", "")
         MainViewModelStateType.PAYMENT_SUCCESS -> Pair("Payment Success", "Payment was successful")
-        MainViewModelStateType.PAYMENT_FAILED -> Pair("Payment Failed", "Payment was Failed")
+        MainViewModelStateType.PAYMENT_FAILED -> Pair("Payment Failed", message)
         MainViewModelStateType.PAYMENT_CANCELLED -> Pair(
             "Payment Cancelled",
             "Payment was cancelled by user"

@@ -25,7 +25,7 @@ class MainViewModelUiStateKtTest {
             Pair("Payment Success", "Payment was successful"),
             successState.getAlertMessage()
         )
-        assertEquals(Pair("Payment Failed", "Payment was Failed"), failedState.getAlertMessage())
+        assertEquals(Pair("Payment Failed", "Payment was Failed"), failedState.getAlertMessage("Payment was Failed"))
         assertEquals(
             Pair("Payment Cancelled", "Payment was cancelled by user"),
             cancelledState.getAlertMessage()

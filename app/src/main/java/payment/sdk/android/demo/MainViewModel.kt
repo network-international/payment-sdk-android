@@ -222,7 +222,7 @@ class MainViewModel(
             }
 
             is PaymentsLauncher.Result.Failed -> _uiState.update {
-                it.copy(state = MainViewModelStateType.ERROR, message = result.error)
+                it.copy(state = MainViewModelStateType.PAYMENT_FAILED, message = result.error)
             }
 
             PaymentsLauncher.Result.PartialAuthDeclineFailed -> _uiState.update {
