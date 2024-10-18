@@ -308,7 +308,7 @@ class PaymentsActivity : AppCompatActivity() {
                 }
 
                 VISA_INSTALMENT_SELECTION_KEY -> {
-                    finishWithData(PaymentsLauncher.Result.Success)
+                    finishWithData(CardPaymentData.getCardPaymentState(data))
                 }
             }
         } else {

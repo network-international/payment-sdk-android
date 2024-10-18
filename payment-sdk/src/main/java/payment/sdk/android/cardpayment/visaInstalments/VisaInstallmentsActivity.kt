@@ -141,9 +141,9 @@ class VisaInstallmentsActivity : ComponentActivity() {
                     "AUTHORISED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED))
                     "PURCHASED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
                     "CAPTURED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED))
-                    "FAILED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+                    "FAILED" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED, reason = "Failed 3DS"))
                     "POST_AUTH_REVIEW" -> finishWithData(CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW))
-                    else -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
+                    else -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED, reason = "Failed 3DS"))
                 }
             } else {
                 finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED))
