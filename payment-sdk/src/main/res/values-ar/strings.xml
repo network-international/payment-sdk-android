@@ -18,7 +18,7 @@
 
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->
-    <string name="card_number_label_title">رقم بطاقة الدفعإلغ</string>
+    <string name="card_number_label_title">رقم بطاقة الدفع</string>
 
     <!-- The title of the label shown above the card expiry date text field. The field used to enter
      the Credit or Debit card expiry date. -->

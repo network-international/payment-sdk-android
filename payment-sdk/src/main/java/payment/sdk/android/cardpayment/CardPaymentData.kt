@@ -63,6 +63,7 @@ class CardPaymentData constructor(
                     STATUS_PARTIAL_AUTH_DECLINED -> PaymentsLauncher.Result.PartialAuthDeclined
                     STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsLauncher.Result.PartialAuthDeclineFailed
                     STATUS_PARTIALLY_AUTHORISED -> PaymentsLauncher.Result.PartiallyAuthorised
+                    STATUS_PAYMENT_FAILED -> PaymentsLauncher.Result.Failed(data.reason.orEmpty())
                     else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
                 }
             }.getOrElse {

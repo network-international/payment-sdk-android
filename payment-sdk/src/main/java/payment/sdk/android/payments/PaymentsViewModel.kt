@@ -144,6 +144,7 @@ internal class PaymentsViewModel(
             _effects.emit(PaymentsVMEffects.Failed("No supported card scheme found"))
             return
         }
+
         _uiState.update {
             PaymentsVMUiState.Authorized(
                 accessToken = accessToken,
@@ -151,7 +152,7 @@ internal class PaymentsViewModel(
                 orderUrl = orderUrl,
                 supportedCards = CardMapping.mapSupportedCards(supportedCards),
                 googlePayUiConfig = googlePayConfig,
-                showWallets = supportedWallets.isNotEmpty() || apm.isNotEmpty(),
+                showWallets = supportedWallets.contains("GOOGLE_PAY") || apm.contains("AANI"),
                 orderAmount = order.formattedAmount.orEmpty(),
                 cardPaymentUrl = order.getCardPaymentUrl().orEmpty(),
                 amount = amount,
@@ -186,7 +187,7 @@ internal class PaymentsViewModel(
                 selfUrl = selfUrl
             )
 
-            if (response is VisaPlansResponse.Success) {
+            if (response is VisaPlansResponse.Success && response.visaPlans.matchedPlans.isNotEmpty()) {
                 _effects.emit(
                     PaymentsVMEffects.ShowVisaPlans(
                         visaPlans = response.visaPlans,
