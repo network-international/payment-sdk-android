@@ -26,6 +26,21 @@ class SavedCardPaymentApiInteractorTest {
 
     private lateinit var sut: SavedCardPaymentApiInteractor
 
+    private val savedCardPaymentRequest = SavedCardPaymentRequest(
+        "",
+        "",
+        SavedCard(
+            cardholderName = "",
+            expiry = "",
+            maskedPan = "",
+            scheme = "",
+            cardToken = "",
+            recaptureCsc = false
+        ),
+        "1.1.1.1",
+        null,
+    )
+
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -46,20 +61,7 @@ class SavedCardPaymentApiInteractorTest {
             body = paymentResponse.trimIndent()
         )
 
-        val response = sut.doSavedCardPayment(
-            "",
-            "",
-            SavedCard(
-                cardholderName = "",
-                expiry = "",
-                maskedPan = "",
-                scheme = "",
-                cardToken = "",
-                recaptureCsc = false
-            ),
-            "1.1.1.1",
-            null,
-        )
+        val response = sut.doSavedCardPayment(savedCardPaymentRequest)
 
         assertTrue(response is SavedCardResponse.Success)
     }
@@ -70,20 +72,7 @@ class SavedCardPaymentApiInteractorTest {
             httpClient.put(any(), any(), any())
         } returns SDKHttpResponse.Failed(Exception("Network Error"))
 
-        val response = sut.doSavedCardPayment(
-            "",
-            "",
-            SavedCard(
-                cardholderName = "",
-                expiry = "",
-                maskedPan = "",
-                scheme = "",
-                cardToken = "",
-                recaptureCsc = false
-            ),
-            "1.1.1.1",
-            null,
-        )
+        val response = sut.doSavedCardPayment(savedCardPaymentRequest)
 
         assertTrue(response is SavedCardResponse.Error)
     }

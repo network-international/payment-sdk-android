@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
+import payment.sdk.android.core.interactor.VisaRequest
 
 internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : PaymentApiInteractor {
 
@@ -70,9 +71,9 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
     }
 
     override fun doPayment(paymentUrl: String, paymentCookie: String, pan: String, expiry: String, cvv: String,
-                           cardHolder: String, payerIp: String?, success: (state: String, response: JSONObject) -> Unit,
+                           cardHolder: String, payerIp: String?, visRequest: VisaRequest?, success: (state: String, response: JSONObject) -> Unit,
                            error: (Exception) -> Unit) {
-        val bodyMap = mutableMapOf(
+        val bodyMap = mutableMapOf<String, Any>(
             PAYMENT_FIELD_PAN to pan,
             PAYMENT_FIELD_EXPIRY to expiry,
             PAYMENT_FIELD_CVV to cvv,
@@ -80,6 +81,15 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         )
         payerIp?.let {
             bodyMap.put(PAYMENT_FIELD_PAYER_IP, it)
+        }
+        visRequest?.let {
+            bodyMap.put(
+                PAYMENT_FIELD_VISA, mapOf(
+                    PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
+                    PAYMENT_FIELD_VISA_PLAN_ID to it.vPlanId,
+                    PAYMENT_FIELD_VISA_TERMS to it.acceptedTAndCVersion
+                )
+            )
         }
         httpClient.put(
                 url = paymentUrl,
@@ -235,6 +245,10 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
         internal const val THREE_DS_COMP_IND = "threeDSCompInd"
         internal const val BROWSER_INFO = "browserInfo"
         internal const val NOTIFICATION_URL = "notificationURL"
+        internal const val PAYMENT_FIELD_VISA = "vis"
+        internal const val PAYMENT_FIELD_PLAN_SELECTION_INDICATOR = "planSelectionIndicator"
+        internal const val PAYMENT_FIELD_VISA_PLAN_ID = "vPlanId"
+        internal const val PAYMENT_FIELD_VISA_TERMS = "acceptedTAndCVersion"
     }
 }
 

@@ -25,11 +25,12 @@ import payment.sdk.android.sdk.R
 
 @Composable
 fun VisaInstalmentBottomBar(
+    modifier: Modifier = Modifier,
     isValid: Boolean,
     onPayClicked: () -> Unit
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .imePadding()
             .padding(bottom = 8.dp),

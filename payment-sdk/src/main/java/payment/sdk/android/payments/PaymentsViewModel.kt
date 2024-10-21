@@ -20,10 +20,12 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
-import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardMapping
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
@@ -35,6 +37,7 @@ import payment.sdk.android.core.getSelfUrl
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
+import payment.sdk.android.core.interactor.MakeCardPaymentRequest
 import payment.sdk.android.core.interactor.CardPaymentResponse
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
@@ -42,6 +45,7 @@ import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.GooglePayConfigInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
+import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.googlepay.GooglePayJsonConfig
 import payment.sdk.android.googlepay.env
@@ -179,6 +183,15 @@ internal class PaymentsViewModel(
         currencyCode: String,
         payerIp: String
     ) {
+        val makeCardPaymentRequest = MakeCardPaymentRequest(
+            payerIp = payerIp,
+            paymentCookie = paymentCookie,
+            cardHolder = cardholderName,
+            expiry = DateFormatter.formatExpireDateForApi(expiry),
+            cvv = cvv,
+            paymentUrl = cardPaymentUrl,
+            pan = cardNumber
+        )
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
             val response = visaInstalmentPlanInteractor.getPlans(
@@ -188,34 +201,18 @@ internal class PaymentsViewModel(
             )
 
             if (response is VisaPlansResponse.Success && response.visaPlans.matchedPlans.isNotEmpty()) {
-                _effects.emit(
-                    PaymentsVMEffects.ShowVisaPlans(
+                _uiState.update {
+                    PaymentsVMUiState.ShowVisaPlans(
+                        makeCardPaymentRequest = makeCardPaymentRequest,
                         visaPlans = response.visaPlans,
-                        paymentCookie = paymentCookie,
                         orderUrl = orderUrl,
-                        accessToken = accessToken,
-                        cvv = cvv,
-                        cardPaymentUrl = cardPaymentUrl,
-                        amount = amount,
-                        currencyCode = currencyCode,
-                        newCardDto = NewCardDto(
-                            cardNumber = cardNumber,
-                            expiry = DateFormatter.formatExpireDateForApi(expiry),
-                            customerName = cardholderName,
-                            cvv = cvv
-                        )
+                        orderAmount = OrderAmount(amount, currencyCode)
                     )
-                )
+                }
             } else {
                 initiateCardPayment(
-                    cardPaymentUrl = cardPaymentUrl,
-                    paymentCookie = paymentCookie,
+                    makeCardPaymentRequest = makeCardPaymentRequest,
                     orderUrl = orderUrl,
-                    cardNumber = cardNumber,
-                    expiry = expiry,
-                    cvv = cvv,
-                    cardholderName = cardholderName,
-                    payerIp = payerIp
                 )
             }
         }
@@ -248,24 +245,10 @@ internal class PaymentsViewModel(
     }
 
     private suspend fun initiateCardPayment(
-        cardPaymentUrl: String,
-        paymentCookie: String,
+        makeCardPaymentRequest: MakeCardPaymentRequest,
         orderUrl: String,
-        cardNumber: String,
-        expiry: String,
-        cvv: String,
-        cardholderName: String,
-        payerIp: String?
     ) {
-        val response = cardPaymentInteractor.makeCardPayment(
-            paymentCookie = paymentCookie,
-            paymentUrl = cardPaymentUrl,
-            pan = cardNumber,
-            expiry = DateFormatter.formatExpireDateForApi(expiry),
-            cvv = cvv,
-            cardHolder = cardholderName,
-            payerIp = payerIp
-        )
+        val response = cardPaymentInteractor.makeCardPayment(makeCardPaymentRequest)
 
         if (response is CardPaymentResponse.Success) {
             when (response.paymentResponse.state) {
@@ -279,7 +262,7 @@ internal class PaymentsViewModel(
                             val request = threeDSecureFactory.buildThreeDSecureTwoDto(
                                 paymentResponse = response.paymentResponse,
                                 orderUrl = orderUrl,
-                                paymentCookie = paymentCookie
+                                paymentCookie = makeCardPaymentRequest.paymentCookie
                             )
                             _effects.emit(PaymentsVMEffects.InitiateThreeDSTwo(request))
                         } else {
@@ -294,7 +277,7 @@ internal class PaymentsViewModel(
                 }
 
                 "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
-                    response.paymentResponse.toIntent(paymentCookie).let { intent ->
+                    response.paymentResponse.toIntent(makeCardPaymentRequest.paymentCookie).let { intent ->
                         _effects.emit(PaymentsVMEffects.InitiatePartialAuth(intent))
                     }
                 }
@@ -304,6 +287,28 @@ internal class PaymentsViewModel(
             }
         } else {
             _effects.emit(PaymentsVMEffects.Failed((response as CardPaymentResponse.Error).error.message.orEmpty()))
+        }
+    }
+
+    fun makeVisPayment(
+        makeCardPaymentRequest: MakeCardPaymentRequest,
+        selectedPlan: InstallmentPlan,
+        orderUrl: String,
+    ) {
+        _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
+        var visaRequest: VisaRequest? = null
+        if (selectedPlan.frequency != PlanFrequency.PayInFull) {
+            visaRequest = VisaRequest(
+                planSelectionIndicator = true,
+                vPlanId = selectedPlan.id,
+                acceptedTAndCVersion = selectedPlan.terms?.version ?: 0
+            )
+        }
+        viewModelScope.launch(dispatcher) {
+            initiateCardPayment(
+                makeCardPaymentRequest.copy(visaRequest = visaRequest),
+                orderUrl = orderUrl
+            )
         }
     }
 

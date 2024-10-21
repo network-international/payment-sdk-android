@@ -1,8 +1,11 @@
 package payment.sdk.android.payments
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -26,20 +29,21 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import kotlinx.coroutines.launch
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_TWO_REQUEST_KEY
-import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.VISA_INSTALMENT_SELECTION_KEY
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.view.InstalmentPlanView
+import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.CardType
-import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.payments.view.PaymentsScreen
 import payment.sdk.android.sdk.R
 
@@ -88,6 +92,7 @@ class PaymentsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setOnBackPressed()
         args = runCatching {
             requireNotNull(PaymentsRequest.fromIntent(intent)) {
                 "Payments input arguments were not found"
@@ -170,6 +175,16 @@ class PaymentsActivity : AppCompatActivity() {
                     is PaymentsVMUiState.Loading -> {
                         CircularProgressDialog((state as PaymentsVMUiState.Loading).message)
                     }
+
+                    is PaymentsVMUiState.ShowVisaPlans -> {
+                        val visState = (state as PaymentsVMUiState.ShowVisaPlans)
+                        VisaInstalmentsView(
+                            instalmentPlans = InstallmentPlan.fromVisaPlans(visState.visaPlans, visState.orderAmount),
+                            cardNumber = visState.makeCardPaymentRequest.pan
+                        ) { plan ->
+                            viewModel.makeVisPayment(makeCardPaymentRequest = visState.makeCardPaymentRequest, selectedPlan = plan, orderUrl = visState.orderUrl)
+                        }
+                    }
                 }
             }
         }
@@ -238,25 +253,40 @@ class PaymentsActivity : AppCompatActivity() {
                     PaymentsVMEffects.PaymentAuthorised -> finishWithData(PaymentsLauncher.Result.PartiallyAuthorised)
                     PaymentsVMEffects.PostAuthReview -> finishWithData(PaymentsLauncher.Result.PostAuthReview)
                     PaymentsVMEffects.Purchased -> finishWithData(PaymentsLauncher.Result.Success)
-                    is PaymentsVMEffects.ShowVisaPlans -> {
-                        startActivityForResult(
-                            VisaInstalmentActivityArgs.getArgs(
-                                paymentCookie = it.paymentCookie,
-                                savedCardUrl = null,
-                                visaPlans = it.visaPlans,
-                                paymentUrl = it.cardPaymentUrl,
-                                newCard = it.newCardDto,
-                                payPageUrl = args.paymentUrl,
-                                savedCard = null,
-                                orderUrl = it.orderUrl,
-                                orderAmount = OrderAmount(it.amount, it.currencyCode),
-                                accessToken = it.paymentCookie
-                            ).toIntent(this@PaymentsActivity),
-                            VISA_INSTALMENT_SELECTION_KEY
-                        )
-                    }
                 }
             }
+        }
+    }
+
+    private fun setOnBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (SDKConfig.showCancelAlert) {
+                    showDialog()
+                } else {
+                    val intent = Intent().apply {
+                        putExtra(PaymentsLauncherContract.EXTRA_RESULT, PaymentsLauncher.Result.Cancelled)
+                    }
+                    setResult(Activity.RESULT_CANCELED, intent)
+                    finish()
+                }
+            }
+        })
+    }
+
+    private fun showDialog() {
+        with(AlertDialog.Builder(this)) {
+            setMessage(R.string.cancel_payment_alert_message)
+            setTitle(R.string.cancel_payment_alert_title)
+            setCancelable(false)
+            setPositiveButton(R.string.confirm_cancel_alert) { _: DialogInterface?, _: Int ->
+                setResult(RESULT_CANCELED, intent)
+                finish()
+            }
+            setNegativeButton(R.string.cancel_alert) { dialog: DialogInterface, _: Int ->
+                dialog.cancel()
+            }
+            show()
         }
     }
 
@@ -305,10 +335,6 @@ class PaymentsActivity : AppCompatActivity() {
                             )
                         )
                     }
-                }
-
-                VISA_INSTALMENT_SELECTION_KEY -> {
-                    finishWithData(CardPaymentData.getCardPaymentState(data))
                 }
             }
         } else {

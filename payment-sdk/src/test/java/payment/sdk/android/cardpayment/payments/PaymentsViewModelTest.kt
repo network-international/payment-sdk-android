@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
@@ -16,19 +17,19 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import payment.sdk.android.payments.PaymentsVMEffects
-import payment.sdk.android.payments.PaymentsVMUiState
-import payment.sdk.android.payments.PaymentsViewModel
-import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
+import payment.sdk.android.core.TermsAndCondition
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.SDKHttpResponse
 import payment.sdk.android.core.interactor.AuthApiInteractor
@@ -38,10 +39,15 @@ import payment.sdk.android.core.interactor.CardPaymentResponse
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
+import payment.sdk.android.core.interactor.MakeCardPaymentRequest
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
+import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.payments.PaymentsRequest
+import payment.sdk.android.payments.PaymentsVMEffects
+import payment.sdk.android.payments.PaymentsVMUiState
+import payment.sdk.android.payments.PaymentsViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PaymentsViewModelTest {
@@ -216,17 +222,9 @@ class PaymentsViewModelTest {
             sut.effect.toList(effects)
         }
 
-        coEvery {
-            cardPaymentInteractor.makeCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns CardPaymentResponse.Success(response)
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Success(
+            response
+        )
 
         sut.makeCardPayment(
             "selfUrl",
@@ -243,17 +241,7 @@ class PaymentsViewModelTest {
             "1.1.1.1"
         )
 
-        coVerify(exactly = 1) {
-            cardPaymentInteractor.makeCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        }
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
 
         assertTrue(effects.isNotEmpty())
         assertTrue(effects.first() is PaymentsVMEffects.Captured)
@@ -267,17 +255,7 @@ class PaymentsViewModelTest {
             sut.effect.toList(effects)
         }
 
-        coEvery {
-            cardPaymentInteractor.makeCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns CardPaymentResponse.Error(
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Error(
             Exception()
         )
 
@@ -296,17 +274,7 @@ class PaymentsViewModelTest {
             "1.1.1.1"
         )
 
-        coVerify(exactly = 1) {
-            cardPaymentInteractor.makeCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        }
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
 
         assertTrue(effects.isNotEmpty())
         assertTrue(effects.first() is PaymentsVMEffects.Failed)
@@ -314,7 +282,7 @@ class PaymentsViewModelTest {
 
     @Test
     fun `test make card payment shows visa plans`() = runTest {
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val uiState: MutableList<PaymentsVMUiState> = mutableListOf()
 
         val visaResponse = Gson().fromJson(
             ClassLoader.getSystemResource("visaEligibilityResponse.json").readText(),
@@ -322,7 +290,7 @@ class PaymentsViewModelTest {
         )
 
         backgroundScope.launch(testDispatcher) {
-            sut.effect.toList(effects)
+            sut.uiState.toList(uiState)
         }
 
         coEvery {
@@ -344,15 +312,17 @@ class PaymentsViewModelTest {
             "12/24",
             "123",
             "John Doe",
-            0.0,
+            12.0,
             "AED",
             "1.1.1.1"
         )
 
         coVerify(exactly = 1) { visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any()) }
 
-        assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.ShowVisaPlans)
+        assertTrue(uiState.isNotEmpty())
+        assertTrue(uiState[0] is PaymentsVMUiState.Init)
+        assertTrue(uiState[1] is PaymentsVMUiState.Loading)
+        assertTrue(uiState[2] is PaymentsVMUiState.ShowVisaPlans)
     }
 
     @Test
@@ -368,17 +338,7 @@ class PaymentsViewModelTest {
             sut.effect.toList(effects)
         }
 
-        coEvery {
-            cardPaymentInteractor.makeCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns CardPaymentResponse.Success(
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Success(
             response
         )
 
@@ -541,6 +501,142 @@ class PaymentsViewModelTest {
             "Google Pay accept failed: 502",
             (effects.first() as PaymentsVMEffects.Failed).error
         )
+    }
+
+    @Test
+    fun `test makeVisaPayment success with installment plan`() = runTest {
+        val response = Gson().fromJson(
+            ClassLoader.getSystemResource("threeDSecureTwoResponse.json").readText(),
+            PaymentResponse::class.java
+        )
+        val makeCardPaymentRequest = MakeCardPaymentRequest(
+            paymentCookie = "testCookie",
+            paymentUrl = "http://paymenturl.com",
+            pan = "4111111111111111",
+            cvv = "123",
+            cardHolder = "John Doe",
+            expiry = "12/24",
+            payerIp = "192.168.1.1"
+        )
+
+        val selectedPlan = InstallmentPlan(
+            id = "planId123",
+            currency = "AED",
+            amount = "500",
+            totalUpFrontFees = "20",
+            monthlyRate = "2.5",
+            numberOfInstallments = 6,
+            frequency = PlanFrequency.MONTHLY,  // Not "PayInFull"
+            terms = TermsAndCondition(version = 1, text = "Terms text", languageCode = "en", url = "http://terms.com")
+        )
+
+        val orderUrl = "http://orderurl.com"
+
+        // Simulate a successful response from the payment service
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Success(
+            response
+        )
+
+        // Act: Call the method under test
+        sut.makeVisPayment(makeCardPaymentRequest, selectedPlan, orderUrl)
+
+        // Assert: Verify expected behavior and interactions
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
+
+        val capturedRequest = slot<MakeCardPaymentRequest>()
+        coVerify { cardPaymentInteractor.makeCardPayment(capture(capturedRequest)) }
+
+        assertNotNull(capturedRequest.captured.visaRequest)
+        assertEquals("planId123", capturedRequest.captured.visaRequest?.vPlanId)
+        assertEquals(1, capturedRequest.captured.visaRequest?.acceptedTAndCVersion)
+        assertTrue(capturedRequest.captured.visaRequest?.planSelectionIndicator == true)
+    }
+
+    @Test
+    fun `test makeVisaPayment success with Pay In Full plan`() = runTest {
+        val response = Gson().fromJson(
+            ClassLoader.getSystemResource("threeDSecureTwoResponse.json").readText(),
+            PaymentResponse::class.java
+        )
+        val makeCardPaymentRequest = MakeCardPaymentRequest(
+            paymentCookie = "testCookie",
+            paymentUrl = "http://paymenturl.com",
+            pan = "4111111111111111",
+            cvv = "123",
+            cardHolder = "John Doe",
+            expiry = "12/24",
+            payerIp = "192.168.1.1"
+        )
+
+        val selectedPlan = InstallmentPlan(
+            id = "payInFullPlan",
+            currency = "AED",
+            amount = "500",
+            totalUpFrontFees = "",
+            monthlyRate = "",
+            numberOfInstallments = 0,
+            frequency = PlanFrequency.PayInFull,  // Pay In Full Plan
+            terms = null
+        )
+
+        val orderUrl = "http://orderurl.com"
+
+        // Simulate a successful response from the payment service
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Success(
+            response
+        )
+
+        // Act: Call the method under test
+        sut.makeVisPayment(makeCardPaymentRequest, selectedPlan, orderUrl)
+
+        // Assert: Verify expected behavior and interactions
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
+
+        val capturedRequest = slot<MakeCardPaymentRequest>()
+        coVerify { cardPaymentInteractor.makeCardPayment(capture(capturedRequest)) }
+
+        assertNull(capturedRequest.captured.visaRequest)  // No VisaRequest for PayInFull
+    }
+
+    @Test
+    fun `test makeVisaPayment failure with installment plan`() = runTest {
+        val makeCardPaymentRequest = MakeCardPaymentRequest(
+            paymentCookie = "testCookie",
+            paymentUrl = "http://paymenturl.com",
+            pan = "4111111111111111",
+            cvv = "123",
+            cardHolder = "John Doe",
+            expiry = "12/24",
+            payerIp = "192.168.1.1"
+        )
+
+        val selectedPlan = InstallmentPlan(
+            id = "planId123",
+            currency = "AED",
+            amount = "500",
+            totalUpFrontFees = "20",
+            monthlyRate = "2.5",
+            numberOfInstallments = 6,
+            frequency = PlanFrequency.MONTHLY,
+            terms = TermsAndCondition(version = 1, text = "Terms text", languageCode = "en", url = "http://terms.com")
+        )
+
+        val orderUrl = "http://orderurl.com"
+
+        // Simulate a failure response from the payment service
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns CardPaymentResponse.Error(IllegalArgumentException(""))
+
+        // Act: Call the method under test
+        sut.makeVisPayment(makeCardPaymentRequest, selectedPlan, orderUrl)
+
+        // Assert: Verify expected behavior and interactions
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
+
+        val capturedRequest = slot<MakeCardPaymentRequest>()
+        coVerify { cardPaymentInteractor.makeCardPayment(capture(capturedRequest)) }
+
+        assertNotNull(capturedRequest.captured.visaRequest)
+        assertEquals("planId123", capturedRequest.captured.visaRequest?.vPlanId)
     }
 
     companion object {
