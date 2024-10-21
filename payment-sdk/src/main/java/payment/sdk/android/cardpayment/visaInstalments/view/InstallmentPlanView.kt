@@ -5,12 +5,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -24,9 +22,9 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -41,7 +39,7 @@ fun InstalmentPlanView(
     val isTermsExpanded = selectedPlan?.termsExpanded ?: false
     Card(
         modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        border = BorderStroke(3.dp, if (isSelected) Color(0xFF1D33C3) else Color(0xFF808080)),
+        border = BorderStroke(1.dp, if (isSelected) Color(0xFF1D33C3) else Color(0xFF808080)),
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
@@ -113,7 +111,7 @@ fun InstallmentFeeAndRateView(
 ) {
     if (frequency != PlanFrequency.PayInFull) {
 
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
@@ -122,7 +120,7 @@ fun InstallmentFeeAndRateView(
                     totalUpFrontFees
                 )
             )
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = stringResource(
                     id = R.string.visa_monthly_rate,

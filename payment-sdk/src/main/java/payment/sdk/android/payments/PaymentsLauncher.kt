@@ -11,7 +11,7 @@ import kotlinx.parcelize.Parcelize
 class PaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
     constructor(
         activity: ComponentActivity,
-        resultCallback: CardPaymentsResultCallback,
+        resultCallback: PaymentsResultCallback,
     ) : this(
         activityResultLauncher = activity.registerForActivityResult(
             PaymentsLauncherContract(),
@@ -50,13 +50,13 @@ class PaymentsLauncher(private val activityResultLauncher: ActivityResultLaunche
     }
 }
 
-fun interface CardPaymentsResultCallback {
+fun interface PaymentsResultCallback {
     fun onResult(result: PaymentsLauncher.Result)
 }
 
 @Composable
 fun rememberPaymentsLauncher(
-    resultCallback: CardPaymentsResultCallback
+    resultCallback: PaymentsResultCallback
 ): PaymentsLauncher {
     val activityResultLauncher = rememberLauncherForActivityResult(
         PaymentsLauncherContract(),

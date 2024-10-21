@@ -22,14 +22,11 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.STATUS_AWAITING_PARTIAL_AUTH_APPROVAL
-import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
-import payment.sdk.android.core.OrderAmount
-import payment.sdk.android.core.VisaPlans
+import payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsLauncher
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R
-
 
 class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
@@ -44,6 +41,17 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
             onPaymentFailed()
         }
     }
+    private val visaInstallmentsLauncher = VisaInstallmentsLauncher(this) { result ->
+        when (result) {
+            VisaInstallmentsLauncher.Result.Cancelled -> {
+                setResult(RESULT_CANCELED, Intent())
+                finish()
+            }
+            is VisaInstallmentsLauncher.Result.Success -> {
+                presenter.makeVisPayment(result.installmentPlan)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +62,7 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                 if (SDKConfig.showCancelAlert) {
                     showDialog()
                 } else {
-                    setResult(RESULT_CANCELED, intent)
+                    setResult(RESULT_CANCELED, Intent())
                     finish()
                 }
             }
@@ -146,29 +154,10 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
     }
 
     override fun launchVisaInstalment(
-        visaPlans: VisaPlans,
-        paymentCookie: String,
-        paymentUrl: String,
-        payPageUrl: String,
-        orderUrl: String,
-        newCardDto: NewCardDto,
-        orderAmount: OrderAmount
+        installmentPlans: List<InstallmentPlan>,
+        cardNumber: String
     ) {
-        startActivityForResult(
-            VisaInstalmentActivityArgs.getArgs(
-                paymentCookie = paymentCookie,
-                savedCardUrl = null,
-                visaPlans = visaPlans,
-                paymentUrl = paymentUrl,
-                newCard = newCardDto,
-                payPageUrl = payPageUrl,
-                savedCard = null,
-                orderUrl = orderUrl,
-                orderAmount = orderAmount,
-                accessToken = paymentCookie
-            ).toIntent(this),
-            VISA_INSTALMENT_SELECTION_KEY
-        )
+        visaInstallmentsLauncher.launch(VisaInstallmentsLauncher.Config(installmentPlans, cardNumber))
     }
 
     override fun onPartialAuth(partialAuthIntent: PartialAuthIntent) {
