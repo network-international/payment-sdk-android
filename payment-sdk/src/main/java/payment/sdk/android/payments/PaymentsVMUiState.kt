@@ -11,11 +11,12 @@ import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
+import payment.sdk.android.sdk.R
 
-sealed class PaymentsVMUiState {
-    data object Init : PaymentsVMUiState()
+sealed class PaymentsVMUiState(val title: Int, val enableBackButton: Boolean = true) {
+    data object Init : PaymentsVMUiState(R.string.make_payment)
 
-    data class Loading(val message: LoadingMessage) : PaymentsVMUiState()
+    data class Loading(val message: LoadingMessage) : PaymentsVMUiState(R.string.make_payment)
 
     data class Authorized(
         val accessToken: String,
@@ -32,20 +33,22 @@ sealed class PaymentsVMUiState {
         val currencyCode: String,
         val locale: String,
         val payerIp: String
-    ) : PaymentsVMUiState()
+    ) : PaymentsVMUiState(R.string.make_payment)
 
     data class ShowVisaPlans(
         val makeCardPaymentRequest: MakeCardPaymentRequest,
         val visaPlans: VisaPlans,
         val orderUrl: String,
         val orderAmount: OrderAmount
-    ) : PaymentsVMUiState()
+    ) : PaymentsVMUiState(R.string.title_activity_visa_instalments)
+
+    data class InitiatePartialAuth(val partialAuthIntent: PartialAuthIntent) :
+        PaymentsVMUiState(R.string.paypage_title_awaiting_partial_auth_approval, enableBackButton = false)
 }
 
 sealed class PaymentsVMEffects {
     data class InitiateThreeDS(val threeDSecureDto: ThreeDSecureDto) : PaymentsVMEffects()
     data class InitiateThreeDSTwo(val threeDSecureTwoDto: ThreeDSecureTwoDto) : PaymentsVMEffects()
-    data class InitiatePartialAuth(val partialAuthIntent: PartialAuthIntent) : PaymentsVMEffects()
 
     data object Captured : PaymentsVMEffects()
     data object PaymentAuthorised : PaymentsVMEffects()

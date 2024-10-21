@@ -1,11 +1,11 @@
-package payment.sdk.android.cardpayment.partialAuth.model
+package payment.sdk.android.partialAuth.model
 
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
-import payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity
+import payment.sdk.android.partialAuth.PartialAuthActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 
 @Parcelize

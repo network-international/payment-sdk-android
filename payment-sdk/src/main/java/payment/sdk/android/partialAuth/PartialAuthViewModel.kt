@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.partialAuth
+package payment.sdk.android.partialAuth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -7,11 +7,11 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.HttpClient
@@ -21,13 +21,12 @@ class PartialAuthViewModel(
     private val httpClient: HttpClient,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
-    private var _state: MutableStateFlow<PartialAuthVMState> =
-        MutableStateFlow(PartialAuthVMState())
+    private var _state: MutableSharedFlow<CardPaymentData> =
+        MutableSharedFlow(replay = 1)
 
-    val state: StateFlow<PartialAuthVMState> = _state.asStateFlow()
+    val state: SharedFlow<CardPaymentData> = _state.asSharedFlow()
 
     fun submitRequest(url: String, accessToken: String) {
-        _state.update { it.copy(state = PartialAuthState.LOADING) }
         viewModelScope.launch(dispatcher) {
             val response = httpClient.put(
                 url, mapOf(
@@ -38,33 +37,30 @@ class PartialAuthViewModel(
             )
 
             when (response) {
-                is SDKHttpResponse.Failed -> _state.update {
-                    it.copy(
-                        state = PartialAuthState.ERROR,
-                        message = response.error.message
+                is SDKHttpResponse.Failed -> _state.emit(
+                    CardPaymentData(
+                        CardPaymentData.STATUS_PAYMENT_FAILED,
+                        response.error.message.orEmpty()
                     )
-                }
+                )
 
                 is SDKHttpResponse.Success -> {
                     val state =
                         JsonParser.parseString(response.body).asJsonObject.get("state").asString.orEmpty()
-                    handleState(state)
+                    _state.emit(
+                        when (state) {
+                            "CAPTURED", "VERIFIED" -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
+                            "AUTHORISED" -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED)
+                            "PURCHASED" -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED)
+                            "POST_AUTH_REVIEW" -> CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW)
+                            "PARTIAL_AUTH_DECLINED" -> CardPaymentData(CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED)
+                            "PARTIAL_AUTH_DECLINE_FAILED" -> CardPaymentData(CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED)
+                            "PARTIALLY_AUTHORISED" -> CardPaymentData(CardPaymentData.STATUS_PARTIALLY_AUTHORISED)
+                            else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
+                        }
+                    )
                 }
             }
-        }
-    }
-
-    private fun handleState(state: String) {
-        _state.update {
-            it.copy(
-                state = when (state) {
-                    "CAPTURED", "AUTHORISED", "VERIFIED", "PURCHASED" -> PartialAuthState.SUCCESS
-                    "PARTIAL_AUTH_DECLINED" -> PartialAuthState.DECLINED
-                    "PARTIAL_AUTH_DECLINE_FAILED" -> PartialAuthState.ERROR
-                    "PARTIALLY_AUTHORISED" -> PartialAuthState.PARTIALLY_AUTHORISED
-                    else -> PartialAuthState.ERROR
-                }
-            )
         }
     }
 
@@ -83,12 +79,3 @@ class PartialAuthViewModel(
         }
     }
 }
-
-enum class PartialAuthState {
-    LOADING, INIT, SUCCESS, ERROR, DECLINED, PARTIALLY_AUTHORISED
-}
-
-data class PartialAuthVMState(
-    val state: PartialAuthState = PartialAuthState.INIT,
-    val message: String? = null
-)

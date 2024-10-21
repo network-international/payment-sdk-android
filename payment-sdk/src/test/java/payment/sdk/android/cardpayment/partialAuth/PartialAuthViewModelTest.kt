@@ -15,8 +15,10 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
+import payment.sdk.android.partialAuth.PartialAuthViewModel
 import java.lang.Exception
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,7 +48,7 @@ class PartialAuthViewModelTest {
 
     @Test
     fun `test accept partial auth success`() = runTest {
-        val states: MutableList<PartialAuthVMState> = mutableListOf()
+        val states: MutableList<CardPaymentData> = mutableListOf()
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
 
         val body = """
@@ -58,14 +60,12 @@ class PartialAuthViewModelTest {
 
         sut.submitRequest(url, "token")
 
-        assertEquals(states[0].state, PartialAuthState.INIT)
-        assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.SUCCESS)
+        assertEquals(states.last().code, CardPaymentData.STATUS_PAYMENT_CAPTURED)
     }
 
     @Test
     fun `test accept partial auth Error`() = runTest {
-        val states: MutableList<PartialAuthVMState> = mutableListOf()
+        val states: MutableList<CardPaymentData> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
 
@@ -75,14 +75,12 @@ class PartialAuthViewModelTest {
 
         sut.submitRequest(url, "token")
 
-        assertEquals(states[0].state, PartialAuthState.INIT)
-        assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.ERROR)
+        assertEquals(states[0].code, CardPaymentData.STATUS_PAYMENT_FAILED)
     }
 
     @Test
     fun `test partial auth declined`() = runTest {
-        val states: MutableList<PartialAuthVMState> = mutableListOf()
+        val states: MutableList<CardPaymentData> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
         val body = """
@@ -94,14 +92,12 @@ class PartialAuthViewModelTest {
 
         sut.submitRequest(url, "token")
 
-        assertEquals(states[0].state, PartialAuthState.INIT)
-        assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.DECLINED)
+        assertEquals(states[0].code, CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED)
     }
 
     @Test
     fun `test partial auth declined failed`() = runTest {
-        val states: MutableList<PartialAuthVMState> = mutableListOf()
+        val states: MutableList<CardPaymentData> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
         val body = """
@@ -114,14 +110,12 @@ class PartialAuthViewModelTest {
 
         sut.submitRequest(url, "token")
 
-        assertEquals(states[0].state, PartialAuthState.INIT)
-        assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.ERROR)
+        assertEquals(states.last().code, CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED)
     }
 
     @Test
     fun `test auth partially authorised`() = runTest {
-        val states: MutableList<PartialAuthVMState> = mutableListOf()
+        val states: MutableList<CardPaymentData> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
         val body = """
@@ -134,8 +128,6 @@ class PartialAuthViewModelTest {
 
         sut.submitRequest(url, "token")
 
-        assertEquals(states[0].state, PartialAuthState.INIT)
-        assertEquals(states[1].state, PartialAuthState.LOADING)
-        assertEquals(states[2].state, PartialAuthState.PARTIALLY_AUTHORISED)
+        assertEquals(states[0].code, CardPaymentData.STATUS_PARTIALLY_AUTHORISED)
     }
 }
