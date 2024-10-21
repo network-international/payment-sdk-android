@@ -52,22 +52,15 @@ class CardPaymentData constructor(
                 }
             }
 
-        fun getCardPaymentState(intent: Intent?): PaymentsLauncher.Result {
-            return runCatching {
-                val data = requireNotNull(intent?.getParcelableExtra<CardPaymentData>(INTENT_DATA_KEY)) {
-                    "Cannot Parse CardPayment Data Intent"
-                }
-                when (data.code) {
-                    STATUS_PAYMENT_AUTHORIZED, STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> PaymentsLauncher.Result.Success
-                    STATUS_POST_AUTH_REVIEW -> PaymentsLauncher.Result.PostAuthReview
-                    STATUS_PARTIAL_AUTH_DECLINED -> PaymentsLauncher.Result.PartialAuthDeclined
-                    STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsLauncher.Result.PartialAuthDeclineFailed
-                    STATUS_PARTIALLY_AUTHORISED -> PaymentsLauncher.Result.PartiallyAuthorised
-                    STATUS_PAYMENT_FAILED -> PaymentsLauncher.Result.Failed(data.reason.orEmpty())
-                    else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
-                }
-            }.getOrElse {
-                PaymentsLauncher.Result.Failed(it.message ?: "Unknown error")
+        fun getCardPaymentsState(cardPaymentData: CardPaymentData): PaymentsLauncher.Result {
+            return when (cardPaymentData.code) {
+                STATUS_PAYMENT_AUTHORIZED, STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> PaymentsLauncher.Result.Success
+                STATUS_POST_AUTH_REVIEW -> PaymentsLauncher.Result.PostAuthReview
+                STATUS_PARTIAL_AUTH_DECLINED -> PaymentsLauncher.Result.PartialAuthDeclined
+                STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsLauncher.Result.PartialAuthDeclineFailed
+                STATUS_PARTIALLY_AUTHORISED -> PaymentsLauncher.Result.PartiallyAuthorised
+                STATUS_PAYMENT_FAILED -> PaymentsLauncher.Result.Failed(cardPaymentData.reason.orEmpty())
+                else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
             }
         }
     }

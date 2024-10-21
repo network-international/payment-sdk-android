@@ -13,7 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
+import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.view.SavedCardPaymentView
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
