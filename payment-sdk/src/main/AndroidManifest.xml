@@ -51,7 +51,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
+            android:name="payment.sdk.android.partialAuth.PartialAuthActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"
             android:windowSoftInputMode="adjustResize" />
     </application>

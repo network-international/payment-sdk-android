@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.padding
@@ -32,7 +31,8 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
+import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
+import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
 import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_TWO_REQUEST_KEY
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
@@ -40,7 +40,6 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.view.InstalmentPlanView
 import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.CardType
@@ -72,16 +71,6 @@ class PaymentsActivity : AppCompatActivity() {
             }
         }
 
-    private val partialAuthActivityLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            finishWithData(CardPaymentData.getCardPaymentState(result.data))
-        } else {
-            finishWithData(PaymentsLauncher.Result.Failed("Partial auth failed"))
-        }
-    }
-
     private val aaniPayLauncher = AaniPayLauncher(this) { result ->
         when (result) {
             AaniPayLauncher.Result.Success -> finishWithData(PaymentsLauncher.Result.Success)
@@ -103,32 +92,34 @@ class PaymentsActivity : AppCompatActivity() {
         }
         initEffects()
         setContent {
+            val state by viewModel.uiState.collectAsState()
             Scaffold(
                 backgroundColor = Color(0xFFD6D6D6),
                 topBar = {
                     TopAppBar(
                         title = {
                             Text(
-                                text = stringResource(id = R.string.make_payment),
+                                text = stringResource(id = state.title),
                                 color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
                             )
                         },
                         backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
                         navigationIcon = {
-                            IconButton(onClick = {
-                                finishWithData(PaymentsLauncher.Result.Cancelled)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
-                                    contentDescription = "Back"
-                                )
+                            if (state.enableBackButton) {
+                                IconButton(onClick = {
+                                    finishWithData(PaymentsLauncher.Result.Cancelled)
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                        contentDescription = "Back"
+                                    )
+                                }
                             }
                         }
                     )
                 },
             ) { contentPadding ->
-                val state by viewModel.uiState.collectAsState()
                 when (state) {
                     is PaymentsVMUiState.Authorized -> {
                         val authState = (state as PaymentsVMUiState.Authorized)
@@ -179,10 +170,28 @@ class PaymentsActivity : AppCompatActivity() {
                     is PaymentsVMUiState.ShowVisaPlans -> {
                         val visState = (state as PaymentsVMUiState.ShowVisaPlans)
                         VisaInstalmentsView(
-                            instalmentPlans = InstallmentPlan.fromVisaPlans(visState.visaPlans, visState.orderAmount),
+                            instalmentPlans = InstallmentPlan.fromVisaPlans(
+                                visState.visaPlans,
+                                visState.orderAmount
+                            ),
                             cardNumber = visState.makeCardPaymentRequest.pan
                         ) { plan ->
-                            viewModel.makeVisPayment(makeCardPaymentRequest = visState.makeCardPaymentRequest, selectedPlan = plan, orderUrl = visState.orderUrl)
+                            viewModel.makeVisPayment(
+                                makeCardPaymentRequest = visState.makeCardPaymentRequest,
+                                selectedPlan = plan,
+                                orderUrl = visState.orderUrl
+                            )
+                        }
+                    }
+
+                    is PaymentsVMUiState.InitiatePartialAuth -> {
+                        val partialAuthState = (state as PaymentsVMUiState.InitiatePartialAuth)
+                        PartialAuthView(
+                            args = PartialAuthActivityArgs.getArgs(
+                                partialAuthState.partialAuthIntent
+                            )
+                        ) { result ->
+                            finishWithData(CardPaymentData.getCardPaymentsState(result))
                         }
                     }
                 }
@@ -200,18 +209,6 @@ class PaymentsActivity : AppCompatActivity() {
                             it.error
                         )
                     )
-
-                    is PaymentsVMEffects.InitiatePartialAuth -> {
-                        try {
-                            partialAuthActivityLauncher.launch(
-                                PartialAuthActivityArgs.getArgs(
-                                    it.partialAuthIntent
-                                ).toIntent(this@PaymentsActivity)
-                            )
-                        } catch (e: IllegalArgumentException) {
-                            finishWithData(PaymentsLauncher.Result.Failed(""))
-                        }
-                    }
 
                     is PaymentsVMEffects.InitiateThreeDS -> {
                         val response = it.threeDSecureDto
@@ -265,7 +262,10 @@ class PaymentsActivity : AppCompatActivity() {
                     showDialog()
                 } else {
                     val intent = Intent().apply {
-                        putExtra(PaymentsLauncherContract.EXTRA_RESULT, PaymentsLauncher.Result.Cancelled)
+                        putExtra(
+                            PaymentsLauncherContract.EXTRA_RESULT,
+                            PaymentsLauncher.Result.Cancelled
+                        )
                     }
                     setResult(Activity.RESULT_CANCELED, intent)
                     finish()
@@ -322,7 +322,7 @@ class PaymentsActivity : AppCompatActivity() {
                                     finishWithData(PaymentsLauncher.Result.Failed(it.message.orEmpty()))
                                     return
                                 }.let {
-                                    startPartialAuthActivity(it)
+                                    viewModel.startPartialAuth(it)
                                 }
                             }
 
@@ -339,16 +339,6 @@ class PaymentsActivity : AppCompatActivity() {
             }
         } else {
             return finishWithData(PaymentsLauncher.Result.Failed("Failed 3DS"))
-        }
-    }
-
-    private fun startPartialAuthActivity(partialAuthIntent: PartialAuthIntent) {
-        try {
-            partialAuthActivityLauncher.launch(
-                PartialAuthActivityArgs.getArgs(partialAuthIntent).toIntent(this)
-            )
-        } catch (e: IllegalArgumentException) {
-            finishWithData(PaymentsLauncher.Result.Failed(e.message.orEmpty()))
         }
     }
 

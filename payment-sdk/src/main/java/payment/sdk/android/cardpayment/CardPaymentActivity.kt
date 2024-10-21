@@ -15,7 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import payment.sdk.android.SDKConfig
-import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
+import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent

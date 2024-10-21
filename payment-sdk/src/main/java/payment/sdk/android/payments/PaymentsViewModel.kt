@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
@@ -278,7 +279,7 @@ internal class PaymentsViewModel(
 
                 "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
                     response.paymentResponse.toIntent(makeCardPaymentRequest.paymentCookie).let { intent ->
-                        _effects.emit(PaymentsVMEffects.InitiatePartialAuth(intent))
+                        startPartialAuth(intent)
                     }
                 }
 
@@ -309,6 +310,12 @@ internal class PaymentsViewModel(
                 makeCardPaymentRequest.copy(visaRequest = visaRequest),
                 orderUrl = orderUrl
             )
+        }
+    }
+
+    fun startPartialAuth(partialAuthIntent: PartialAuthIntent) {
+        _uiState.update {
+            PaymentsVMUiState.InitiatePartialAuth(partialAuthIntent)
         }
     }
 
