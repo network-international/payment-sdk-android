@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
+import payment.sdk.android.cardpayment.CardPaymentRequest
 import payment.sdk.android.core.getAuthorizationUrl
 import payment.sdk.android.core.getPayPageUrl
 import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_CODE
@@ -140,14 +141,9 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                     )
 
                     PaymentType.CARD -> {
-                        cardPaymentsClient.launch(
-                            PaymentsRequest.builder()
-                                .gatewayAuthorizationUrl(
-                                    effect.order.getAuthorizationUrl().orEmpty()
-                                )
-                                .payPageUrl(effect.order.getPayPageUrl().orEmpty())
-                                .setLanguageCode(viewModel.getLanguageCode())
-                                .build()
+                        makeCardPaymentNew(
+                            authUrl = effect.order.getAuthorizationUrl().orEmpty(),
+                            payPageUrl = effect.order.getPayPageUrl().orEmpty()
                         )
                     }
 
@@ -164,6 +160,31 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                 }
             }
         }
+    }
+
+    private fun makeCardPaymentNew(authUrl: String, payPageUrl: String) {
+        cardPaymentsClient.launch(
+            PaymentsRequest.builder()
+                .gatewayAuthorizationUrl(authUrl)
+                .payPageUrl(payPageUrl)
+                .setLanguageCode(viewModel.getLanguageCode())
+                .build()
+        )
+    }
+
+    private fun makeCardPayment(authUrl: String, payPageUrl: String) {
+        val code = payPageUrl
+            .takeIf { it.isNotBlank() }
+            ?.split("=")
+            ?.getOrNull(1)
+            .orEmpty()
+        paymentClient.launchCardPayment(
+            request = CardPaymentRequest.builder()
+                .gatewayUrl(authUrl)
+                .code(code)
+                .build(),
+            requestCode = CARD_PAYMENT_REQUEST_CODE
+        )
     }
 
     companion object {

@@ -16,8 +16,11 @@ import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
+import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.Order
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
@@ -25,9 +28,11 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
+import payment.sdk.android.core.interactor.SavedCardPaymentRequest
 import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
+import payment.sdk.android.core.interactor.VisaRequest
 
 internal class SavedPaymentViewModel(
     private val authApiInteractor: AuthApiInteractor,
@@ -50,7 +55,10 @@ internal class SavedPaymentViewModel(
         cardToken: String,
         recaptureCsc: Boolean,
         cvv: String?,
-        matchedCandidates: List<Order.MatchedCandidates>
+        matchedCandidates: List<Order.MatchedCandidates>,
+        orderAmount: OrderAmount,
+        savedCard: SavedCardDto,
+        savedCardUrl: String
     ) {
         val authCode = paymentUrl.getQueryParameter("code")
         if (authCode.isNullOrBlank()) {
@@ -98,11 +106,20 @@ internal class SavedPaymentViewModel(
                                             )
                                         } else {
                                             SavedCardPaymentState.ShowVisaPlans(
-                                                visaPlans = visaResponse.visaPlans,
+                                                savedCardPaymentRequest = SavedCardPaymentRequest(
+                                                    accessToken = authResponse.getAccessToken(),
+                                                    payerIp = getPayerIpInteractor.getPayerIp(
+                                                        paymentUrl
+                                                    ).orEmpty(),
+                                                    savedCard = savedCard.toSavedCard(),
+                                                    savedCardUrl = savedCardUrl,
+                                                    cvv = cvv
+                                                ),
                                                 paymentCookie = authResponse.getPaymentCookie(),
                                                 orderUrl = authResponse.orderUrl,
-                                                accessToken = authResponse.getAccessToken(),
-                                                cvv = cvv
+                                                cardNumber = savedCard.maskedPan,
+                                                visaPlans = visaResponse.visaPlans,
+                                                orderAmount = orderAmount
                                             )
                                         }
                                     }
@@ -150,71 +167,104 @@ internal class SavedPaymentViewModel(
         orderUrl: String,
         paymentCookie: String,
         payPageUrl: String,
+        orderAmount: OrderAmount,
         visaPlans: VisaPlans? = null
     ) {
         _state.update { SavedCardPaymentState.Loading(LoadingMessage.PAYMENT) }
-        if (visaPlans != null && visaPlans.matchedPlans.isNotEmpty()) {
-            _state.update {
-                SavedCardPaymentState.ShowVisaPlans(
-                    visaPlans = visaPlans,
-                    paymentCookie = paymentCookie,
-                    orderUrl = orderUrl,
-                    accessToken = accessToken,
-                    cvv = cvv
-                )
-            }
-            return
-        }
         viewModelScope.launch(dispatcher) {
             val payerIp = getPayerIpInteractor.getPayerIp(payPageUrl = payPageUrl)
-
-            val response = savedCardPaymentApiInteractor.doSavedCardPayment(
+            val savedCardPaymentRequest = SavedCardPaymentRequest(
                 accessToken = accessToken,
                 savedCardUrl = savedCardUrl,
                 savedCard = savedCard.toSavedCard(),
                 cvv = cvv,
                 payerIp = payerIp
             )
-            when (response) {
-                is SavedCardResponse.Error -> updateFailed(
-                    response.error.message ?: "Saved card Payment Failed"
-                )
+            if (visaPlans != null && visaPlans.matchedPlans.isNotEmpty()) {
+                _state.update {
+                    SavedCardPaymentState.ShowVisaPlans(
+                        savedCardPaymentRequest = savedCardPaymentRequest,
+                        paymentCookie = paymentCookie,
+                        orderUrl = orderUrl,
+                        cardNumber = savedCard.maskedPan,
+                        visaPlans = visaPlans,
+                        orderAmount = orderAmount,
+                    )
+                }
+                return@launch
+            }
 
-                is SavedCardResponse.Success -> {
-                    when (response.paymentResponse.state) {
-                        "AUTHORISED" -> _state.update { SavedCardPaymentState.PaymentAuthorised }
-                        "PURCHASED" -> _state.update { SavedCardPaymentState.Purchased }
-                        "CAPTURED" -> _state.update { SavedCardPaymentState.Captured }
-                        "POST_AUTH_REVIEW" -> _state.update { SavedCardPaymentState.PostAuthReview }
-                        "AWAIT_3DS" -> {
-                            try {
-                                if (response.paymentResponse.isThreeDSecureTwo()) {
-                                    val request = threeDSecureFactory.buildThreeDSecureTwoDto(
-                                        paymentResponse = response.paymentResponse,
-                                        orderUrl = orderUrl,
-                                        paymentCookie = paymentCookie
-                                    )
-                                    _state.update { SavedCardPaymentState.InitiateThreeDSTwo(request) }
-                                } else {
-                                    val request =
-                                        threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
-                                    _state.update { SavedCardPaymentState.InitiateThreeDS(request) }
-                                }
+            initiatePayment(savedCardPaymentRequest, orderUrl, paymentCookie)
+        }
+    }
 
-                            } catch (e: IllegalArgumentException) {
-                                updateFailed(e.message ?: "IllegalArgumentException")
+    fun initiateVisPayment(
+        selectedPlan: InstallmentPlan, savedCardPaymentRequest: SavedCardPaymentRequest,
+        orderUrl: String,
+        paymentCookie: String
+    ) {
+        var visaRequest: VisaRequest? = null
+        if (selectedPlan.frequency != PlanFrequency.PayInFull) {
+            visaRequest = VisaRequest(
+                planSelectionIndicator = true,
+                vPlanId = selectedPlan.id,
+                acceptedTAndCVersion = selectedPlan.terms?.version ?: 0
+            )
+        }
+        viewModelScope.launch(dispatcher) {
+            initiatePayment(
+                savedCardPaymentRequest.copy(visaRequest = visaRequest),
+                orderUrl = orderUrl,
+                paymentCookie = paymentCookie
+            )
+        }
+    }
+
+    private suspend fun initiatePayment(
+        savedCardPaymentRequest: SavedCardPaymentRequest,
+        orderUrl: String,
+        paymentCookie: String
+    ) {
+        val response = savedCardPaymentApiInteractor.doSavedCardPayment(savedCardPaymentRequest)
+        when (response) {
+            is SavedCardResponse.Error -> updateFailed(
+                response.error.message ?: "Saved card Payment Failed"
+            )
+
+            is SavedCardResponse.Success -> {
+                when (response.paymentResponse.state) {
+                    "AUTHORISED" -> _state.update { SavedCardPaymentState.PaymentAuthorised }
+                    "PURCHASED" -> _state.update { SavedCardPaymentState.Purchased }
+                    "CAPTURED" -> _state.update { SavedCardPaymentState.Captured }
+                    "POST_AUTH_REVIEW" -> _state.update { SavedCardPaymentState.PostAuthReview }
+                    "AWAIT_3DS" -> {
+                        try {
+                            if (response.paymentResponse.isThreeDSecureTwo()) {
+                                val request = threeDSecureFactory.buildThreeDSecureTwoDto(
+                                    paymentResponse = response.paymentResponse,
+                                    orderUrl = orderUrl,
+                                    paymentCookie = paymentCookie
+                                )
+                                _state.update { SavedCardPaymentState.InitiateThreeDSTwo(request) }
+                            } else {
+                                val request =
+                                    threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
+                                _state.update { SavedCardPaymentState.InitiateThreeDS(request) }
                             }
-                        }
 
-                        "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
-                            response.paymentResponse.toIntent(paymentCookie).let { intent ->
-                                _state.update { SavedCardPaymentState.InitiatePartialAuth(intent) }
-                            }
+                        } catch (e: IllegalArgumentException) {
+                            updateFailed(e.message ?: "IllegalArgumentException")
                         }
-
-                        "FAILED" -> updateFailed("FAILED")
-                        else -> updateFailed("Unknown payment state: ${response.paymentResponse.state}")
                     }
+
+                    "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
+                        response.paymentResponse.toIntent(paymentCookie).let { intent ->
+                            _state.update { SavedCardPaymentState.InitiatePartialAuth(intent) }
+                        }
+                    }
+
+                    "FAILED" -> updateFailed("FAILED")
+                    else -> updateFailed("Unknown payment state: ${response.paymentResponse.state}")
                 }
             }
         }
@@ -272,11 +322,12 @@ sealed class SavedCardPaymentState {
     object PostAuthReview : SavedCardPaymentState()
 
     data class ShowVisaPlans(
+        val savedCardPaymentRequest: SavedCardPaymentRequest,
         val visaPlans: VisaPlans,
-        val paymentCookie: String,
-        val accessToken: String,
         val orderUrl: String,
-        val cvv: String?
+        val cardNumber: String,
+        val paymentCookie: String,
+        val orderAmount: OrderAmount
     ) : SavedCardPaymentState()
 
     data class InitiateThreeDS(val threeDSecureDto: ThreeDSecureDto) : SavedCardPaymentState()

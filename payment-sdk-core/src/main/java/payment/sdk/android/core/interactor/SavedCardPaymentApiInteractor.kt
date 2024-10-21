@@ -12,23 +12,16 @@ import java.lang.Exception
 class SavedCardPaymentApiInteractor(
     private val httpClient: HttpClient,
 ) {
-    suspend fun doSavedCardPayment(
-        accessToken: String,
-        savedCardUrl: String,
-        savedCard: SavedCard,
-        payerIp: String?,
-        cvv: String?,
-        visaRequest: VisaRequest? = null
-    ): SavedCardResponse {
+    suspend fun doSavedCardPayment(request: SavedCardPaymentRequest): SavedCardResponse {
         val bodyMap = mutableMapOf<String, Any>(
-            KEY_EXPIRY to savedCard.expiry,
-            KEY_CARD_TOKEN to savedCard.cardToken,
-            KEY_CARDHOLDER_NAME to savedCard.cardholderName
+            KEY_EXPIRY to request.savedCard.expiry,
+            KEY_CARD_TOKEN to request.savedCard.cardToken,
+            KEY_CARDHOLDER_NAME to request.savedCard.cardholderName
         )
-        cvv?.let {
+        request.cvv?.let {
             bodyMap.put(KEY_CVV, it)
         }
-        visaRequest?.let {
+        request.visaRequest?.let {
             bodyMap.put(
                 CardPaymentInteractor.PAYMENT_FIELD_VISA, mapOf(
                     CardPaymentInteractor.PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
@@ -37,15 +30,15 @@ class SavedCardPaymentApiInteractor(
                 )
             )
         }
-        payerIp?.let {
+        request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
         val response = httpClient.put(
-            url = savedCardUrl,
+            url = request.savedCardUrl,
             headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 TransactionServiceHttpAdapter.HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer $accessToken"
+                TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer ${request.accessToken}"
             ),
             body = Body.Json(bodyMap)
         )
@@ -68,6 +61,15 @@ class SavedCardPaymentApiInteractor(
         internal const val PAYMENT_FIELD_VISA = "vis"
     }
 }
+
+data class SavedCardPaymentRequest(
+    val accessToken: String,
+    val savedCardUrl: String,
+    val savedCard: SavedCard,
+    val payerIp: String?,
+    val cvv: String?,
+    val visaRequest: VisaRequest? = null
+)
 
 sealed class SavedCardResponse {
     data class Success(val paymentResponse: PaymentResponse) : SavedCardResponse()

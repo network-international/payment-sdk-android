@@ -24,12 +24,14 @@ import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.core.Order
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
+import payment.sdk.android.core.interactor.SavedCardPaymentRequest
 import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
@@ -87,7 +89,7 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
 
-        sut.authorize(authUrl = "blank", paymentUrl = "", "", "", false, null, listOf())
+        sut.authorize(authUrl = "blank", paymentUrl = "", "", "", false, null, listOf(), OrderAmount(1.1, ""), savedCard, "")
 
         assertTrue(states[0] is SavedCardPaymentState.Init)
         assertTrue(states[1] is SavedCardPaymentState.Failed)
@@ -105,7 +107,7 @@ class SavedCardViewModelTest {
             authApiInteractor.authenticate(any(), any())
         } returns AuthResponse.Error(Exception("error"))
 
-        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", false, null, listOf())
+        sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", false, null, listOf(), OrderAmount(1.1, ""), savedCard, "")
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -127,7 +129,7 @@ class SavedCardViewModelTest {
                 authApiInteractor.authenticate(any(), any())
             } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", false, null, listOf())
+            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", false, null, listOf(), OrderAmount(1.1, ""), savedCard, "")
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -150,7 +152,7 @@ class SavedCardViewModelTest {
                 authApiInteractor.authenticate(any(), any())
             } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", true, null, listOf())
+            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", true, null, listOf(), OrderAmount(1.1, ""), savedCard, "")
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -174,7 +176,7 @@ class SavedCardViewModelTest {
                 authApiInteractor.authenticate(any(), any())
             } returns AuthResponse.Success(listOf(paymentCookie, accessTokenCookie), "orderUrl")
 
-            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", true, cvv, listOf())
+            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "", true, cvv, listOf(), OrderAmount(1.1, ""), savedCard, "")
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -209,11 +211,14 @@ class SavedCardViewModelTest {
                 visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any())
             } returns VisaPlansResponse.Success(visaResponse)
 
-            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "cardToken", true, cvv, listOf(
-                Order.MatchedCandidates(
-                    cardToken = "cardToken",
-                    eligibilityStatus = Order.MatchedCandidates.MATCHED_CANDIDATES_ELIGIBLE
-                )))
+            sut.authorize(
+                authUrl = authUrl, paymentUrl = paymentUrl, "", "cardToken", true, cvv, listOf(
+                    Order.MatchedCandidates(
+                        cardToken = "cardToken",
+                        eligibilityStatus = Order.MatchedCandidates.MATCHED_CANDIDATES_ELIGIBLE
+                    )
+                ), savedCard = savedCard, savedCardUrl = "", orderAmount = OrderAmount(1.1, "")
+            )
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -244,7 +249,18 @@ class SavedCardViewModelTest {
                 visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any())
             } returns VisaPlansResponse.Success(visaResponse)
 
-            sut.authorize(authUrl = authUrl, paymentUrl = paymentUrl, "", "cardToken", true, null, listOf())
+            sut.authorize(
+                authUrl = authUrl,
+                paymentUrl = paymentUrl,
+                "",
+                "cardToken",
+                true,
+                null,
+                listOf(),
+                OrderAmount(1.1, ""),
+                savedCard,
+                ""
+            )
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(authUrl, authCode) }
 
@@ -266,15 +282,9 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
 
-        coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns SavedCardResponse.Success(response)
+        coEvery { savedCardPaymentApiInteractor.doSavedCardPayment(any()) } returns SavedCardResponse.Success(
+            response
+        )
 
         coEvery {
             threeDSecureFactory.buildThreeDSecureDto(any())
@@ -300,16 +310,19 @@ class SavedCardViewModelTest {
             "123",
             "order Url",
             paymentCookie,
-            payPageUrl
+            payPageUrl,
+            OrderAmount(1.1, "")
         )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
-                accessToken,
-                "saved card",
-                savedCard.toSavedCard(),
-                "1.1.1.1",
-                "123"
+                SavedCardPaymentRequest(
+                    accessToken,
+                    "saved card",
+                    savedCard.toSavedCard(),
+                    "1.1.1.1",
+                    "123"
+                )
             )
         }
 
@@ -332,7 +345,7 @@ class SavedCardViewModelTest {
         }
 
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
+            savedCardPaymentApiInteractor.doSavedCardPayment(any())
         } returns SavedCardResponse.Success(response)
 
         coEvery {
@@ -373,16 +386,19 @@ class SavedCardViewModelTest {
             "123",
             "order Url",
             paymentCookie,
-            payPageUrl
+            payPageUrl,
+            OrderAmount(1.1, "")
         )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
-                accessToken,
-                "saved card",
-                savedCard.toSavedCard(),
-                "1.1.1.1",
-                "123"
+                SavedCardPaymentRequest(
+                    accessToken,
+                    "saved card",
+                    savedCard.toSavedCard(),
+                    "1.1.1.1",
+                    "123"
+                )
             )
         }
 
@@ -399,7 +415,7 @@ class SavedCardViewModelTest {
             sut.state.toList(states)
         }
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
+            savedCardPaymentApiInteractor.doSavedCardPayment(any())
         } returns SavedCardResponse.Error(Exception("error"))
 
         coEvery {
@@ -413,16 +429,19 @@ class SavedCardViewModelTest {
             "123",
             "",
             "",
-            payPageUrl
+            payPageUrl,
+            OrderAmount(1.1, "")
         )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
-                accessToken,
-                "saved card",
-                savedCard.toSavedCard(),
-                "1.1.1.1",
-                "123"
+                SavedCardPaymentRequest(
+                    accessToken,
+                    "saved card",
+                    savedCard.toSavedCard(),
+                    "1.1.1.1",
+                    "123"
+                )
             )
         }
 
@@ -446,7 +465,7 @@ class SavedCardViewModelTest {
         } returns "1.1.1.1"
 
         coEvery {
-            savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
+            savedCardPaymentApiInteractor.doSavedCardPayment(any())
         } returns SavedCardResponse.Success(response)
 
         sut.doSavedCardPayment(
@@ -456,16 +475,19 @@ class SavedCardViewModelTest {
             "123",
             "",
             "",
-            payPageUrl
+            payPageUrl,
+            OrderAmount(1.1, "")
         )
 
         coVerify(exactly = 1) {
             savedCardPaymentApiInteractor.doSavedCardPayment(
-                accessToken,
-                "saved card",
-                savedCard.toSavedCard(),
-                "1.1.1.1",
-                "123"
+                SavedCardPaymentRequest(
+                    accessToken,
+                    "saved card",
+                    savedCard.toSavedCard(),
+                    "1.1.1.1",
+                    "123"
+                )
             )
         }
 
@@ -488,7 +510,7 @@ class SavedCardViewModelTest {
                 sut.state.toList(states)
             }
             coEvery {
-                savedCardPaymentApiInteractor.doSavedCardPayment(any(), any(), any(), any(), any())
+                savedCardPaymentApiInteractor.doSavedCardPayment(any())
             } returns SavedCardResponse.Success(response)
 
             coEvery {
@@ -506,16 +528,19 @@ class SavedCardViewModelTest {
                 "123",
                 "",
                 "",
-                payPageUrl
+                payPageUrl,
+                OrderAmount(1.1, "")
             )
 
             coVerify(exactly = 1) {
                 savedCardPaymentApiInteractor.doSavedCardPayment(
+                    SavedCardPaymentRequest(
                     accessToken,
                     "saved card",
                     savedCard.toSavedCard(),
                     "1.1.1.1",
                     "123"
+                    )
                 )
             }
 
