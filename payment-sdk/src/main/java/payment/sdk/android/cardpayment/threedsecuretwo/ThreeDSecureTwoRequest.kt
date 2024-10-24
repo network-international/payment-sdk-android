@@ -3,7 +3,7 @@ package payment.sdk.android.cardpayment.threedsecuretwo
 import android.util.Log
 import com.google.gson.Gson
 import org.json.JSONObject
-import payment.sdk.android.cardpayment.util.Base64
+import payment.sdk.android.util.Base64
 import payment.sdk.android.core.PaymentResponse
 import java.net.URI
 

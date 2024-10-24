@@ -1,7 +1,5 @@
-package payment.sdk.android.cardpayment.visaInstalments.view
+package payment.sdk.android.visaInstalments.view
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -13,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Text
@@ -23,22 +21,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import payment.sdk.android.payments.theme.SDKTheme
-import payment.sdk.android.cardpayment.util.extractUrls
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.util.extractUrlsAndText
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.core.TermsAndCondition
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -51,7 +50,6 @@ fun VisaPlanTermsView(
     onTermsAccepted: (Boolean) -> Unit,
     onTermsExpanded: (Boolean) -> Unit,
 ) {
-    val context = LocalContext.current
     AnimatedVisibility(
         visible = isSelected && frequency != PlanFrequency.PayInFull,
         enter = expandVertically(expandFrom = Alignment.Top),
@@ -105,46 +103,35 @@ fun VisaPlanTermsView(
                 }
             }
 
-            val annotatedString = buildAnnotatedString {
-                val text = termsAndCondition.formattedText()
-                append(text)
-                text.extractUrls().forEach { (url, startIndex, endIndex) ->
-                    addStyle(
-                        style = SpanStyle(
-                            textDecoration = TextDecoration.Underline,
-                            color = Color.Blue
-                        ), start = startIndex, end = endIndex
-                    )
-                    addStringAnnotation(
-                        url,
-                        url,
-                        startIndex,
-                        endIndex
-                    )
-                }
-            }
-
             AnimatedVisibility(
                 visible = termsExpanded,
                 enter = expandVertically(expandFrom = Alignment.Top),
                 exit = shrinkVertically(shrinkTowards = Alignment.Top)
             ) {
-                ClickableText(
+                BasicText(
+                    text = buildAnnotatedString {
+                        termsAndCondition.formattedText().extractUrlsAndText()
+                            .forEach { (part, isUrl) ->
+                                if (isUrl) {
+                                    withLink(
+                                        LinkAnnotation.Url(
+                                            part,
+                                            TextLinkStyles(style = SpanStyle(color = Color.Blue))
+                                        )
+                                    ) {
+                                        append(part)
+                                    }
+                                } else {
+                                    append(part)
+                                }
+                            }
+                    },
                     modifier = Modifier.padding(
                         start = 16.dp,
                         end = 16.dp,
                         bottom = 16.dp
                     ),
-                    text = annotatedString,
                     style = TextStyle(fontSize = 12.sp),
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(offset, offset)
-                            .firstOrNull()?.let { span ->
-                                context.startActivity(Intent(Intent.ACTION_VIEW).also {
-                                    it.setData(Uri.parse(span.item))
-                                })
-                            }
-                    }
                 )
             }
         }

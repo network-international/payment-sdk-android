@@ -1,6 +1,5 @@
-package payment.sdk.android.cardpayment.visaInstalments.view
+package payment.sdk.android.visaInstalments.view
 
-import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,8 +21,8 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
@@ -72,32 +71,29 @@ fun InstalmentPlanView(
             }
 
             selectedPlan?.terms?.let { terms ->
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    VisaPlanTermsView(
-                        isTermsAccepted = isTermsAccepted,
-                        isSelected = isSelected,
-                        termsExpanded = selectedPlan.termsExpanded,
-                        frequency = plan.frequency,
-                        termsAndCondition = terms,
-                        onTermsAccepted = {
-                            onTermsAccepted(
-                                plan.copy(
-                                    termsAccepted = it,
-                                    termsExpanded = isTermsExpanded
-                                )
+                VisaPlanTermsView(
+                    isTermsAccepted = isTermsAccepted,
+                    isSelected = isSelected,
+                    termsExpanded = selectedPlan.termsExpanded,
+                    frequency = plan.frequency,
+                    termsAndCondition = terms,
+                    onTermsAccepted = {
+                        onTermsAccepted(
+                            plan.copy(
+                                termsAccepted = it,
+                                termsExpanded = isTermsExpanded
                             )
-                        },
-                        onTermsExpanded = {
-                            onTermsAccepted(
-                                plan.copy(
-                                    termsExpanded = it,
-                                    termsAccepted = isTermsAccepted
-                                )
+                        )
+                    },
+                    onTermsExpanded = {
+                        onTermsAccepted(
+                            plan.copy(
+                                termsExpanded = it,
+                                termsAccepted = isTermsAccepted
                             )
-                        }
-                    )
-                }
+                        )
+                    }
+                )
             }
         }
     }

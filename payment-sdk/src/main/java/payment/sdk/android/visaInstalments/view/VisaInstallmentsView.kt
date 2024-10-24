@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.visaInstalments.view
+package payment.sdk.android.visaInstalments.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.payments.theme.SDKTheme
 
 @Composable
@@ -31,17 +31,13 @@ fun VisaInstalmentsView(
     var selectedPlan by remember { mutableStateOf<InstallmentPlan?>(null) }
     var isValid by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .background(Color.White)
-    ) {
+    Column(modifier = modifier.background(Color.White)) {
         VisaHeaderView(modifier = Modifier.padding(8.dp), cardNumber = cardNumber)
         LazyColumn(
             modifier = Modifier
-                .weight(1f) // Make LazyColumn take up the remaining space
+                .weight(1f)
                 .fillMaxWidth()
         ) {
-
             items(instalmentPlans) { plan ->
                 InstalmentPlanView(
                     modifier = Modifier.clickable {

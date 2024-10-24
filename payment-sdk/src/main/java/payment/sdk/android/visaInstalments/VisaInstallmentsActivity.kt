@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.visaInstalments
+package payment.sdk.android.visaInstalments
 
 import android.app.Activity
 import android.content.Intent
@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
+import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.sdk.R
 
 class VisaInstallmentsActivity : ComponentActivity() {

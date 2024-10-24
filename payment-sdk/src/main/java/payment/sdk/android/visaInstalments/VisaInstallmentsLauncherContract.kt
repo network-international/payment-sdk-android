@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.visaInstalments
+package payment.sdk.android.visaInstalments
 
 import android.content.Context
 import android.content.Intent

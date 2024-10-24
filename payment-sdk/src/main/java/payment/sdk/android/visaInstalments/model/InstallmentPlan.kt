@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.visaInstalments.model
+package payment.sdk.android.visaInstalments.model
 
 import android.os.Parcelable
 import androidx.core.text.TextUtilsCompat
@@ -85,7 +85,7 @@ data class InstallmentPlan(
             frequency = PlanFrequency.MONTHLY,
             terms = TermsAndCondition(
                 languageCode = "en",
-                text = "These terms of use constitute an agreement between you and X Pay Pvt Ltd ABN 123456 trading as X Pay(we, our, or us) (and any person who acquires your Payment Plan from us).\\nOur Buy Now Pay Later option allows you to purchase goods or services over a period of time by repaying us in equal instalments (Payment Plan).\\nBy entering into a Payment Plan, you agree to be bound by these Terms of Use.\\nYou should also read our Privacy Policy which forms a part of this agreement.\\n",
+                text = "[Test Bank] This is a sample T&amp;C text containing Special Ch@racters that govern the Visa Installment services. Refer to https://www.visa.com for more information.\\n\\n1) Eligibility: To be eligible for \\\"Visa installment\\\" payments, you must hold a valid and active Visa credit card issued by an authorized bank. Your credit limit and repayment capacity will determine your eligibility for installment plans.\\n\\n2) Installment Plan: Installments can be availed for purchases at participating merchants, subject to a minimum transaction amount. The specific installment plan (number of months, interest rate, etc.) will be determined at the time of purchase.\\n\\n3) Interest &amp; Fees: 20% Interest will be charged on the unpaid principal amount. If you fail to pay any installment by the due date, a late payment fee will be charged. All fees/charges are non-refundable and subject to change.\\n\\n4) Prepayment &amp; Cancellation: You may choose to prepay the entire outstanding amount at any time. However, prepayment may attract a fee. The installment plan can be cancelled if your Visa card is cancelled &lt;or if you default on payment&gt;.\\n\\n5) Changes to Terms: Visa reserves the right to change these terms and conditions at any time. Any changes will be communicated to you via email or through our website. It is your responsibility to keep yourself updated with the latest terms and conditions.\\n\\nPlease note that these terms are subject to change and it's always recommended to read the actual terms and conditions provided by the card issuer.",
                 url = "xyz",
                 version = 1
             )
