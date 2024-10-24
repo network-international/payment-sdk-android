@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.visaInstalments
+package payment.sdk.android.visaInstalments
 
 import android.content.Context
 import android.content.Intent
@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.payments.PaymentsRequest.Builder
 
 class VisaInstallmentsLauncher(private val activityResultLauncher: ActivityResultLauncher<Config>) {

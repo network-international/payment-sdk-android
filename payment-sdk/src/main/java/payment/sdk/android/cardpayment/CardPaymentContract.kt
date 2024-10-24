@@ -2,7 +2,7 @@ package payment.sdk.android.cardpayment
 
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.core.OrderAmount
 
 

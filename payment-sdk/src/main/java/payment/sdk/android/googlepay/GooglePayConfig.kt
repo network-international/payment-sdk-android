@@ -30,4 +30,5 @@ data class GooglePayConfig(
     }
 }
 
-internal fun GooglePayConfig?.env() = this?.environment?.value ?: GooglePayConfig.Environment.Test.value
+internal fun GooglePayConfig?.env() =
+    this?.environment?.value ?: GooglePayConfig.Environment.Test.value

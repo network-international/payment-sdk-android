@@ -22,8 +22,8 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.STATUS_AWAITING_PARTIAL_AUTH_APPROVAL
-import payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsLauncher
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.VisaInstallmentsLauncher
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResourcesImpl
 import payment.sdk.android.sdk.R

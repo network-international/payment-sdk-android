@@ -23,7 +23,7 @@
  * questions.
  */
 
-package payment.sdk.android.cardpayment.util;
+package payment.sdk.android.util;
 
 import java.io.FilterOutputStream;
 import java.io.InputStream;
