@@ -12,8 +12,8 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
 import payment.sdk.android.cardpayment.validation.InputValidationError
 import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_CARD_HOLDER
 import payment.sdk.android.cardpayment.validation.Luhn
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.cardpayment.widget.DateFormatter
 import payment.sdk.android.cardpayment.widget.NumericMaskInputFilter
 import payment.sdk.android.core.CardType

@@ -39,8 +39,8 @@ import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.view.VisaInstalmentsView
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.CardType
 import payment.sdk.android.payments.view.PaymentsScreen

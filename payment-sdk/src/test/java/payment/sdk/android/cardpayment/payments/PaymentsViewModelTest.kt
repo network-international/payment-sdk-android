@@ -25,8 +25,8 @@ import org.junit.Rule
 import org.junit.Test
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
-import payment.sdk.android.cardpayment.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.cardpayment.visaInstalments.model.PlanFrequency
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.TermsAndCondition
