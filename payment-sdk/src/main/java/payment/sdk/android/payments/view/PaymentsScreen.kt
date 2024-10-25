@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
@@ -104,223 +106,227 @@ fun PaymentsScreen(
     }
 
     Column(modifier.background(Color(0xFFF1F1F1))) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .aspectRatio(16 / 9f),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            if (isCvvFocused) {
-                CreditCardBack(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            rotationY = rotationAngle
-                            cameraDistance = 12f * density
-                        }
-                )
-
-            } else {
-                CreditCardView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            rotationY = rotationAngle
-                            cameraDistance = 12f * density
-                        },
-                    cardNumber = pan,
-                    cardholderName = cardholderName,
-                    expiry = expiry.text,
-                    cardScheme = paymentCard?.type
-                )
-            }
-        }
-
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-
-            Surface(
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = 8.dp,
-                color = Color.White
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .aspectRatio(16 / 9f),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    CardNumberTextField(
-                        pan = pan,
-                        paymentCard = paymentCard,
-                        supportedCards = supportedCards,
-                    ) { text ->
-                        val maxLength = paymentCard?.binRange?.length?.value ?: 16
-                        if (text.length <= maxLength) {
-                            pan = text.filter { it.isDigit() }
-                            if (pan.length == maxLength) {
-                                expiryFocus.requestFocus()
+                if (isCvvFocused) {
+                    CreditCardBack(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                rotationY = rotationAngle
+                                cameraDistance = 12f * density
                             }
-                            paymentCard = takeIf { pan.isNotEmpty() }?.let {
-                                cardDetector.detect(pan)
+                    )
+
+                } else {
+                    CreditCardView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                rotationY = rotationAngle
+                                cameraDistance = 12f * density
+                            },
+                        cardNumber = pan,
+                        cardholderName = cardholderName,
+                        expiry = expiry.text,
+                        cardScheme = paymentCard?.type
+                    )
+                }
+            }
+
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        CardNumberTextField(
+                            pan = pan,
+                            paymentCard = paymentCard,
+                            supportedCards = supportedCards,
+                        ) { text ->
+                            val maxLength = paymentCard?.binRange?.length?.value ?: 16
+                            if (text.length <= maxLength) {
+                                pan = text.filter { it.isDigit() }
+                                if (pan.length == maxLength) {
+                                    expiryFocus.requestFocus()
+                                }
+                                paymentCard = takeIf { pan.isNotEmpty() }?.let {
+                                    cardDetector.detect(pan)
+                                }
                             }
                         }
-                    }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ExpiryDateTextField(
-                            modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(expiryFocus),
-                            text = expiry,
-                            onValueChange = { newValue ->
-                                expiry = newValue
-                            },
-                            focusCvv = {
-                                cvvFocus.requestFocus()
-                            }
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ExpiryDateTextField(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(expiryFocus),
+                                text = expiry,
+                                onValueChange = { newValue ->
+                                    expiry = newValue
+                                },
+                                focusCvv = {
+                                    cvvFocus.requestFocus()
+                                }
+                            )
+
+                            TextField(
+                                label = { Text(stringResource(R.string.card_cvv_label_title)) },
+                                value = cvv,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(cvvFocus)
+                                    .onFocusChanged {
+                                        isCvvFocused = it.isFocused
+                                    },
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Number,
+                                ),
+                                visualTransformation = PasswordVisualTransformation(),
+                                onValueChange = { text ->
+                                    val maxLength = paymentCard?.cvv?.length ?: 3
+                                    if (text.length <= maxLength) {
+                                        cvv = text
+                                        if (text.length == maxLength) {
+                                            cardHolderFocus.requestFocus()
+                                        }
+                                    }
+                                },
+                                colors = SDKTextFieldColors(),
+                            )
+                        }
 
                         TextField(
-                            label = { Text(stringResource(R.string.card_cvv_label_title)) },
-                            value = cvv,
+                            label = { Text(stringResource(R.string.card_cardholder_label_title)) },
+                            value = cardholderName,
                             modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(cvvFocus)
-                                .onFocusChanged {
-                                    isCvvFocused = it.isFocused
-                                },
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Number,
-                            ),
-                            visualTransformation = PasswordVisualTransformation(),
+                                .fillMaxWidth()
+                                .focusRequester(cardHolderFocus),
                             onValueChange = { text ->
-                                val maxLength = paymentCard?.cvv?.length ?: 3
-                                if (text.length <= maxLength) {
-                                    cvv = text
-                                    if (text.length == maxLength) {
-                                        cardHolderFocus.requestFocus()
-                                    }
-                                }
+                                cardholderName = text
                             },
                             colors = SDKTextFieldColors(),
                         )
-                    }
 
-                    TextField(
-                        label = { Text(stringResource(R.string.card_cardholder_label_title)) },
-                        value = cardholderName,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(cardHolderFocus),
-                        onValueChange = { text ->
-                            cardholderName = text
-                        },
-                        colors = SDKTextFieldColors(),
-                    )
-
-                    val animated = animateColorAsState(
-                        if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
-                        label = ""
-                    )
-                    TextButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .height(46.dp)
-                            .background(
-                                color = animated.value,
-                                shape = RoundedCornerShape(percent = 15)
-                            ),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = Color.White,
-                        ),
-                        onClick = {
-                            onMakePayment(
-                                pan,
-                                expiry.text.filter { it.isDigit() },
-                                cvv,
-                                cardholderName
-                            )
-                        },
-                        enabled = isFormValid,
-                        shape = RoundedCornerShape(percent = 15),
-                    ) {
-                        val title = if (SDKConfig.showOrderAmount) stringResource(
-                            R.string.pay_button_title,
-                            formattedAmount
-                        ) else stringResource(R.string.make_payment)
-                        Text(
-                            text = title,
-                            color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        val animated = animateColorAsState(
+                            if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
+                            label = ""
                         )
-                    }
-                }
-            }
-        }
-
-        if (showWallets) {
-            Spacer(Modifier.height(16.dp))
-            Surface(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = 8.dp,
-                color = Color.White
-            ) {
-                Column {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        text = stringResource(R.string.payments_wallets_title),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.subtitle2
-                    )
-
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    googlePayUiConfig?.let {
-                        GooglePayButton(
-                            onClick = onGooglePay,
-                            radius = 8.dp,
-                            allowedPaymentMethods = "",
+                        TextButton(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                        )
-                        Spacer(Modifier.height(8.dp))
-                    }
-
-                    aaniConfig?.let { config ->
-                        Button(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                                .height(46.dp),
-                            onClick = { onClickAaniPay(config) },
+                                .padding(vertical = 8.dp)
+                                .height(46.dp)
+                                .background(
+                                    color = animated.value,
+                                    shape = RoundedCornerShape(percent = 15)
+                                ),
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = Color.White,
                             ),
-                            border = BorderStroke(width = 1.dp, Color.Gray),
-                            elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
+                            onClick = {
+                                onMakePayment(
+                                    pan,
+                                    expiry.text.filter { it.isDigit() },
+                                    cvv,
+                                    cardholderName
+                                )
+                            },
+                            enabled = isFormValid,
                             shape = RoundedCornerShape(percent = 15),
                         ) {
-                            Image(painter = painterResource(R.drawable.aani_logo), "")
+                            val title = if (SDKConfig.showOrderAmount) stringResource(
+                                R.string.pay_button_title,
+                                formattedAmount
+                            ) else stringResource(R.string.make_payment)
+                            Text(
+                                text = title,
+                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                            )
                         }
-                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            if (showWallets) {
+                Spacer(Modifier.height(16.dp))
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Column {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            text = stringResource(R.string.payments_wallets_title),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.subtitle2
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        googlePayUiConfig?.let {
+                            GooglePayButton(
+                                onClick = onGooglePay,
+                                radius = 8.dp,
+                                allowedPaymentMethods = it.allowedPaymentMethods,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
+
+                        aaniConfig?.let { config ->
+                            Button(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .height(46.dp),
+                                onClick = { onClickAaniPay(config) },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = Color.White,
+                                ),
+                                border = BorderStroke(width = 1.dp, Color.Gray),
+                                elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
+                                shape = RoundedCornerShape(percent = 15),
+                            ) {
+                                Image(painter = painterResource(R.drawable.aani_logo), "")
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
                 }
             }
         }
-
-        Spacer(Modifier.weight(1f))
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(36.dp)
                 .padding(bottom = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
