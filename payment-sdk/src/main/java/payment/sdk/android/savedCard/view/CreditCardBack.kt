@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.savedCard.view
+package payment.sdk.android.savedCard.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import payment.sdk.android.sdk.R
 
 @Composable
-fun CreditCardBack(
+internal fun CreditCardBack(
     modifier: Modifier
 ) {
     val paymentSdkCardCenterColor = Color(0xFF232527)
