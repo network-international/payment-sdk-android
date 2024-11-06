@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import payment.sdk.android.demo.model.AppCurrency
+import payment.sdk.android.demo.model.AppLanguage
 
 class EnvironmentViewModel(
     private val dataStore: DataStore
@@ -55,7 +56,12 @@ class EnvironmentViewModel(
             dataStore.setSelectedEnvironment(environment)
         }
         dataStore.saveEnvironment(environment)
-        _state.update { it.copy(environments = dataStore.getEnvironments()) }
+        _state.update {
+            it.copy(
+                environments = dataStore.getEnvironments(),
+                selectedEnvironment = dataStore.getSelectedEnvironment()
+            )
+        }
     }
 
     fun onSelectEnvironment(environment: Environment) {
@@ -77,6 +83,12 @@ class EnvironmentViewModel(
 
     fun setCurrency(currency: AppCurrency) {
         dataStore.setCurrency(currency)
+    }
+
+    fun getLanguage() = dataStore.getLanguage()
+
+    fun setLanguage(language: AppLanguage) {
+        dataStore.setLanguage(language)
     }
 
     companion object {

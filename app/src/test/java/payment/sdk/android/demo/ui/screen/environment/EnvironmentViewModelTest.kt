@@ -115,6 +115,7 @@ class EnvironmentViewModelTest {
 
         coVerify { dataStore.setSelectedEnvironment(any()) }
         coVerify { dataStore.saveEnvironment(environment) }
+        coVerify { dataStore.getSelectedEnvironment() }
     }
 
     @Test

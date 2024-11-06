@@ -1,6 +1,6 @@
 package payment.sdk.android.demo.model
 
-enum class AppCurrency(val code: String, val countryName: String) {
+enum class AppCurrency(override val code: String, override val displayValue: String): PickerItem {
     AUD("AUD", "Australian Dollar"),
     BRL("BRL", "Brazilian Real"),
     CAD("CAD", "Canadian Dollar"),

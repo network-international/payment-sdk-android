@@ -1,14 +1,5 @@
 package payment.sdk.android.cardpayment
 
-import payment.sdk.android.sdk.R
-import payment.sdk.android.cardpayment.validation.Luhn
-import payment.sdk.android.cardpayment.validation.InputValidationError
-import payment.sdk.android.cardpayment.widget.NumericMaskInputFilter
-import payment.sdk.android.core.dependency.StringResources
-import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
-import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_CARD_HOLDER
-import payment.sdk.android.cardpayment.widget.DateFormatter
-import payment.sdk.android.core.CardType
 import androidx.annotation.VisibleForTesting
 import com.google.gson.Gson
 import org.json.JSONObject
@@ -16,11 +7,22 @@ import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardFace
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
+import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
-import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
+import payment.sdk.android.cardpayment.validation.InputValidationError
+import payment.sdk.android.cardpayment.validation.InputValidationError.INVALID_CARD_HOLDER
+import payment.sdk.android.cardpayment.validation.Luhn
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.model.PlanFrequency
+import payment.sdk.android.cardpayment.widget.DateFormatter
+import payment.sdk.android.cardpayment.widget.NumericMaskInputFilter
+import payment.sdk.android.core.CardType
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.PaymentResponse
+import payment.sdk.android.core.dependency.StringResources
+import payment.sdk.android.core.interactor.VisaRequest
+import payment.sdk.android.sdk.R
 
 internal class CardPaymentPresenter(
         private val url: String,
@@ -42,6 +44,8 @@ internal class CardPaymentPresenter(
     private lateinit var paymentRef: String
     private lateinit var selfLink: String
     private lateinit var payPageUrl: String
+
+    private var visRequest: VisaRequest? = null
 
     @VisibleForTesting
     internal var supportedCards: Set<CardType> = emptySet()
@@ -254,18 +258,8 @@ internal class CardPaymentPresenter(
                 success = { isEligible, plans ->
                     if (isEligible) {
                         interactions.launchVisaInstalment(
-                            visaPlans = plans,
-                            paymentUrl = paymentUrl,
-                            paymentCookie = paymentCookie,
-                            orderUrl = orderUrl,
-                            payPageUrl = payPageUrl,
-                            newCardDto = NewCardDto(
-                                cardNumber = view.cardNumber.rawTxt,
-                                expiry = DateFormatter.formatExpireDateForApi(view.expireDate.rawTxt),
-                                customerName = view.cardHolder.rawTxt,
-                                cvv = view.cvv.rawTxt
-                            ),
-                            orderAmount = orderAmount
+                            installmentPlans = InstallmentPlan.fromVisaPlans(plans, orderAmount),
+                            cardNumber = view.cardNumber.rawTxt
                         )
                     } else {
                         getPayerIp()
@@ -275,7 +269,6 @@ internal class CardPaymentPresenter(
                     getPayerIp()
                 }
             )
-
         }
     }
 
@@ -287,6 +280,18 @@ internal class CardPaymentPresenter(
             }, error = {
                 doPayment(null)
             })
+    }
+
+    override fun makeVisPayment(installmentPlan: InstallmentPlan) {
+        view.showProgress(true, stringResources.getString(LABEL_SUBMITTING_PAYMENT))
+        if (installmentPlan.frequency != PlanFrequency.PayInFull) {
+            visRequest = VisaRequest(
+                planSelectionIndicator = true,
+                vPlanId = installmentPlan.id,
+                acceptedTAndCVersion = installmentPlan.terms?.version ?: 0
+            )
+        }
+        getPayerIp()
     }
 
     private fun getIpUrl(stringVal: String): String {
@@ -311,6 +316,7 @@ internal class CardPaymentPresenter(
             cvv = view.cvv.rawTxt,
             cardHolder = view.cardHolder.rawTxt,
             payerIp = payerIp,
+            visRequest = visRequest,
             success = { paymentState, paymentResponse ->
                 view.showProgress(false)
                 handleCardPaymentResponse(paymentState, response = paymentResponse)
@@ -455,7 +461,7 @@ internal class CardPaymentPresenter(
         @VisibleForTesting
         internal val LOGO_JCB_RESOURCE: Int = R.drawable.ic_logo_jcb
         @VisibleForTesting
-        internal val LOGO_DINNERS_CLUB_RESOURCE: Int = R.drawable.ic_logo_dinners_clup
+        internal val LOGO_DINNERS_CLUB_RESOURCE: Int = R.drawable.ic_logo_dinners_club
         @VisibleForTesting
         internal val LOGO_DISCOVER_RESOURCE: Int = R.drawable.ic_logo_discover
 

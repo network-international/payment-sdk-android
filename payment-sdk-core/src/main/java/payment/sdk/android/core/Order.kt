@@ -13,11 +13,14 @@ class Order {
     var outletId: String? = null
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
+    var language: String = "en"
 
     @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
 
     var savedCard: SavedCard? = null
+
+    var formattedAmount: String? = null
 
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
@@ -69,6 +72,12 @@ class Order {
         @SerializedName(value = "self")
         var selfLink: Href? = null
 
+        @SerializedName(value = "payment:google_pay")
+        var googlePayLink: Href? = null
+
+        @SerializedName(value = "config:google_pay")
+        var googlePayConfigLink: Href? = null
+
         @SerializedName(value = "payment:partial-auth-accept")
         var partialAuthAccept: Href? = null
 
@@ -88,6 +97,7 @@ class Order {
     class PaymentMethods {
         var card: List<String>? = null
         var wallet: Array<String>? = null
+        var apm: Array<String>? = null
     }
 
     @Keep
@@ -106,3 +116,17 @@ class Order {
         }
     }
 }
+
+fun Order.getAuthorizationUrl() = links?.paymentAuthorizationUrl?.href
+
+fun Order.getPayPageUrl() = links?.paymentUrl?.href
+
+fun Order.getGooglePayUrl() = embedded?.payment?.firstOrNull()?.links?.googlePayLink?.href
+
+fun Order.getGooglePayConfigUrl() = embedded?.payment?.firstOrNull()?.links?.googlePayConfigLink?.href
+
+fun Order.getCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.card?.href
+
+fun Order.getSelfUrl() = embedded?.payment?.firstOrNull()?.links?.selfLink?.href
+
+fun Order.getAaniPayLink() = embedded?.payment?.firstOrNull()?.links?.aaniPayment?.href
