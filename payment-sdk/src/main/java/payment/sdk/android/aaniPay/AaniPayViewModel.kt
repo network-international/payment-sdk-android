@@ -17,19 +17,13 @@ import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.AaniPayRequest
 import payment.sdk.android.core.MobileNumber
-import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.AaniPayApiInterator
 import payment.sdk.android.core.interactor.AaniPayApiResponse
 import payment.sdk.android.core.interactor.AaniPoolingApiInteractor
-import payment.sdk.android.core.interactor.AuthApiInteractor
-import payment.sdk.android.core.interactor.AuthResponse
-import payment.sdk.android.core.interactor.GetPayerIpInteractor
 
 internal class AaniPayViewModel(
-    private val authApiInteractor: AuthApiInteractor,
     private val aaniPayApiInterator: AaniPayApiInterator,
-    private val getPayerIpInteractor: GetPayerIpInteractor,
     private val aaniPoolingApiInteractor: AaniPoolingApiInteractor,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
@@ -38,37 +32,15 @@ internal class AaniPayViewModel(
 
     val state: StateFlow<AaniPayVMState> = _state.asStateFlow()
 
-    fun authorize(authUrl: String, paymentUrl: String) {
-        val authCode = paymentUrl.getQueryParameter("code")
-        if (authCode == null) {
-            _state.update { AaniPayVMState.Error("auth code not found") }
-            return
-        }
-        _state.update { AaniPayVMState.Loading(LoadingMessage.AUTH) }
-        viewModelScope.launch(dispatcher) {
-            val authResponse =
-                authApiInteractor.authenticate(authUrl = authUrl, authCode = authCode)
-            when (authResponse) {
-                is AuthResponse.Error -> _state.update {
-                    AaniPayVMState.Error(authResponse.error.message.orEmpty())
-                }
-
-                is AuthResponse.Success -> _state.update {
-                    AaniPayVMState.Authorized(accessToken = authResponse.getAccessToken())
-                }
-            }
-        }
-    }
-
     fun onSubmit(
         args: AaniPayLauncher.Config,
         accessToken: String,
         alias: AaniIDType,
-        value: String
+        value: String,
+        payerIp: String
     ) {
         _state.update { AaniPayVMState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
-            val payerIp = getPayerIpInteractor.getPayerIp(args.payPageUrl).orEmpty()
             val response = aaniPayApiInterator.makePayment(
                 args.anniPaymentLink,
                 accessToken,
@@ -148,10 +120,8 @@ internal class AaniPayViewModel(
                 val httpClient = CoroutinesGatewayHttpClient()
 
                 return AaniPayViewModel(
-                    AuthApiInteractor(httpClient),
-                    AaniPayApiInterator(httpClient),
-                    GetPayerIpInteractor(httpClient),
-                    AaniPoolingApiInteractor(httpClient)
+                    aaniPayApiInterator = AaniPayApiInterator(httpClient),
+                    aaniPoolingApiInteractor = AaniPoolingApiInteractor(httpClient)
                 ) as T
             }
         }

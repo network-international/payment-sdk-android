@@ -83,13 +83,14 @@ class AaniPayActivity : AppCompatActivity() {
                     modifier = Modifier.padding(contentPadding)
                 ) {
                     when (state) {
-                        is AaniPayVMState.Authorized -> {
+                        is AaniPayVMState.Init -> {
                             AaniPayScreen { alias, value ->
                                 viewModel.onSubmit(
                                     args = args,
                                     alias = alias,
                                     value = value,
-                                    accessToken = (state as AaniPayVMState.Authorized).accessToken
+                                    accessToken = args.accessToken,
+                                    payerIp = args.payerIp
                                 )
                             }
                         }
@@ -98,7 +99,6 @@ class AaniPayActivity : AppCompatActivity() {
                             finishWithData(AaniPayLauncher.Result.Failed((state as AaniPayVMState.Error).message))
                         }
 
-                        AaniPayVMState.Init -> viewModel.authorize(args.authUrl, args.payPageUrl)
                         is AaniPayVMState.Pooling -> {
                             AaniPayTimerScreen(
                                 (state as AaniPayVMState.Pooling).amount,

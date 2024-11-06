@@ -13,13 +13,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.partialAuth.model.PartialAuthActivityArgs
+import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.savedCard.view.SavedCardPaymentView
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
-import payment.sdk.android.cardpayment.visaInstalments.model.VisaInstalmentActivityArgs
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
+import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
@@ -65,7 +66,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     cvv = (state as SavedCardPaymentState.Authorized).cvv,
                     orderUrl = (state as SavedCardPaymentState.Authorized).orderUrl,
                     paymentCookie = (state as SavedCardPaymentState.Authorized).paymentCookie,
-                    payPageUrl = args.paymentUrl
+                    payPageUrl = args.paymentUrl,
+                    orderAmount = OrderAmount(args.amount, args.currency)
                 )
 
                 is SavedCardPaymentState.Failed ->
@@ -78,7 +80,10 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     cvv = args.cvv,
                     cardToken = args.savedCard.cardToken,
                     selfLink = args.selfUrl,
-                    matchedCandidates = args.matchedCandidates
+                    matchedCandidates = args.matchedCandidates,
+                    savedCard = args.savedCard,
+                    savedCardUrl = args.savedCardUrl,
+                    orderAmount = OrderAmount(args.amount, args.currency)
                 )
 
                 is SavedCardPaymentState.CaptureCvv -> {
@@ -95,7 +100,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                 orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
                                 paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie,
                                 payPageUrl = args.paymentUrl,
-                                visaPlans = (state as SavedCardPaymentState.CaptureCvv).visaPlans
+                                visaPlans = (state as SavedCardPaymentState.CaptureCvv).visaPlans,
+                                orderAmount = OrderAmount(args.amount, args.currency)
                             )
                         }, onNavigationUp = {
                             if (SDKConfig.showCancelAlert) {
@@ -156,22 +162,17 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 SavedCardPaymentState.Purchased -> finishWithData(CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED))
                 is SavedCardPaymentState.ShowVisaPlans -> {
                     val response = (state as SavedCardPaymentState.ShowVisaPlans)
-                    startActivityForResult(
-                        VisaInstalmentActivityArgs.getArgs(
-                            paymentCookie = response.paymentCookie,
-                            savedCardUrl = args.savedCardUrl,
-                            visaPlans = response.visaPlans,
-                            paymentUrl = null,
-                            newCard = null,
-                            payPageUrl = args.paymentUrl,
-                            savedCard = args.savedCard,
-                            orderUrl = response.orderUrl,
-                            orderAmount = OrderAmount(args.amount, args.currency),
-                            cvv = response.cvv,
-                            accessToken = response.accessToken
-                        ).toIntent(this),
-                        VISA_INSTALMENT_SELECTION_KEY
-                    )
+                    VisaInstalmentsView(
+                        instalmentPlans = InstallmentPlan.fromVisaPlans(response.visaPlans, response.orderAmount),
+                        cardNumber = response.cardNumber
+                    ) { plan ->
+                        viewModel.initiateVisPayment(
+                            plan,
+                            response.savedCardPaymentRequest,
+                            response.orderUrl,
+                            response.paymentCookie
+                        )
+                    }
                 }
 
                 is SavedCardPaymentState.InitiatePartialAuth -> {

@@ -24,6 +24,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.whenever
 import payment.sdk.android.cardpayment.CardPaymentContract.StatefulInput
 import payment.sdk.android.cardpayment.CardPaymentPresenter.Companion.STATUS_PAYMENT_AUTHORISED
@@ -603,9 +604,21 @@ class CardPaymentPresenterTest {
         ).then {
             it.getArgument<((String, String, Set<CardType>, OrderAmount, String, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", "", JSONObject())
         }
-        whenever(mockPaymentApiInteractor.doPayment(
-                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyObject(), anyObject())).then {
-            it.getArgument<((String, JSONObject) -> Unit)>(7)(state, JSONObject())
+        whenever(
+            mockPaymentApiInteractor.doPayment(
+                paymentUrl = anyString(),
+                paymentCookie = anyString(),
+                pan = anyString(),
+                expiry = anyString(),
+                cvv = anyString(),
+                cardHolder = anyString(),
+                payerIp = anyString(),
+                visRequest = anyOrNull(),
+                success = anyObject(),
+                error = anyObject()
+            )
+        ).then {
+            it.getArgument<((String, JSONObject) -> Unit)>(8)(state, JSONObject())
         }
 
         sut.onHandlePaymentAuthorization(listOf("payment-token: $fixtCookie"), fixture.create(String::class.java))

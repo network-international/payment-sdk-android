@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
-import payment.sdk.android.core.Order
 import kotlin.jvm.Throws
 
 class AaniPayLauncher(
@@ -49,8 +48,8 @@ class AaniPayLauncher(
         val amount: Double,
         val anniPaymentLink: String,
         val currencyCode: String,
-        val authUrl: String,
-        val payPageUrl: String,
+        val accessToken: String,
+        val payerIp: String,
     ) : Parcelable {
 
         private fun toBundle() = bundleOf(EXTRA_ARGS to this)
@@ -72,25 +71,6 @@ class AaniPayLauncher(
             fun fromIntent(intent: Intent): Config? {
                 val inputIntent = intent.getBundleExtra(EXTRA_INTENT)
                 return inputIntent?.getParcelable(EXTRA_ARGS)
-            }
-
-            @Throws(IllegalArgumentException::class)
-            fun create(
-                order: Order,
-            ): Config {
-                return Config(
-                    amount = requireNotNull(order.amount?.value) {
-                        "Order Amount Not found"
-                    },
-                    currencyCode = requireNotNull(order.amount?.currencyCode) {
-                        "Currency Code not found"
-                    },
-                    anniPaymentLink = requireNotNull(order.embedded?.payment?.first()?.links?.aaniPayment?.href) {
-                        "Aani Payment Link not found"
-                    },
-                    payPageUrl = requireNotNull(order.links?.paymentUrl?.href) { "Payment URL not found" },
-                    authUrl = requireNotNull(order.links?.paymentAuthorizationUrl?.href) { "Auth URL not found " },
-                )
             }
         }
     }

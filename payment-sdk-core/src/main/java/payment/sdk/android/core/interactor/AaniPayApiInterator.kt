@@ -9,6 +9,8 @@ import payment.sdk.android.core.api.SDKHttpResponse
 class AaniPayApiInterator(private val httpClient: HttpClient) {
 
     suspend fun makePayment(url: String, accessToken: String, request: Body): AaniPayApiResponse {
+        val b = request.encode()
+        println(b)
         val response = httpClient.post(
             url, mapOf(
                 "Content-Type" to "application/vnd.ni-payment.v2+json",

@@ -24,6 +24,15 @@ class CardPaymentInteractorTest {
 
     private lateinit var sut: CardPaymentInteractor
 
+    private val makeCardPaymentRequest = MakeCardPaymentRequest(
+        "",
+        "",
+        pan = "4301099393939939",
+        cvv = "123",
+        cardHolder = "test",
+        expiry = "",
+    )
+
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -44,14 +53,7 @@ class CardPaymentInteractorTest {
             body = SavedCardPaymentApiInteractorTest.paymentResponse.trimIndent()
         )
 
-        val response = sut.makeCardPayment(
-            paymentCookie = "cookie",
-            paymentUrl = "url",
-            pan = "4301099393939939",
-            cvv = "123",
-            cardHolder = "test",
-            expiry = "11/34",
-        )
+        val response = sut.makeCardPayment(makeCardPaymentRequest)
 
         Assert.assertTrue(response is CardPaymentResponse.Success)
     }
@@ -62,14 +64,7 @@ class CardPaymentInteractorTest {
             httpClient.put(any(), any(), any())
         } returns SDKHttpResponse.Failed(Exception("Network Error"))
 
-        val response = sut.makeCardPayment(
-            "",
-            "",
-            pan = "4301099393939939",
-            cvv = "123",
-            cardHolder = "test",
-            expiry = "",
-        )
+        val response = sut.makeCardPayment(makeCardPaymentRequest)
 
         Assert.assertTrue(response is CardPaymentResponse.Error)
     }

@@ -11,9 +11,19 @@ class VisaInstallmentPlanInteractor(
 ) {
     suspend fun getPlans(
         selfUrl: String,
-        cardToken: String,
+        cardToken: String? = null,
+        cardNumber: String? = null,
         token: String
     ): VisaPlansResponse {
+        val bodyMap = mutableMapOf<String, String>()
+        cardToken?.let {
+            bodyMap.put("cardToken", cardToken)
+        }
+
+        cardNumber?.let {
+            bodyMap.put("pan", cardNumber)
+        }
+
         val response = httpClient.post(
             url = "$selfUrl/vis/eligibility-check",
             headers = mapOf(
@@ -21,9 +31,7 @@ class VisaInstallmentPlanInteractor(
                 HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
                 HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json"
             ),
-            body = Body.Json(
-                mapOf("cardToken" to cardToken)
-            )
+            body = Body.Json(bodyMap)
         )
         return when (response) {
             is SDKHttpResponse.Failed -> VisaPlansResponse.Error(response.error)

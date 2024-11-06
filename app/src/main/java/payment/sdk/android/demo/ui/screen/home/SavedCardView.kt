@@ -113,7 +113,7 @@ private fun getCardImage(scheme: String): Painter {
             "MASTERCARD" -> R.drawable.ic_logo_mastercard
             "VISA" -> R.drawable.ic_logo_visa
             "AMERICAN_EXPRESS" -> R.drawable.ic_logo_amex
-            "DINERS_CLUB_INTERNATIONAL" -> R.drawable.ic_logo_dinners_clup
+            "DINERS_CLUB_INTERNATIONAL" -> R.drawable.ic_logo_dinners_club
             "JCB" -> R.drawable.ic_logo_jcb
             "DISCOVER" -> R.drawable.ic_logo_discover
             else -> R.drawable.ic_card_back_chip

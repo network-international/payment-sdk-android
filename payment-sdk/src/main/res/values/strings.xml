@@ -10,6 +10,8 @@
 
     <string name="expires_end_label" translatable="false">EXPIRES\nEND</string>
 
+    <string name="payments_wallets_title">OR PAY USING</string>
+
     <!-- Title name in payment page -->
     <string name="make_payment">Make Payment</string>
 
@@ -83,7 +85,7 @@
     <string name="confirm_cancel_alert">Yes, Cancel</string>
     <string name="button_yes">Yes</string>
     <string name="title_activity_visa_instalments">Visa Instalments</string>
-    
+
     <string name="visa_instalment_eligible">Eligible for Installments</string>
     <string name="visa_monthly_instalment">Monthly Installment: %1$s</string>
     <string name="visa_bi_monthly_instalment">Bi-Monthly Installment: %1$s</string>

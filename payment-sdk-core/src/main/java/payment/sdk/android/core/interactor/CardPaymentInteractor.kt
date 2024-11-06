@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import androidx.annotation.Keep
 import com.google.gson.Gson
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.api.Body
@@ -9,38 +10,31 @@ import payment.sdk.android.core.api.SDKHttpResponse
 class CardPaymentInteractor(
     private val httpClient: HttpClient
 ) {
-    suspend fun makeCardPayment(
-        paymentCookie: String,
-        paymentUrl: String,
-        pan: String,
-        cvv: String,
-        cardHolder: String,
-        expiry: String,
-        payerIp: String? = null,
-        visaRequest: VisaRequest? = null
-    ): CardPaymentResponse {
+    suspend fun makeCardPayment(request: MakeCardPaymentRequest): CardPaymentResponse {
         val bodyMap = mutableMapOf<String, Any>(
-            PAYMENT_FIELD_PAN to pan,
-            PAYMENT_FIELD_EXPIRY to expiry,
-            PAYMENT_FIELD_CVV to cvv,
-            PAYMENT_FIELD_CARDHOLDER to cardHolder
+            PAYMENT_FIELD_PAN to request.pan,
+            PAYMENT_FIELD_EXPIRY to request.expiry,
+            PAYMENT_FIELD_CVV to request.cvv,
+            PAYMENT_FIELD_CARDHOLDER to request.cardHolder
         )
-        visaRequest?.let {
-            bodyMap.put(PAYMENT_FIELD_VISA, mapOf(
-                PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
-                PAYMENT_FIELD_VISA_PLAN_ID to it.vPlanId,
-                PAYMENT_FIELD_VISA_TERMS to it.acceptedTAndCVersion
-            ))
+        request.visaRequest?.let {
+            bodyMap.put(
+                PAYMENT_FIELD_VISA, mapOf(
+                    PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
+                    PAYMENT_FIELD_VISA_PLAN_ID to it.vPlanId,
+                    PAYMENT_FIELD_VISA_TERMS to it.acceptedTAndCVersion
+                )
+            )
         }
-        payerIp?.let {
+        request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
         val response = httpClient.put(
-            url = paymentUrl,
+            url = request.paymentUrl,
             headers = mapOf(
                 HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                HEADER_COOKIE to paymentCookie
+                HEADER_COOKIE to request.paymentCookie
             ),
             body = Body.Json(bodyMap)
         )
@@ -69,8 +63,22 @@ class CardPaymentInteractor(
     }
 }
 
+data class MakeCardPaymentRequest(
+    val paymentCookie: String,
+    val paymentUrl: String,
+    val pan: String,
+    val cvv: String,
+    val cardHolder: String,
+    val expiry: String,
+    val payerIp: String? = null,
+    val visaRequest: VisaRequest? = null
+)
+
+@Keep
 sealed class CardPaymentResponse {
+    @Keep
     data class Success(val paymentResponse: PaymentResponse) : CardPaymentResponse()
 
+    @Keep
     data class Error(val error: Exception) : CardPaymentResponse()
 }

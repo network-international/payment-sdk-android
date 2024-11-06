@@ -2,10 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
         <activity
-            android:name="payment.sdk.android.cardpayment.visaInstalments.VisaInstallmentsActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/SdkTheme.ThreeDSecure" />
+            android:name="payment.sdk.android.payments.PaymentsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name="payment.sdk.android.visaInstalments.VisaInstallmentsActivity"
+            android:theme="@style/SdkTheme.ThreeDSecure"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
             android:screenOrientation="behind"
@@ -20,7 +34,7 @@
         <activity
             android:name="payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/SdkTheme.ThreeDSecure"/>
+            android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.aaniPay.AaniPayActivity"
             android:windowSoftInputMode="adjustResize"
@@ -37,7 +51,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="payment.sdk.android.cardpayment.partialAuth.PartialAuthActivity"
+            android:name="payment.sdk.android.partialAuth.PartialAuthActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"
             android:windowSoftInputMode="adjustResize" />
     </application>

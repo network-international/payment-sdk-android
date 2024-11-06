@@ -5,6 +5,7 @@ import payment.sdk.android.core.OrderAmount
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.VisaPlans
+import payment.sdk.android.core.interactor.VisaRequest
 
 interface PaymentApiInteractor {
 
@@ -28,6 +29,7 @@ interface PaymentApiInteractor {
             cvv: String,
             cardHolder: String,
             payerIp: String?,
+            visRequest: VisaRequest?,
             success: (state: String, response: JSONObject) -> Unit,
             error: (Exception) -> Unit)
 

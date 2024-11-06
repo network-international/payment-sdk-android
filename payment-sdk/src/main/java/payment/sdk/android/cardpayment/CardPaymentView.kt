@@ -68,6 +68,7 @@ internal class CardPaymentView constructor(
             }
         }
     }
+
     private val cardHolderEditContainer: View  by lazy {
         root.findViewById<View>(R.id.edit_card_holder_container)
     }
