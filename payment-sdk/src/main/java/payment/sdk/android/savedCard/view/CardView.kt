@@ -1,4 +1,4 @@
-package payment.sdk.android.cardpayment.savedCard.view
+package payment.sdk.android.savedCard.view
 
 import android.util.Log
 import android.view.View
@@ -39,7 +39,7 @@ import payment.sdk.android.core.CardType
 import payment.sdk.android.sdk.R
 
 @Composable
-fun CreditCardView(
+internal fun CreditCardView(
     modifier: Modifier = Modifier,
     cardNumber: String,
     cardScheme: CardType?,

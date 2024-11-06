@@ -1,12 +1,13 @@
-package payment.sdk.android.payments
+package payment.sdk.android.savedCard
 
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
+import payment.sdk.android.payments.PaymentsResult
 
-internal class PaymentsLauncherContract :
-    ActivityResultContract<PaymentsRequest, PaymentsResult>() {
-    override fun createIntent(context: Context, input: PaymentsRequest): Intent {
+internal class SavedCardPaymentLauncherContract :
+    ActivityResultContract<SavedCardPaymentRequest, PaymentsResult>() {
+    override fun createIntent(context: Context, input: SavedCardPaymentRequest): Intent {
         return input.toIntent(context)
     }
 
@@ -17,6 +18,6 @@ internal class PaymentsLauncherContract :
     }
 
     internal companion object {
-        internal const val EXTRA_RESULT = "card_payments_extra_result"
+        internal const val EXTRA_RESULT = "saved_card_payments_extra_result"
     }
 }

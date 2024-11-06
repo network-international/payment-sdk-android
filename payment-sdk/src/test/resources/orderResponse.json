@@ -23,6 +23,22 @@
       "href": "http://config-service/config/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/configs/merchant-brand"
     }
   },
+  "visSavedCardMatchedCandidates": {
+    "matchedCandidates": [
+      {
+        "cardToken": "MTcxYzU4N2MtMmE2ZS00YjI1LTg0MmEtY2U2NTIwODJiODlm",
+        "eligibilityStatus": "MATCHED"
+      }
+    ]
+  },
+  "savedCard": {
+    "maskedPan": "476108******2022",
+    "expiry": "2027-12",
+    "cardholderName": "Mr Something",
+    "scheme": "VISA",
+    "cardToken": "MTcxYzU4N2MtMmE2ZS00YjI1LTg0MmEtY2U2NTIwODJiODlm",
+    "recaptureCsc": true
+  },
   "type": "SINGLE",
   "merchantDefinedData": {},
   "action": "AUTH",
@@ -68,6 +84,9 @@
           },
           "payment:samsung_pay": {
             "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/b4a6e21a-6168-4e16-bd93-995625cab406/orders/d4877b25-5e39-4458-93e0-900620fcb3da/payments/b82b7930-d6bb-46cb-a00d-80014249af2c/samsung-pay"
+          },
+          "payment:saved-card": {
+            "href": "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/97333dc8-c3af-4098-8538-5eab87db99b8/orders/ed80ddc5-046a-4d1e-8bcc-d195c587ab9b/payments/9ad283fe-2779-4d54-9e9b-1c29068dcfa0/saved-card"
           },
           "curies": [
             {

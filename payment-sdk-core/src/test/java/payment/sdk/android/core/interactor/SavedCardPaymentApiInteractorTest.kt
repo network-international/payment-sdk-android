@@ -26,7 +26,7 @@ class SavedCardPaymentApiInteractorTest {
 
     private lateinit var sut: SavedCardPaymentApiInteractor
 
-    private val savedCardPaymentRequest = SavedCardPaymentRequest(
+    private val savedCardPaymentRequest = SavedCardPaymentApiRequest(
         "",
         "",
         SavedCard(

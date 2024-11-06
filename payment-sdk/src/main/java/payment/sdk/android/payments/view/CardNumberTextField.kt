@@ -34,7 +34,7 @@ import payment.sdk.android.payments.CreditCardVisualTransformation
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.card.SpacingPatterns
-import payment.sdk.android.cardpayment.savedCard.view.getCardImage
+import payment.sdk.android.savedCard.view.getCardImage
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
 import payment.sdk.android.cardpayment.validation.Luhn
 import payment.sdk.android.core.CardType
