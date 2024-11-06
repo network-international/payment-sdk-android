@@ -3,6 +3,7 @@ package payment.sdk.android.cardpayment
 import android.content.Intent
 import android.os.Parcel
 import android.os.Parcelable
+import payment.sdk.android.payments.PaymentsLauncher
 import java.lang.IllegalStateException
 
 class CardPaymentData constructor(
@@ -36,17 +37,30 @@ class CardPaymentData constructor(
 
         @JvmStatic
         fun getFromIntent(intent: Intent): CardPaymentData =
-                intent.getParcelableExtra(INTENT_DATA_KEY)
-                        ?: throw IllegalStateException("Payment result not found in intent")
+            intent.getParcelableExtra(INTENT_DATA_KEY)
+                ?: throw IllegalStateException("Payment result not found in intent")
 
         @JvmField
-        val CREATOR: Parcelable.Creator<CardPaymentData> = object : Parcelable.Creator<CardPaymentData> {
-            override fun createFromParcel(parcel: Parcel): CardPaymentData {
-                return CardPaymentData(parcel)
+        val CREATOR: Parcelable.Creator<CardPaymentData> =
+            object : Parcelable.Creator<CardPaymentData> {
+                override fun createFromParcel(parcel: Parcel): CardPaymentData {
+                    return CardPaymentData(parcel)
+                }
+
+                override fun newArray(size: Int): Array<CardPaymentData?> {
+                    return arrayOfNulls(size)
+                }
             }
 
-            override fun newArray(size: Int): Array<CardPaymentData?> {
-                return arrayOfNulls(size)
+        fun getCardPaymentsState(cardPaymentData: CardPaymentData): PaymentsLauncher.Result {
+            return when (cardPaymentData.code) {
+                STATUS_PAYMENT_AUTHORIZED, STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> PaymentsLauncher.Result.Success
+                STATUS_POST_AUTH_REVIEW -> PaymentsLauncher.Result.PostAuthReview
+                STATUS_PARTIAL_AUTH_DECLINED -> PaymentsLauncher.Result.PartialAuthDeclined
+                STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsLauncher.Result.PartialAuthDeclineFailed
+                STATUS_PARTIALLY_AUTHORISED -> PaymentsLauncher.Result.PartiallyAuthorised
+                STATUS_PAYMENT_FAILED -> PaymentsLauncher.Result.Failed(cardPaymentData.reason.orEmpty())
+                else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
             }
         }
     }

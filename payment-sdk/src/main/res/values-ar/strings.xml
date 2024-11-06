@@ -18,7 +18,7 @@
 
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->
-    <string name="card_number_label_title">رقم بطاقة الدفعإلغ</string>
+    <string name="card_number_label_title">رقم بطاقة الدفع</string>
 
     <!-- The title of the label shown above the card expiry date text field. The field used to enter
      the Credit or Debit card expiry date. -->
@@ -38,6 +38,8 @@
     <!-- The title of the label shown above the cardholder text field. The field used to enter the
     Credit or Debit e-card cardholder name. -->
     <string name="card_cardholder_label_title">إسم صاحب البطاقة</string>
+
+    <string name="payments_wallets_title">أو الدفع باستخدام</string>
 
     <!-- Error Message. The creditcard number is not valid. Please check the number on the card. -->
     <string name="error_message_pan_invalid">رقم بطاقة الائتمان غير صالح. يرجى التحقق من الرقم الموجود على البطاقة</string>

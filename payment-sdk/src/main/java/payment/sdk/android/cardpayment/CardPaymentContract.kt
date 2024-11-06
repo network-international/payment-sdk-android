@@ -2,9 +2,8 @@ package payment.sdk.android.cardpayment
 
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
-import payment.sdk.android.cardpayment.visaInstalments.model.NewCardDto
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.core.OrderAmount
-import payment.sdk.android.core.VisaPlans
 
 
 interface CardPaymentContract {
@@ -86,6 +85,8 @@ interface CardPaymentContract {
 
         fun onPayClicked()
 
+        fun makeVisPayment(installmentPlan: InstallmentPlan)
+
         fun onHandle3DSecurePaymentSate(state: String)
 
         fun getOrderInfo(): OrderAmount
@@ -113,13 +114,8 @@ interface CardPaymentContract {
         fun onPaymentPostAuthReview()
 
         fun launchVisaInstalment(
-            visaPlans: VisaPlans,
-            paymentCookie: String,
-            paymentUrl: String,
-            payPageUrl: String,
-            orderUrl: String,
-            newCardDto: NewCardDto,
-            orderAmount: OrderAmount
+            installmentPlans: List<InstallmentPlan>,
+            cardNumber: String
         )
 
         fun onPartialAuth(partialAuthIntent: PartialAuthIntent)

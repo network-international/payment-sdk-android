@@ -45,9 +45,9 @@ class VisaInstallmentPlanInteractorTest {
         )
 
         val response = sut.getPlans(
-            "",
-            "",
-            ""
+            selfUrl = "",
+            cardNumber = "",
+            token = ""
         )
 
         Assert.assertTrue(response is VisaPlansResponse.Success)
@@ -60,9 +60,9 @@ class VisaInstallmentPlanInteractorTest {
         } returns SDKHttpResponse.Failed(Exception("Network Error"))
 
         val response = sut.getPlans(
-            "",
-            "",
-            ""
+            selfUrl = "",
+            cardNumber = "",
+            token = ""
         )
 
         Assert.assertTrue(response is VisaPlansResponse.Error)

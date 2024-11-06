@@ -8,6 +8,7 @@ import payment.sdk.android.demo.model.Product
 import com.google.gson.Gson
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
+import payment.sdk.android.demo.model.AppLanguage
 
 class DataStoreImpl(private val context: Context) : DataStore {
     override fun saveEnvironment(environment: Environment) {
@@ -109,6 +110,15 @@ class DataStoreImpl(private val context: Context) : DataStore {
         context.getPreferences().edit().putString(KEY_CURRENCY, currency.code).apply()
     }
 
+    override fun setLanguage(language: AppLanguage) {
+        context.getPreferences().edit().putString(KEY_LANGUAGE, language.code).apply()
+    }
+
+    override fun getLanguage(): AppLanguage {
+        val currency = context.getPreferences().getString(KEY_LANGUAGE, "")
+        return AppLanguage.entries.firstOrNull { it.code == currency } ?: AppLanguage.ENGLISH
+    }
+
     override fun saveCard(savedCard: SavedCard) {
         val savedCards = getSavedCards().toMutableList()
         if (savedCards.firstOrNull { it.cardToken == savedCard.cardToken } == null) {
@@ -120,6 +130,7 @@ class DataStoreImpl(private val context: Context) : DataStore {
 
     companion object {
         const val KEY_CURRENCY = "currency"
+        const val KEY_LANGUAGE = "language"
         const val KEY_SAVED_CARDS = "saved_cards"
         const val KEY_SAVED_CARD = "saved_card"
         const val KEY_ORDER_ACTION = "order_action"

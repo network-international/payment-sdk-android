@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import payment.sdk.android.demo.MainViewModelState
+import payment.sdk.android.demo.MainViewModelUiState
 import payment.sdk.android.demo.MainViewModelStateType
 import payment.sdk.android.demo.getAlertMessage
 import payment.sdk.android.demo.isTablet
@@ -33,7 +33,7 @@ import payment.sdk.android.core.SavedCard
 
 @Composable
 fun HomeScreen(
-    state: MainViewModelState,
+    state: MainViewModelUiState,
     onSelectProduct: (Product) -> Unit,
     onAddProduct: (Product) -> Unit,
     onClickPayByCard: () -> Unit,
@@ -45,7 +45,6 @@ fun HomeScreen(
     onDeleteSavedCard: (SavedCard) -> Unit,
     onPaySavedCard: (SavedCard) -> Unit,
     onRefresh: () -> Unit,
-    onClickAaniPay: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(LocalLifecycleOwner.current) {
@@ -109,7 +108,6 @@ fun HomeScreen(
                         onSelectCard = onSelectSavedCard,
                         onDeleteSavedCard = onDeleteSavedCard,
                         onPaySavedCard = onPaySavedCard,
-                        onClickAaniPay = onClickAaniPay
                     )
                 }
 
@@ -123,7 +121,8 @@ fun HomeScreen(
                     MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED,
                     MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED,
                     MainViewModelStateType.PAYMENT_CANCELLED,
-                    MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED -> {
+                    MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED,
+                    MainViewModelStateType.AUTHORIZED -> {
                         val (title, message) = state.state.getAlertMessage(state.message)
                         Alert(
                             onConfirmation = closeDialog,

@@ -10,13 +10,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
-import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -28,7 +30,6 @@ import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
-import java.util.Locale
 
 @Keep
 class MainViewModel(
@@ -39,14 +40,18 @@ class MainViewModel(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
-    private var _state: MutableStateFlow<MainViewModelState> =
-        MutableStateFlow(MainViewModelState())
+    private var _uiState: MutableStateFlow<MainViewModelUiState> =
+        MutableStateFlow(MainViewModelUiState())
 
-    val state: StateFlow<MainViewModelState> = _state.asStateFlow()
+    val uiState: StateFlow<MainViewModelUiState> = _uiState.asStateFlow()
+
+    private var _effect = MutableSharedFlow<MainViewModelEffect>()
+
+    val effect = _effect.asSharedFlow()
 
     init {
-        _state.update {
-            MainViewModelState(
+        _uiState.update {
+            MainViewModelUiState(
                 state = MainViewModelStateType.INIT,
                 products = dataStore.getProducts(),
                 selectedProducts = listOf(),
@@ -62,7 +67,7 @@ class MainViewModel(
             override fun onReady(supportedPaymentTypes: List<PaymentClient.PaymentType>) {
                 supportedPaymentTypes.forEach { type ->
                     if (PaymentClient.PaymentType.SAMSUNG_PAY == type) {
-                        _state.update {
+                        _uiState.update {
                             it.copy(isSamsungPayAvailable = true)
                         }
                     }
@@ -75,10 +80,10 @@ class MainViewModel(
         return OrderRequest(
             action = dataStore.getOrderAction(),
             amount = PaymentOrderAmount(
-                value = state.value.total,
+                value = uiState.value.total,
                 currencyCode = dataStore.getCurrency().code
             ),
-            language = Locale.getDefault().language,
+            language = dataStore.getLanguage().code,
             merchantAttributes = dataStore.getMerchantAttributes()
                 .filter { it.isActive }
                 .associate { it.key to it.value },
@@ -86,42 +91,9 @@ class MainViewModel(
         )
     }
 
-    fun onCardPaymentResponse(data: CardPaymentData) {
-        when (data.code) {
-            CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
-            CardPaymentData.STATUS_PAYMENT_PURCHASED,
-            CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
-                saveCardFromOrder(state.value.orderReference)
-            }
-
-            CardPaymentData.STATUS_PAYMENT_FAILED, CardPaymentData.STATUS_GENERIC_ERROR ->
-                _state.update {
-                    it.copy(state = MainViewModelStateType.ERROR, message = data.reason.orEmpty())
-                }
-
-            CardPaymentData.STATUS_POST_AUTH_REVIEW -> _state.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
-            }
-
-            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINED -> _state.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
-            }
-
-            CardPaymentData.STATUS_PARTIAL_AUTH_DECLINE_FAILED -> _state.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
-            }
-
-            CardPaymentData.STATUS_PARTIALLY_AUTHORISED -> _state.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
-            }
-
-            else -> _state.update { it.copy(state = MainViewModelStateType.PAYMENT_FAILED) }
-        }
-    }
-
     private fun getEnvironment(): Environment? {
         return dataStore.getSelectedEnvironment() ?: run {
-            _state.update {
+            _uiState.update {
                 it.copy(state = MainViewModelStateType.ERROR, message = "No environment selected")
             }
             null
@@ -129,7 +101,7 @@ class MainViewModel(
     }
 
     private fun saveCardFromOrder(orderReference: String?) {
-        _state.update {
+        _uiState.update {
             it.copy(state = MainViewModelStateType.LOADING, message = "Fetching Order...")
         }
         getEnvironment()?.let { environment ->
@@ -143,7 +115,7 @@ class MainViewModel(
                         dataStore.saveCard(savedCard)
                     }
                 }
-                _state.update {
+                _uiState.update {
                     it.copy(
                         state = MainViewModelStateType.PAYMENT_SUCCESS,
                         message = "Payment Successful",
@@ -156,30 +128,30 @@ class MainViewModel(
     }
 
     fun onCardPaymentCancelled() {
-        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
+        _uiState.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
     }
 
     fun closeDialog() {
-        _state.update { it.copy(state = MainViewModelStateType.INIT) }
+        _uiState.update { it.copy(state = MainViewModelStateType.INIT) }
     }
 
     fun onAddProduct(product: Product) {
         dataStore.addProduct(product)
-        _state.update { it.copy(products = dataStore.getProducts()) }
+        _uiState.update { it.copy(products = dataStore.getProducts()) }
     }
 
     fun onDeleteProduct(product: Product) {
         dataStore.deleteProduct(product)
-        _state.update { it.copy(products = dataStore.getProducts()) }
+        _uiState.update { it.copy(products = dataStore.getProducts()) }
     }
 
     fun deleteSavedCard(savedCard: SavedCard) {
         dataStore.deleteSavedCard(savedCard)
-        _state.update { it.copy(savedCards = dataStore.getSavedCards()) }
+        _uiState.update { it.copy(savedCards = dataStore.getSavedCards()) }
     }
 
     fun onSelectProduct(product: Product) {
-        _state.update {
+        _uiState.update {
             val newItems = it.selectedProducts.toMutableList()
             newItems.toggle(product)
             it.copy(
@@ -191,11 +163,11 @@ class MainViewModel(
 
     fun setSavedCard(savedCard: SavedCard) {
         dataStore.setSavedCard(savedCard)
-        _state.update { it.copy(savedCard = savedCard) }
+        _uiState.update { it.copy(savedCard = savedCard) }
     }
 
     fun onRefresh() {
-        _state.update {
+        _uiState.update {
             it.copy(
                 products = dataStore.getProducts(),
                 savedCard = dataStore.getSavedCard(),
@@ -206,20 +178,20 @@ class MainViewModel(
     }
 
     fun onSuccess() {
-        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS) }
+        _uiState.update { it.copy(state = MainViewModelStateType.PAYMENT_SUCCESS) }
     }
 
     fun onFailure(error: String) {
-        _state.update { it.copy(state = MainViewModelStateType.ERROR, message = error) }
+        _uiState.update { it.copy(state = MainViewModelStateType.ERROR, message = error) }
     }
 
     fun onCanceled() {
-        _state.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
+        _uiState.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
     }
 
     fun createOrder(paymentType: PaymentType, orderRequest: OrderRequest) {
         getEnvironment()?.let { environment ->
-            _state.update {
+            _uiState.update {
                 it.copy(state = MainViewModelStateType.LOADING, message = "Creating Order...")
             }
             viewModelScope.launch(dispatcher) {
@@ -227,25 +199,59 @@ class MainViewModel(
 
                 when (result) {
                     is Result.Error -> {
-                        _state.update {
+                        _uiState.update {
                             it.copy(state = MainViewModelStateType.ERROR, message = result.message)
                         }
                     }
 
                     is Result.Success -> {
-                        _state.update {
-                            it.copy(
-                                state = MainViewModelStateType.PAYMENT_PROCESSING,
-                                paymentType = paymentType,
-                                order = result.data,
-                                orderReference = result.data.reference
-                            )
-                        }
+                        _effect.emit(MainViewModelEffect(
+                            order = result.data,
+                            type = paymentType
+                        ))
                     }
                 }
             }
         }
     }
+
+    fun onPaymentResult(result: PaymentsLauncher.Result) {
+        when (result) {
+            PaymentsLauncher.Result.Cancelled -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED)
+            }
+
+            is PaymentsLauncher.Result.Failed -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_FAILED, message = result.error)
+            }
+
+            PaymentsLauncher.Result.PartialAuthDeclineFailed -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
+            }
+
+            PaymentsLauncher.Result.PartialAuthDeclined -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
+            }
+
+            PaymentsLauncher.Result.PartiallyAuthorised -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
+            }
+
+            PaymentsLauncher.Result.PostAuthReview -> _uiState.update {
+                it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
+            }
+
+            PaymentsLauncher.Result.Success -> {
+                saveCardFromOrder(uiState.value.orderReference)
+            }
+
+            PaymentsLauncher.Result.Authorised -> _uiState.update {
+                it.copy(state = MainViewModelStateType.AUTHORIZED)
+            }
+        }
+    }
+
+    fun getLanguageCode() = dataStore.getLanguage().code
 
     companion object {
 
