@@ -12,7 +12,7 @@ import java.lang.Exception
 class SavedCardPaymentApiInteractor(
     private val httpClient: HttpClient,
 ) {
-    suspend fun doSavedCardPayment(request: SavedCardPaymentRequest): SavedCardResponse {
+    suspend fun doSavedCardPayment(request: SavedCardPaymentApiRequest): SavedCardResponse {
         val bodyMap = mutableMapOf<String, Any>(
             KEY_EXPIRY to request.savedCard.expiry,
             KEY_CARD_TOKEN to request.savedCard.cardToken,
@@ -58,11 +58,10 @@ class SavedCardPaymentApiInteractor(
         internal const val KEY_CARDHOLDER_NAME = "cardholderName"
         internal const val KEY_CVV = "cvv"
         internal const val KEY_PAYER_IP = "payerIp"
-        internal const val PAYMENT_FIELD_VISA = "vis"
     }
 }
 
-data class SavedCardPaymentRequest(
+data class SavedCardPaymentApiRequest(
     val accessToken: String,
     val savedCardUrl: String,
     val savedCard: SavedCard,
