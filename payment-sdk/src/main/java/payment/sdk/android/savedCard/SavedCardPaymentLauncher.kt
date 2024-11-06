@@ -1,38 +1,36 @@
-package payment.sdk.android.payments
+package payment.sdk.android.savedCard
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import payment.sdk.android.payments.PaymentsResultCallback
 
-class PaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
+class SavedCardPaymentLauncher(private val activityResultLauncher: ActivityResultLauncher<SavedCardPaymentRequest>) {
+
     constructor(
         activity: ComponentActivity,
         resultCallback: PaymentsResultCallback,
     ) : this(
         activityResultLauncher = activity.registerForActivityResult(
-            PaymentsLauncherContract(),
+            SavedCardPaymentLauncherContract(),
             resultCallback::onResult
         ),
     )
 
-    fun launch(paymentsRequest: PaymentsRequest) {
-        activityResultLauncher.launch(paymentsRequest)
+    fun launch(savedCardPaymentRequest: SavedCardPaymentRequest) {
+        activityResultLauncher.launch(savedCardPaymentRequest)
     }
 }
 
-fun interface PaymentsResultCallback {
-    fun onResult(result: PaymentsResult)
-}
-
 @Composable
-fun rememberPaymentsLauncher(
+fun rememberSavedCardPaymentLauncher(
     resultCallback: PaymentsResultCallback
-): PaymentsLauncher {
+): SavedCardPaymentLauncher {
     val activityResultLauncher = rememberLauncherForActivityResult(
-        PaymentsLauncherContract(),
+        SavedCardPaymentLauncherContract(),
         resultCallback::onResult
     )
-    return remember { PaymentsLauncher(activityResultLauncher = activityResultLauncher) }
+    return remember { SavedCardPaymentLauncher(activityResultLauncher = activityResultLauncher) }
 }

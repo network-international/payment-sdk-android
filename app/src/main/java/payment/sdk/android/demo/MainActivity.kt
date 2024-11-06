@@ -28,6 +28,8 @@ import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.payments.PaymentsRequest
 import payment.sdk.android.samsungpay.SamsungPayResponse
+import payment.sdk.android.savedCard.SavedCardPaymentLauncher
+import payment.sdk.android.savedCard.SavedCardPaymentRequest
 
 class MainActivity : ComponentActivity(), SamsungPayResponse {
 
@@ -43,6 +45,10 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         this,
     ) { result ->
         viewModel.onPaymentResult(result)
+    }
+
+    private val savedCardPaymentLauncher = SavedCardPaymentLauncher(this) {
+        viewModel.onPaymentResult(it)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +125,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         }
     }
 
-    fun localeSelection(context: Context, localeTag: String) {
+    private fun localeSelection(context: Context, localeTag: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.getSystemService(LocaleManager::class.java).applicationLocales =
                 LocaleList.forLanguageTags(localeTag)
@@ -148,14 +154,14 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                     }
 
                     PaymentType.SAVED_CARD -> {
-                        try {
-                            paymentClient.launchSavedCardPayment(
-                                order = effect.order,
-                                code = CARD_PAYMENT_REQUEST_CODE
-                            )
-                        } catch (e: IllegalArgumentException) {
-                            viewModel.onFailure(e.message.orEmpty())
-                        }
+                        savedCardPaymentLauncher.launch(
+                            SavedCardPaymentRequest.Builder()
+                                .payPageUrl(effect.order.getPayPageUrl().orEmpty())
+                                .gatewayAuthorizationUrl(
+                                    effect.order.getAuthorizationUrl().orEmpty()
+                                )
+                                .build()
+                        )
                     }
                 }
             }

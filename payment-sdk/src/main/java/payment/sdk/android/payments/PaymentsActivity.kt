@@ -30,11 +30,10 @@ import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentData
 import kotlinx.coroutines.launch
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
-import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
-import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
-import payment.sdk.android.cardpayment.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_TWO_REQUEST_KEY
+import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
+import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_TWO_REQUEST_KEY
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
@@ -61,20 +60,20 @@ class PaymentsActivity : AppCompatActivity() {
                     }
                 }
 
-                CommonStatusCodes.CANCELED -> finishWithData(PaymentsLauncher.Result.Cancelled)
+                CommonStatusCodes.CANCELED -> finishWithData(PaymentsResult.Cancelled)
 
                 AutoResolveHelper.RESULT_ERROR ->
-                    finishWithData(PaymentsLauncher.Result.Failed("Google Pay error"))
+                    finishWithData(PaymentsResult.Failed("Google Pay error"))
 
                 CommonStatusCodes.INTERNAL_ERROR ->
-                    finishWithData(PaymentsLauncher.Result.Failed("Google Pay error"))
+                    finishWithData(PaymentsResult.Failed("Google Pay error"))
             }
         }
 
     private val aaniPayLauncher = AaniPayLauncher(this) { result ->
         when (result) {
-            AaniPayLauncher.Result.Success -> finishWithData(PaymentsLauncher.Result.Success)
-            is AaniPayLauncher.Result.Failed -> finishWithData(PaymentsLauncher.Result.Failed("Aani Pay failed"))
+            AaniPayLauncher.Result.Success -> finishWithData(PaymentsResult.Success)
+            is AaniPayLauncher.Result.Failed -> finishWithData(PaymentsResult.Failed("Aani Pay failed"))
             AaniPayLauncher.Result.Canceled -> {}
         }
     }
@@ -87,7 +86,7 @@ class PaymentsActivity : AppCompatActivity() {
                 "Payments input arguments were not found"
             }
         }.getOrElse {
-            finishWithData(PaymentsLauncher.Result.Failed("intent args not found"))
+            finishWithData(PaymentsResult.Failed("intent args not found"))
             return
         }
         initEffects()
@@ -107,7 +106,7 @@ class PaymentsActivity : AppCompatActivity() {
                         navigationIcon = {
                             if (state.enableBackButton) {
                                 IconButton(onClick = {
-                                    finishWithData(PaymentsLauncher.Result.Cancelled)
+                                    finishWithData(PaymentsResult.Cancelled)
                                 }) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -191,7 +190,7 @@ class PaymentsActivity : AppCompatActivity() {
                                 partialAuthState.partialAuthIntent
                             )
                         ) { result ->
-                            finishWithData(CardPaymentData.getCardPaymentsState(result))
+                            finishWithData(result.getCardPaymentsState())
                         }
                     }
                 }
@@ -203,9 +202,9 @@ class PaymentsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.effect.collect {
                 when (it) {
-                    PaymentsVMEffects.Captured -> finishWithData(PaymentsLauncher.Result.Success)
+                    PaymentsVMEffects.Captured -> finishWithData(PaymentsResult.Success)
                     is PaymentsVMEffects.Failed -> finishWithData(
-                        PaymentsLauncher.Result.Failed(
+                        PaymentsResult.Failed(
                             it.error
                         )
                     )
@@ -247,9 +246,9 @@ class PaymentsActivity : AppCompatActivity() {
                         )
                     }
 
-                    PaymentsVMEffects.PaymentAuthorised -> finishWithData(PaymentsLauncher.Result.PartiallyAuthorised)
-                    PaymentsVMEffects.PostAuthReview -> finishWithData(PaymentsLauncher.Result.PostAuthReview)
-                    PaymentsVMEffects.Purchased -> finishWithData(PaymentsLauncher.Result.Success)
+                    PaymentsVMEffects.PaymentAuthorised -> finishWithData(PaymentsResult.PartiallyAuthorised)
+                    PaymentsVMEffects.PostAuthReview -> finishWithData(PaymentsResult.PostAuthReview)
+                    PaymentsVMEffects.Purchased -> finishWithData(PaymentsResult.Success)
                 }
             }
         }
@@ -264,7 +263,7 @@ class PaymentsActivity : AppCompatActivity() {
                     val intent = Intent().apply {
                         putExtra(
                             PaymentsLauncherContract.EXTRA_RESULT,
-                            PaymentsLauncher.Result.Cancelled
+                            PaymentsResult.Cancelled
                         )
                     }
                     setResult(Activity.RESULT_CANCELED, intent)
@@ -293,7 +292,7 @@ class PaymentsActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_CANCELED) {
-            return finishWithData(PaymentsLauncher.Result.Cancelled)
+            return finishWithData(PaymentsResult.Cancelled)
         }
 
         if (resultCode == RESULT_OK) {
@@ -305,10 +304,10 @@ class PaymentsActivity : AppCompatActivity() {
                                 "State is missing from 3DS Secure result"
                             }
                         when (state) {
-                            "AUTHORISED" -> finishWithData(PaymentsLauncher.Result.Authorised)
-                            "PURCHASED", "CAPTURED" -> finishWithData(PaymentsLauncher.Result.Success)
-                            "FAILED" -> finishWithData(PaymentsLauncher.Result.Failed("3DS Failed"))
-                            "POST_AUTH_REVIEW" -> finishWithData(PaymentsLauncher.Result.PostAuthReview)
+                            "AUTHORISED" -> finishWithData(PaymentsResult.Authorised)
+                            "PURCHASED", "CAPTURED" -> finishWithData(PaymentsResult.Success)
+                            "FAILED" -> finishWithData(PaymentsResult.Failed("3DS Failed"))
+                            "POST_AUTH_REVIEW" -> finishWithData(PaymentsResult.PostAuthReview)
                             "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
                                 runCatching {
                                     requireNotNull(
@@ -319,18 +318,18 @@ class PaymentsActivity : AppCompatActivity() {
                                         "Partial auth intent is missing"
                                     }
                                 }.getOrElse {
-                                    finishWithData(PaymentsLauncher.Result.Failed(it.message.orEmpty()))
+                                    finishWithData(PaymentsResult.Failed(it.message.orEmpty()))
                                     return
                                 }.let {
                                     viewModel.startPartialAuth(it)
                                 }
                             }
 
-                            else -> finishWithData(PaymentsLauncher.Result.Failed("3DS Failed"))
+                            else -> finishWithData(PaymentsResult.Failed("3DS Failed"))
                         }
                     }.onFailure {
                         finishWithData(
-                            PaymentsLauncher.Result.Failed(
+                            PaymentsResult.Failed(
                                 it.message ?: "Failed 3DS"
                             )
                         )
@@ -338,11 +337,11 @@ class PaymentsActivity : AppCompatActivity() {
                 }
             }
         } else {
-            return finishWithData(PaymentsLauncher.Result.Failed("Failed 3DS"))
+            return finishWithData(PaymentsResult.Failed("Failed 3DS"))
         }
     }
 
-    private fun finishWithData(result: PaymentsLauncher.Result) {
+    private fun finishWithData(result: PaymentsResult) {
         val intent = Intent().apply {
             putExtra(PaymentsLauncherContract.EXTRA_RESULT, result)
         }

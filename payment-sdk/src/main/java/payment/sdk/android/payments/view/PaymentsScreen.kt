@@ -57,8 +57,8 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
-import payment.sdk.android.cardpayment.savedCard.view.CreditCardBack
-import payment.sdk.android.cardpayment.savedCard.view.CreditCardView
+import payment.sdk.android.savedCard.view.CreditCardBack
+import payment.sdk.android.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
 import payment.sdk.android.core.CardType
 import payment.sdk.android.googlepay.GooglePayButton
