@@ -1,5 +1,6 @@
-package payment.sdk.android.cardpayment.savedCard.view
+package payment.sdk.android.savedCard.view
 
+import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
@@ -29,10 +29,9 @@ import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SavedCardViewBottomBar(
+internal fun SavedCardViewBottomBar(
     bringIntoViewRequester: BringIntoViewRequester,
-    amount: Double,
-    currency: String,
+    orderAmount: OrderAmount,
     onPayClicked: () -> Unit
 ) {
     Card(
@@ -48,8 +47,7 @@ fun SavedCardViewBottomBar(
         elevation = 16.dp
     ) {
         val isLTR =
-            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val orderAmount = OrderAmount(amount, currency)
+            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
         TextButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,7 +64,7 @@ fun SavedCardViewBottomBar(
             Text(
                 text = stringResource(
                     id = R.string.pay_button_title,
-                    orderAmount.formattedCurrencyString(isLTR)
+                    orderAmount.formattedCurrencyString2Decimal(isLTR)
                 ),
                 color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
             )
@@ -81,10 +79,7 @@ fun PreviewSavedCardViewBottomBar() {
     SDKTheme {
         SavedCardViewBottomBar(
             bringIntoViewRequester = BringIntoViewRequester(),
-            amount = 123.00,
-            currency = "AED"
-        ) {
-
-        }
+            orderAmount = OrderAmount(1.33, "AED")
+        ) {}
     }
 }

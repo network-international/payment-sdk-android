@@ -130,3 +130,5 @@ fun Order.getCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.card?.h
 fun Order.getSelfUrl() = embedded?.payment?.firstOrNull()?.links?.selfLink?.href
 
 fun Order.getAaniPayLink() = embedded?.payment?.firstOrNull()?.links?.aaniPayment?.href
+
+fun Order.getSavedCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.savedCard?.href

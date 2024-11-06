@@ -7,7 +7,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentActivity
 import payment.sdk.android.cardpayment.CardPaymentRequest
-import payment.sdk.android.cardpayment.savedCard.SavedCardActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoRequest
@@ -16,8 +15,11 @@ import payment.sdk.android.core.Order
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.TransactionServiceHttpAdapter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.getAuthorizationUrl
+import payment.sdk.android.core.getPayPageUrl
 import payment.sdk.android.samsungpay.SamsungPayClient
 import payment.sdk.android.samsungpay.SamsungPayResponse
+import payment.sdk.android.savedCard.SavedCardPaymentRequest
 import java.net.URI
 
 
@@ -87,11 +89,12 @@ class PaymentClient(
         order: Order,
         code: Int
     ) {
-        val intent = SavedCardActivityArgs.getArgs(
-            order = order
-        ).toIntent(context)
+        val savedCardPaymentRequest = SavedCardPaymentRequest.Builder()
+            .payPageUrl(order.getPayPageUrl().orEmpty())
+            .gatewayAuthorizationUrl(order.getAuthorizationUrl().orEmpty())
+            .build()
         context.startActivityForResult(
-            intent,
+            savedCardPaymentRequest.toIntent(context),
             code
         )
     }
@@ -134,12 +137,13 @@ class PaymentClient(
         cvv: String,
         code: Int
     ) {
-        val intent = SavedCardActivityArgs.getArgs(
-            order = order,
-            cvv
-        ).toIntent(context)
+        val savedCardPaymentRequest = SavedCardPaymentRequest.Builder()
+            .payPageUrl(order.getPayPageUrl().orEmpty())
+            .setCvv(cvv)
+            .gatewayAuthorizationUrl(order.getAuthorizationUrl().orEmpty())
+            .build()
         context.startActivityForResult(
-            intent,
+            savedCardPaymentRequest.toIntent(context),
             code
         )
     }

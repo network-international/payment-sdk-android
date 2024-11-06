@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
-import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.demo.data.DataStore
@@ -30,6 +29,7 @@ import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
+import payment.sdk.android.payments.PaymentsResult
 
 @Keep
 class MainViewModel(
@@ -185,10 +185,6 @@ class MainViewModel(
         _uiState.update { it.copy(state = MainViewModelStateType.ERROR, message = error) }
     }
 
-    fun onCanceled() {
-        _uiState.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
-    }
-
     fun createOrder(paymentType: PaymentType, orderRequest: OrderRequest) {
         getEnvironment()?.let { environment ->
             _uiState.update {
@@ -205,6 +201,9 @@ class MainViewModel(
                     }
 
                     is Result.Success -> {
+                        _uiState.update {
+                            it.copy(orderReference = result.data.reference)
+                        }
                         _effect.emit(MainViewModelEffect(
                             order = result.data,
                             type = paymentType
@@ -215,37 +214,37 @@ class MainViewModel(
         }
     }
 
-    fun onPaymentResult(result: PaymentsLauncher.Result) {
+    fun onPaymentResult(result: PaymentsResult) {
         when (result) {
-            PaymentsLauncher.Result.Cancelled -> _uiState.update {
+            PaymentsResult.Cancelled -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED)
             }
 
-            is PaymentsLauncher.Result.Failed -> _uiState.update {
+            is PaymentsResult.Failed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_FAILED, message = result.error)
             }
 
-            PaymentsLauncher.Result.PartialAuthDeclineFailed -> _uiState.update {
+            PaymentsResult.PartialAuthDeclineFailed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
             }
 
-            PaymentsLauncher.Result.PartialAuthDeclined -> _uiState.update {
+            PaymentsResult.PartialAuthDeclined -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
             }
 
-            PaymentsLauncher.Result.PartiallyAuthorised -> _uiState.update {
+            PaymentsResult.PartiallyAuthorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
             }
 
-            PaymentsLauncher.Result.PostAuthReview -> _uiState.update {
+            PaymentsResult.PostAuthReview -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
             }
 
-            PaymentsLauncher.Result.Success -> {
+            PaymentsResult.Success -> {
                 saveCardFromOrder(uiState.value.orderReference)
             }
 
-            PaymentsLauncher.Result.Authorised -> _uiState.update {
+            PaymentsResult.Authorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.AUTHORIZED)
             }
         }
