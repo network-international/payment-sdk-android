@@ -8,7 +8,9 @@ data class GooglePayConfigResponse(
     val allowedPaymentMethods: List<String>,
     val environment: String,
     val gatewayName: String,
-    val merchantInfo: MerchantInfo
+    val merchantInfo: MerchantInfo,
+    val isMerchantCertificatePresent: Boolean,
+    val merchantGatewayId: String?
 )
 
 @Keep
