@@ -28,6 +28,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
@@ -56,7 +57,13 @@ class PaymentsActivity : AppCompatActivity() {
             when (taskResult.status.statusCode) {
                 CommonStatusCodes.SUCCESS -> {
                     taskResult.result?.let {
-                        viewModel.acceptGooglePay(it.toJson())
+                        viewModel.acceptGooglePay(
+                            JSONObject(it.toJson())
+                                .getJSONObject("paymentMethodData")
+                                .getJSONObject("tokenizationData")
+                                .getString("token")
+                                .orEmpty()
+                        )
                     }
                 }
 
