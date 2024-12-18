@@ -56,14 +56,23 @@ class PaymentsActivity : AppCompatActivity() {
         registerForActivityResult(GetPaymentDataResult()) { taskResult ->
             when (taskResult.status.statusCode) {
                 CommonStatusCodes.SUCCESS -> {
-                    taskResult.result?.let {
-                        viewModel.acceptGooglePay(
-                            JSONObject(it.toJson())
-                                .getJSONObject("paymentMethodData")
-                                .getJSONObject("tokenizationData")
-                                .getString("token")
-                                .orEmpty()
-                        )
+                    try {
+                        val paymentMethodData = taskResult.result
+                            ?.toJson()
+                            ?.let { JSONObject(it).getJSONObject("paymentMethodData") }
+
+                        val token = paymentMethodData
+                            ?.getJSONObject("tokenizationData")
+                            ?.getString("token")
+                            .orEmpty()
+
+                        if (token.isNotEmpty()) {
+                            viewModel.acceptGooglePay(token)
+                        } else {
+                            finishWithData(PaymentsResult.Failed("Google Pay token is empty"))
+                        }
+                    } catch (e: Exception) {
+                        finishWithData(PaymentsResult.Failed("Failed to parse Google Pay result"))
                     }
                 }
 
