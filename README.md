@@ -11,7 +11,7 @@
 
 #### Android API Level:
 
-Android SDK and the sample merchant app support a minimum API level 19 (Android
+Android SDK and the sample merchant app support a minimum API level 21 (Android
 Kitkat).
 For more details, please refer to Android API level requirements [online](https://developer.android.com/guide/topics/manifest/uses-sdk-element#min)
 
@@ -64,9 +64,21 @@ reference:
 class PaymentClient(private val context: Activity)
 ```
 
-### Card API
+### **New Card API with Jetpack Compose Support**
 
-SDK provides a very simple API to be able to get payment using debit or credit cards.
+**version 4.0.0-rc1** introduces support for **Jetpack Compose** in our Card API! This release brings a modern and declarative way to implement card payment experiences.
+
+For detailed guidance and examples, refer to the documentation below:
+
+- 📄 **[New Card Payment Documentation](https://github.com/network-international/payment-sdk-android/wiki/New-Card-Paypage-(Jetpack-Compose))**  
+  Learn how to implement a new card payment flow using Jetpack Compose.
+
+- 📄 **[Saved Card Payment Documentation](https://github.com/network-international/payment-sdk-android/wiki/Saved-Card-Payment-(Jetpack-Compose))**  
+  Explore how to integrate saved card payment functionality with Jetpack Compose.
+
+---
+
+### Card API
 
 ```kotlin
 PaymentClient.launchCardPayment(request: CardPaymentRequest, requestCode: Int)

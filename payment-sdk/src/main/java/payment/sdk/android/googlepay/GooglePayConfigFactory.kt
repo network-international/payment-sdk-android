@@ -50,12 +50,13 @@ internal class GooglePayConfigFactory(
             val request = PaymentDataRequest.fromJson(paymentDataRequestJson)
             val allowedPaymentMethods = googlePayJsonConfig.getAllowedPaymentMethods(
                 allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
-                allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods
+                allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods,
+                merchantGatewayId = googlePayConfigResponse.merchantGatewayId
             )
             return GooglePayUiConfig(
                 canUseGooglePay = fetchCanUseGooglePay(
                     googlePayJsonConfig.isReadyToPayRequest(
-                        allowedPaymentMethods = allowedPaymentMethods
+                        allowedPaymentMethods
                     )
                 ),
                 allowedPaymentMethods = allowedPaymentMethods.toString(),

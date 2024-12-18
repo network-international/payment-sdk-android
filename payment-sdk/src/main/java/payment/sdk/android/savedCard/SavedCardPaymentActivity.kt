@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
@@ -154,7 +155,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
     private fun initEffects() {
         lifecycleScope.launch {
-            viewModel.effect.collect {
+            viewModel.effect.collectLatest {
                 when (it) {
                     SavedCardPaymentsVMEffects.Captured -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED),

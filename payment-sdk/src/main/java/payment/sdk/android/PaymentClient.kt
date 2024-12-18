@@ -45,6 +45,16 @@ class PaymentClient(
         }
     }
 
+    /**
+     * Launches the card payment activity. This method is deprecated. and will be removed in future releases
+     *
+     * Use `PaymentsLauncher` and `PaymentsRequest` to initiate payments.
+     *
+     * @param request of type [CardPaymentRequest] The request object containing the payment URL and code.
+     * @param requestCode The request code for the activity result.
+     * @deprecated Use [PaymentsLauncher] and [PaymentsRequest] instead.
+     */
+    @Deprecated("Use PaymentsLauncher and PaymentsRequest instead", ReplaceWith("PaymentsLauncher.launch(PaymentsRequest)"))
     fun launchCardPayment(request: CardPaymentRequest, requestCode: Int) {
         context.startActivityForResult(CardPaymentActivity.getIntent(
                 context = context,
@@ -55,9 +65,7 @@ class PaymentClient(
     }
 
     /**
-     * Please note that this feature is in its early stages, and users may encounter some bugs.
      * Initiates a payment using a saved card retrieved from an order response.
-     *
      *
      * To make a payment with a saved card, the 'SavedCard' object must be included in the order request body, as shown below:
      *
@@ -79,12 +87,9 @@ class PaymentClient(
      *
      * @param order The response received from the Ngenius order API.
      * @param code A unique code used to receive results for the 'ActivityForResult'.
-     *
-     * @throws IllegalArgumentException This function will throw an exception if the saved card
-     *                                  is not found in the order response or if the provided arguments
-     *                                  are incorrect.
+     * @deprecated Use [SavedCardPaymentLauncher] and [SavedCardPaymentRequest] instead.
      */
-    @Throws(IllegalArgumentException::class)
+    @Deprecated("Use SavedCardPaymentLauncher and SavedCardPaymentRequest instead", ReplaceWith("SavedCardPaymentLauncher.launch(SavedCardPaymentRequest)"))
     fun launchSavedCardPayment(
         order: Order,
         code: Int
@@ -100,7 +105,6 @@ class PaymentClient(
     }
 
     /**
-     * Please note that this feature is in its early stages, and users may encounter some bugs.
      * Initiates a payment using a saved card retrieved from an order response. this method accepts
      * cvv as argument to immediately process payment
      *
@@ -126,12 +130,9 @@ class PaymentClient(
      * @param order The response received from the Ngenius order API.
      * @param cvv CVV (Card Verification Value) code to authorize the payment immediately.
      * @param code A unique code used to receive results for the 'ActivityForResult'.
-     *
-     * @throws IllegalArgumentException This function will throw an exception if the saved card is
-     *                                  not found in the order response or if the provided arguments
-     *                                  are incorrect.
+     * @deprecated Use [SavedCardPaymentLauncher] and [SavedCardPaymentRequest] instead.
      */
-    @Throws(IllegalArgumentException::class)
+    @Deprecated("Use SavedCardPaymentLauncher and SavedCardPaymentRequest instead", ReplaceWith("SavedCardPaymentLauncher.launch(SavedCardPaymentRequest)"))
     fun launchSavedCardPayment(
         order: Order,
         cvv: String,

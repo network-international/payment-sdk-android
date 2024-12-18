@@ -45,7 +45,7 @@ internal class GooglePayJsonConfig() {
      */
     private fun createMerchantConfig(merchantInfo: MerchantInfo): JSONObject =
         JSONObject()
-            .put("merchantId", "a9c12627-a429-49c1-b580-a938c86fd9c7")
+            .put("merchantId", merchantInfo.reference)
             .put("merchantName", merchantInfo.name)
 
     /**
@@ -57,24 +57,26 @@ internal class GooglePayJsonConfig() {
      */
     fun getAllowedPaymentMethods(
         allowedAuthMethods: List<String>,
-        allowedCardNetworks: List<String>
+        allowedCardNetworks: List<String>,
+        merchantGatewayId: String?,
     ): JSONArray = JSONArray().put(
         JSONObject()
             .put("type", "CARD")
             .put(
-                "parameters", JSONObject()
+                "parameters",
+                JSONObject()
                     .put("allowedAuthMethods", JSONArray(allowedAuthMethods))
                     .put("allowedCardNetworks", JSONArray(allowedCardNetworks))
             ).put(
-                "tokenizationSpecification", JSONObject().put("type", "PAYMENT_GATEWAY")
+                "tokenizationSpecification",
+                JSONObject()
+                    .put("type", "PAYMENT_GATEWAY")
                     .put(
                         "parameters",
-                        JSONObject().put(
-                            "gatewayMerchantId",
-                            "a9c12627-a429-49c1-b580-a938c86fd9c7"
-                        ).put("gateway", PAYMENT_GATEWAY_TOKENIZATION_NAME)
+                        JSONObject()
+                            .put("gatewayMerchantId", merchantGatewayId)
+                            .put("gateway", PAYMENT_GATEWAY_TOKENIZATION_NAME)
                     )
-
             )
     )
 
@@ -92,7 +94,8 @@ internal class GooglePayJsonConfig() {
     ): JSONObject = JSONObject()
         .put("type", "CARD")
         .put(
-            "parameters", JSONObject()
+            "parameters",
+            JSONObject()
                 .put("allowedAuthMethods", JSONArray(allowedAuthMethods))
                 .put("allowedCardNetworks", JSONArray(allowedCardNetworks))
         )
@@ -111,7 +114,8 @@ internal class GooglePayJsonConfig() {
         transactionInfo = getTransactionInfo(amount, currencyCode),
         allowedPaymentMethods = getAllowedPaymentMethods(
             allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods,
-            allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods
+            allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
+            merchantGatewayId = googlePayConfigResponse.merchantGatewayId
         ),
         merchantInfo = createMerchantConfig(googlePayConfigResponse.merchantInfo)
     ).toString()

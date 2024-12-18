@@ -28,6 +28,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
@@ -55,8 +56,23 @@ class PaymentsActivity : AppCompatActivity() {
         registerForActivityResult(GetPaymentDataResult()) { taskResult ->
             when (taskResult.status.statusCode) {
                 CommonStatusCodes.SUCCESS -> {
-                    taskResult.result?.let {
-                        viewModel.acceptGooglePay(it.toJson())
+                    try {
+                        val paymentMethodData = taskResult.result
+                            ?.toJson()
+                            ?.let { JSONObject(it).getJSONObject("paymentMethodData") }
+
+                        val token = paymentMethodData
+                            ?.getJSONObject("tokenizationData")
+                            ?.getString("token")
+                            .orEmpty()
+
+                        if (token.isNotEmpty()) {
+                            viewModel.acceptGooglePay(token)
+                        } else {
+                            finishWithData(PaymentsResult.Failed("Google Pay token is empty"))
+                        }
+                    } catch (e: Exception) {
+                        finishWithData(PaymentsResult.Failed("Failed to parse Google Pay result"))
                     }
                 }
 
