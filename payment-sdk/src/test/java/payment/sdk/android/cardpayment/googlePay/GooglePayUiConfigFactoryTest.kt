@@ -1,6 +1,5 @@
 package payment.sdk.android.cardpayment.googlePay
 
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.PaymentsClient
 import io.mockk.coEvery
 import io.mockk.every
@@ -111,7 +110,9 @@ internal class GooglePayUiConfigFactoryTest {
             allowedPaymentMethods = listOf("CARD", "TOKENIZED_CARD"),
             environment = "TEST",
             gatewayName = "gateway",
-            merchantInfo = merchantInfo
+            merchantInfo = merchantInfo,
+            merchantGatewayId = "merchantGatewayId",
+            isMerchantCertificatePresent = true
         )
         val paymentDataRequestJson = """
                 {

@@ -27,6 +27,7 @@ import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.payments.PaymentsRequest
+import payment.sdk.android.payments.rememberPaymentsLauncher
 import payment.sdk.android.samsungpay.SamsungPayResponse
 import payment.sdk.android.savedCard.SavedCardPaymentLauncher
 import payment.sdk.android.savedCard.SavedCardPaymentRequest
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         MainViewModel.provideFactory(this, this)
     }
 
-    private val cardPaymentsClient = PaymentsLauncher(
+    private val paymentsLauncher = PaymentsLauncher(
         this,
     ) { result ->
         viewModel.onPaymentResult(result)
@@ -169,11 +170,10 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
     }
 
     private fun makeCardPaymentNew(authUrl: String, payPageUrl: String) {
-        cardPaymentsClient.launch(
+        paymentsLauncher.launch(
             PaymentsRequest.builder()
                 .gatewayAuthorizationUrl(authUrl)
                 .payPageUrl(payPageUrl)
-                .setLanguageCode(viewModel.getLanguageCode())
                 .build()
         )
     }
