@@ -1,5 +1,8 @@
 package payment.sdk.android.core
 
+import androidx.annotation.Keep
+
+@Keep
 data class SavedCard(
     val cardholderName: String,
     val expiry: String,
