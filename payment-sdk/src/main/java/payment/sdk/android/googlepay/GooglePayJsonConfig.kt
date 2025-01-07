@@ -43,10 +43,11 @@ internal class GooglePayJsonConfig() {
      * @param merchantInfo Information about the merchant.
      * @return JSON object with the merchant configuration.
      */
-    private fun createMerchantConfig(merchantInfo: MerchantInfo): JSONObject =
+    private fun createMerchantConfig(merchantInfo: MerchantInfo, merchantOrigin: String): JSONObject =
         JSONObject()
             .put("merchantId", merchantInfo.reference)
             .put("merchantName", merchantInfo.name)
+            .put("merchantOrigin", merchantOrigin)
 
     /**
      * Generates the allowed payment methods.
@@ -117,7 +118,7 @@ internal class GooglePayJsonConfig() {
             allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
             merchantGatewayId = googlePayConfigResponse.merchantGatewayId
         ),
-        merchantInfo = createMerchantConfig(googlePayConfigResponse.merchantInfo)
+        merchantInfo = createMerchantConfig(googlePayConfigResponse.merchantInfo, googlePayConfigResponse.merchantOrigin)
     ).toString()
 
     companion object {

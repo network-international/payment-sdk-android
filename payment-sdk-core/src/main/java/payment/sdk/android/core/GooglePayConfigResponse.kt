@@ -10,7 +10,8 @@ data class GooglePayConfigResponse(
     val gatewayName: String,
     val merchantInfo: MerchantInfo,
     val isMerchantCertificatePresent: Boolean,
-    val merchantGatewayId: String?
+    val merchantGatewayId: String?,
+    val merchantOrigin: String
 )
 
 @Keep
