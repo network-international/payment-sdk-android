@@ -143,6 +143,7 @@ internal class CardPaymentPresenter(
             CardType.JCB -> LOGO_JCB_RESOURCE
             CardType.DinersClubInternational -> LOGO_DINNERS_CLUB_RESOURCE
             CardType.Discover -> LOGO_DISCOVER_RESOURCE
+            CardType.Jaywan -> LOGO_JAYWAN_RESOURCE
             else -> null
         }
     }
@@ -464,6 +465,8 @@ internal class CardPaymentPresenter(
         internal val LOGO_DINNERS_CLUB_RESOURCE: Int = R.drawable.ic_logo_dinners_club
         @VisibleForTesting
         internal val LOGO_DISCOVER_RESOURCE: Int = R.drawable.ic_logo_discover
+        @VisibleForTesting
+        internal val LOGO_JAYWAN_RESOURCE: Int = R.drawable.jaywan
 
         @VisibleForTesting
         internal val DEFAULT_CARD_NUMBER_PLACEHOLDER = R.string.placeholder_card_number

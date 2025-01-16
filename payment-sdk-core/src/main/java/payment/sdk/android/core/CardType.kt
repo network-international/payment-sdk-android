@@ -6,5 +6,6 @@ enum class CardType {
     AmericanExpress,
     Discover,
     JCB,
-    DinersClubInternational
+    DinersClubInternational,
+    Jaywan
 }
