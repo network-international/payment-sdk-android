@@ -60,7 +60,6 @@ class PaymentsViewModelTest {
     private val intent: PaymentsRequest = PaymentsRequest.Builder()
         .payPageUrl(TEST_PAYMENT_URL)
         .gatewayAuthorizationUrl("authUrl")
-        .setLanguageCode("en")
         .build()
 
     private val authApiInteractor: AuthApiInteractor = mockk(relaxed = true)

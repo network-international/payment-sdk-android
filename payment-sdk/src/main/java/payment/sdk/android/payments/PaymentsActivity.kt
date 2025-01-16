@@ -140,9 +140,7 @@ class PaymentsActivity : AppCompatActivity() {
                         val authState = (state as PaymentsVMUiState.Authorized)
                         PaymentsScreen(
                             modifier = Modifier.padding(contentPadding),
-                            supportedCards = authState.supportedCards.toMutableSet().apply {
-                                add(CardType.Visa)
-                            },
+                            supportedCards = authState.supportedCards.toMutableSet(),
                             googlePayUiConfig = authState.googlePayUiConfig,
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
                                 viewModel.makeCardPayment(
