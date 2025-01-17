@@ -15,9 +15,7 @@ class ThreeDSecureFactory {
         return ThreeDSecureTwoDto(
             paymentCookie = paymentCookie,
             orderUrl = orderUrl,
-            directoryServerID = requireNotNull(paymentResponse.threeDSTwo?.directoryServerID) {
-                "directoryServerID not found"
-            },
+            directoryServerID = paymentResponse.threeDSTwo?.directoryServerID,
             orderRef = requireNotNull(paymentResponse.orderReference) {
                 "order ref not found"
             },
@@ -75,7 +73,7 @@ data class ThreeDSecureTwoDto(
     val threeDSServerTransID: String?,
     val paymentCookie: String,
     val threeDSTwoAuthenticationURL: String,
-    val directoryServerID: String,
+    val directoryServerID: String?,
     val threeDSMessageVersion: String,
     val threeDSTwoChallengeResponseURL: String,
     val outletRef: String,

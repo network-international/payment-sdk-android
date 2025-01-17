@@ -21,7 +21,8 @@ class CardMapping {
             "AMERICAN_EXPRESS" to CardType.AmericanExpress,
             "DISCOVER" to CardType.Discover,
             "JCB" to CardType.JCB,
-            "DINERS_CLUB_INTERNATIONAL" to CardType.DinersClubInternational
+            "DINERS_CLUB_INTERNATIONAL" to CardType.DinersClubInternational,
+            "JAYWAN" to CardType.Jaywan
         )
 
         fun getCardTypeFromString(cardScheme: String) = SUPPORTED_CARD_MAPPING[cardScheme]
