@@ -9,6 +9,8 @@
     <color name="blue">#4885ED</color>
     <color name="dark_blue">#315A9F</color>
     <color name="progress_green">#3A8377</color>
+    <color name="gray">#888888</color>
+
     <color name="payment_sdk_toolbar_color">#000000</color>
     <color name="payment_sdk_toolbar_text_color">#FFFFFF</color>
     <color name="payment_sdk_toolbar_icon_color">#FFFFFF</color>
@@ -22,4 +24,19 @@
 
     <color name="payment_sdk_floating_hint_color">@color/blue</color>
     <color name="payment_sdk_progress_loader_color">@color/progress_green</color>
+
+    <color name="payment_sdk_pay_page_background_color">#F1F1F1</color>
+    <color name="payment_sdk_card_detail_background_color">#FFFFFF</color>
+
+    <color name="payment_sdk_text_field_cursor_color">@color/black</color>
+    <color name="payment_sdk_text_field_text_color">@color/black</color>
+    <color name="payment_sdk_text_field_placeholder_color">@color/gray</color>
+    <color name="payment_sdk_text_field_background_color">@color/white</color>
+    <color name="payment_sdk_text_field_unfocused_indicator_color">#F1F1F1</color>
+    <color name="payment_sdk_text_field_focused_indicator_color">#F1F1F1</color>
+    <color name="payment_sdk_text_field_focused_label_color">@color/gray</color>
+    <color name="payment_sdk_text_field_unfocused_label_color">@color/black</color>
+    <color name="payment_sdk_text_field_error_indicator_color">@color/red</color>
+    <color name="payment_sdk_text_threeDSecure_page_background_color">#D6D6D6</color>
+    <color name="payment_sdk_text_authentication_page_background_color">#D6D6D6</color>
 </resources>

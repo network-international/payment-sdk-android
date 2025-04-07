@@ -36,6 +36,11 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_3d_secure)
         setSupportActionBar(toolbar)
+
+        toolbar.setBackgroundColor(resources.getColor(R.color.payment_sdk_toolbar_color))
+        toolbar.setTitleTextColor(resources.getColor(R.color.payment_sdk_toolbar_text_color))
+        content.setBackgroundColor(resources.getColor(R.color.payment_sdk_text_threeDSecure_page_background_color))
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY)
