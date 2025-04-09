@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.android.gms.wallet.Wallet
+import com.google.android.gms.wallet.WalletConstants
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -327,7 +328,7 @@ internal class PaymentsViewModel(
         ): T {
             val walletOptions =
                 Wallet.WalletOptions.Builder()
-                    .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
+                    .setEnvironment(WalletConstants.ENVIRONMENT_PRODUCTION)
                     .build()
             val httpClient = CoroutinesGatewayHttpClient()
             return PaymentsViewModel(
