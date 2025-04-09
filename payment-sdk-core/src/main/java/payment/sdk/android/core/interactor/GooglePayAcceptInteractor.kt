@@ -13,7 +13,9 @@ class GooglePayAcceptInteractor(private val httpClient: HttpClient) {
             newUrl, headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer $accessToken"
-            ), body = Body.StringBody(token)
+            ), body = Body.Json(mapOf(
+                "token" to token
+            )),
         )
     }
 }
