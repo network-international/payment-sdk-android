@@ -45,7 +45,7 @@ internal class GooglePayJsonConfig() {
      */
     private fun createMerchantConfig(merchantInfo: MerchantInfo, merchantOrigin: String): JSONObject =
         JSONObject()
-            .put("merchantId", "BCR2DN4T263KB4BO")
+            .put("merchantId", "BCR2DN4T27NJW2Y")
             .put("merchantName", merchantInfo.name)
             .put("merchantOrigin", merchantOrigin)
 
@@ -85,7 +85,7 @@ internal class GooglePayJsonConfig() {
             "parameters",
             JSONObject()
                 .put("gateway", "networkintl")
-                .put("gatewayMerchantId", "BCR2DN4T263KB4BO")
+                .put("gatewayMerchantId", "BCR2DN4T27NJW2Y")//BCR2DN4T263KB4BO
         )
         return tokenizationSpecification
     }
@@ -125,10 +125,10 @@ internal class GooglePayJsonConfig() {
         allowedPaymentMethods = getAllowedPaymentMethods(
             allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods,
             allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
-            merchantGatewayId = "BCR2DN4T263KB4BO",
+            merchantGatewayId = "BCR2DN4T27NJW2Y",
             gateway = "networkintl"
         ),
-        merchantInfo = createMerchantConfig(googlePayConfigResponse.merchantInfo, TODO())
+        merchantInfo = createMerchantConfig(googlePayConfigResponse.merchantInfo , googlePayConfigResponse.merchantOrigin)
     ).toString()
 
     companion object {
