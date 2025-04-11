@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.android.gms.wallet.Wallet
 import com.google.android.gms.wallet.WalletConstants
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -235,7 +234,7 @@ internal class PaymentsViewModel(
             val accessToken = currentState.accessToken
             val response =
                 googlePayAcceptInteractor.accept(googlePayUrl, accessToken, paymentDataJson)
-            _effects.emit(PaymentsVMEffects.ShowToast("Google Pay response: $response"))
+
             when (response) {
                 is SDKHttpResponse.Failed -> _effects.emit(
                     PaymentsVMEffects.Failed(
