@@ -12,6 +12,7 @@ internal class GooglePayConfigFactory(
     private val paymentsClient: PaymentsClient,
     private val googlePayJsonConfig: GooglePayJsonConfig,
     private val googlePayConfigInteractor: GooglePayConfigInteractor,
+    private val merchantGatewayId: String
 ) {
     suspend fun checkGooglePayConfig(
         googlePayConfigUrl: String?,
@@ -45,13 +46,14 @@ internal class GooglePayConfigFactory(
             val paymentDataRequestJson = googlePayJsonConfig.create(
                 googlePayConfigResponse = googlePayConfigResponse,
                 amount = amount,
-                currencyCode = currencyCode
+                currencyCode = currencyCode,
+                merchantGatewayId = merchantGatewayId
             )
             val request = PaymentDataRequest.fromJson(paymentDataRequestJson)
             val allowedPaymentMethods = googlePayJsonConfig.getAllowedPaymentMethods(
                 allowedAuthMethods = googlePayConfigResponse.allowedAuthMethods,
                 allowedCardNetworks = googlePayConfigResponse.allowedPaymentMethods,
-                merchantGatewayId = googlePayConfigResponse.merchantGatewayId,
+                merchantGatewayId = merchantGatewayId,
                 gateway = googlePayConfigResponse.gatewayName
             )
             return GooglePayUiConfig(
