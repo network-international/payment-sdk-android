@@ -1,7 +1,6 @@
 package payment.sdk.android.payments
 
 import android.app.Application
-import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.annotation.RestrictTo
 import androidx.lifecycle.ViewModel
@@ -329,7 +328,8 @@ internal class PaymentsViewModel(
         ): T {
             val walletOptions =
                 Wallet.WalletOptions.Builder()
-                    .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
+                    .setEnvironment(WalletConstants.ENVIRONMENT_PRODUCTION)
+                    .build();
             val httpClient = CoroutinesGatewayHttpClient()
             return PaymentsViewModel(
                 cardPaymentsIntent = cardPaymentsIntent,
