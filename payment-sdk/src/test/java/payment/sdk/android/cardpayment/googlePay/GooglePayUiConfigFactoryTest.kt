@@ -42,7 +42,7 @@ internal class GooglePayUiConfigFactoryTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         sut =
-            GooglePayConfigFactory(paymentsClient, googlePayJsonConfig, googlePayConfigInteractor)
+            GooglePayConfigFactory(paymentsClient, googlePayJsonConfig, googlePayConfigInteractor, "")
     }
 
     @After
@@ -61,7 +61,7 @@ internal class GooglePayUiConfigFactoryTest {
             } returns googlePayConfigResponse
 
 
-            every { googlePayJsonConfig.create(any(), any(), any()) } returns paymentDataRequestJson
+            every { googlePayJsonConfig.create(any(), any(), any(), "") } returns paymentDataRequestJson
 
             coEvery {
                 googlePayJsonConfig.baseCardPaymentMethod(any(), any())
