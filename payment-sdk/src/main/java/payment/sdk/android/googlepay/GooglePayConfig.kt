@@ -15,7 +15,8 @@ import kotlinx.parcelize.Parcelize
 data class GooglePayConfig(
     val environment: Environment,
     var isEmailRequired: Boolean = false,
-    var billingAddressConfig: BillingAddressConfig = BillingAddressConfig()
+    var billingAddressConfig: BillingAddressConfig = BillingAddressConfig(),
+    var merchantGatewayId: String
 ) : Parcelable {
 
     /**
