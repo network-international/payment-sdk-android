@@ -328,7 +328,7 @@ internal class PaymentsViewModel(
         ): T {
             val walletOptions =
                 Wallet.WalletOptions.Builder()
-                    .setEnvironment(WalletConstants.ENVIRONMENT_PRODUCTION)
+                    .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
                     .build();
             val httpClient = CoroutinesGatewayHttpClient()
             return PaymentsViewModel(
