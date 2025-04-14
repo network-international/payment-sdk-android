@@ -25,6 +25,7 @@ import payment.sdk.android.demo.MainViewModel.Companion.CARD_PAYMENT_REQUEST_COD
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
+import payment.sdk.android.googlepay.GooglePayConfig
 import payment.sdk.android.payments.PaymentsLauncher
 import payment.sdk.android.payments.PaymentsRequest
 import payment.sdk.android.payments.rememberPaymentsLauncher
@@ -170,10 +171,15 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
     }
 
     private fun makeCardPaymentNew(authUrl: String, payPageUrl: String) {
+        val googlePayConfig = GooglePayConfig(
+            environment = GooglePayConfig.Environment.Production,
+            merchantGatewayId = "BCR2DN4T27NJW2Y"
+        )
         paymentsLauncher.launch(
             PaymentsRequest.builder()
                 .gatewayAuthorizationUrl(authUrl)
                 .payPageUrl(payPageUrl)
+                .setGooglePayConfig(googlePayConfig)
                 .build()
         )
     }
