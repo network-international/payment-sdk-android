@@ -21,7 +21,7 @@ data class ThreeDSecureTwoRequest(
             outletRef: String,
             orderRef: String, paymentRef: String
         ): String {
-            return "https://${domain}/api/outlets/${outletRef}/orders/${orderRef}" +
+            return "/api/outlets/${outletRef}/orders/${orderRef}" +
                     "/payments/${paymentRef}/3ds2/method/notification"
         }
 
