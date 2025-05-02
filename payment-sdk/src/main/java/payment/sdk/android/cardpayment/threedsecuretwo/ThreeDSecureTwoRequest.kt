@@ -17,7 +17,6 @@ data class ThreeDSecureTwoRequest(
 ) {
     companion object {
         private fun constructThreeDSNotificationURL(
-            domain: String,
             outletRef: String,
             orderRef: String, paymentRef: String
         ): String {
@@ -27,14 +26,10 @@ data class ThreeDSecureTwoRequest(
 
         private fun constructThreeDSNotificationURL(responseJson: JSONObject): String {
             try {
-                val links = responseJson.getJSONObject("_links")
-                val selfLink = links?.getJSONObject("self")?.getString("href")
-                val selfUri = URI(selfLink)
                 val outletRef = responseJson.getString("outletId")
                 val orderRef = responseJson.getString("orderReference")
                 val paymentRef = responseJson.getString("reference")
                 return constructThreeDSNotificationURL(
-                    selfUri.host,
                     outletRef,
                     orderRef,
                     paymentRef
@@ -90,9 +85,7 @@ data class ThreeDSecureTwoRequest(
             var threeDSMethodURL: String? = null
             var threeDSServerTransID: String? = null
             var threeDSMethodData: String? = null
-            val authHostURi = paymentResponse.threeDSTwo?.threeDSMethodURL ?: "";
             val threeDSMethodNotificationURL: String = constructThreeDSNotificationURL(
-                domain = URI(authHostURi).host,
                 outletRef = paymentResponse.outletId ?: "",
                 orderRef = paymentResponse.orderReference ?: "",
                 paymentRef = paymentResponse.reference ?: ""
