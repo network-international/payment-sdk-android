@@ -105,7 +105,7 @@ fun PaymentsScreen(
         )
     }
 
-    Column(modifier.background(Color(0xFFF1F1F1))) {
+    Column(modifier.background(colorResource(id = R.color.payment_sdk_pay_page_background_color))) {
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -151,7 +151,7 @@ fun PaymentsScreen(
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(8.dp),
                     elevation = 8.dp,
-                    color = Color.White
+                    color = colorResource(id = R.color.payment_sdk_card_detail_background_color)
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 8.dp)
