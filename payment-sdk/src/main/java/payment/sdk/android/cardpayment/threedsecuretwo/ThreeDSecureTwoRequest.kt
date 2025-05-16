@@ -18,10 +18,24 @@ data class ThreeDSecureTwoRequest(
     companion object {
         private fun constructThreeDSNotificationURL(
             outletRef: String,
-            orderRef: String, paymentRef: String
+            orderRef: String,
+            paymentRef: String,
+            authenticationUrl: String
         ): String {
-            return "/api/outlets/${outletRef}/orders/${orderRef}" +
-                    "/payments/${paymentRef}/3ds2/method/notification"
+            return getNotificationUrl(authenticationUrl,"/api/outlets/${outletRef}/orders/${orderRef}" +
+                    "/payments/${paymentRef}/3ds2/method/notification")
+        }
+
+        private fun getNotificationUrl(stringVal: String, path: String): String {
+            if (stringVal.contains("-uat", true) ||
+                stringVal.contains("sandbox", true)
+            ) {
+                return "https://api-gateway.sandbox.ngenius-payments.com$path"
+            }
+            if (stringVal.contains("-dev", true)) {
+                return "https://api-gateway-dev.ngenius-payments.com$path"
+            }
+            return "https://api-gateway.ngenius-payments.com$path"
         }
 
         private fun constructThreeDSNotificationURL(responseJson: JSONObject): String {
@@ -29,10 +43,13 @@ data class ThreeDSecureTwoRequest(
                 val outletRef = responseJson.getString("outletId")
                 val orderRef = responseJson.getString("orderReference")
                 val paymentRef = responseJson.getString("reference")
+                val authUrl = responseJson.getJSONObject("_links")
+                    .getJSONObject("cnp:3ds2-authentication").getString("href")
                 return constructThreeDSNotificationURL(
                     outletRef,
                     orderRef,
-                    paymentRef
+                    paymentRef,
+                    authUrl
                 )
             } catch (_: Exception) {
                 return ""
@@ -88,7 +105,8 @@ data class ThreeDSecureTwoRequest(
             val threeDSMethodNotificationURL: String = constructThreeDSNotificationURL(
                 outletRef = paymentResponse.outletId ?: "",
                 orderRef = paymentResponse.orderReference ?: "",
-                paymentRef = paymentResponse.reference ?: ""
+                paymentRef = paymentResponse.reference ?: "",
+                authenticationUrl = (((paymentResponse.links?.threeDSAuthenticationsUrl ?: "") as PaymentResponse.Href).href).toString()
             )
             try {
                 val threeDSTwoConfig = paymentResponse.threeDSTwo
