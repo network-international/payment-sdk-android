@@ -44,6 +44,7 @@ internal class CardPaymentPresenter(
     private lateinit var paymentRef: String
     private lateinit var selfLink: String
     private lateinit var payPageUrl: String
+    private var isSaudiPaymentEnabled: Boolean? = false
 
     private var visRequest: VisaRequest? = null
 
@@ -136,7 +137,11 @@ internal class CardPaymentPresenter(
     }
 
     private fun getCardLogo(card: PaymentCard): Int? {
+        if (!this.isSaudiPaymentEnabled!! && card.type == CardType.Mada) {
+            return LOGO_VISA_RESOURCE
+        }
         return when (card.type) {
+            CardType.Mada -> LOGO_MADA_RESOURCE
             CardType.Visa -> LOGO_VISA_RESOURCE
             CardType.MasterCard -> LOGO_MASTERCARD_RESOURCE
             CardType.AmericanExpress -> LOGO_AMEX_RESOURCE
@@ -220,7 +225,7 @@ internal class CardPaymentPresenter(
         paymentApiInteractor.getOrder(
             orderUrl = orderUrl,
             paymentCookie = paymentCookie,
-            success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, selfLink, orderJson ->
+            success = { orderReference, paymentUrl, supportedCards, orderAmount, outletRef, selfLink, orderJson, isSaudiPaymentEnabled ->
                 var paymentRef = ""
                 try {
                     val order = Gson().fromJson(orderJson.toString(), Order::class.java)
@@ -237,6 +242,7 @@ internal class CardPaymentPresenter(
                 this.supportedCards = supportedCards
                 this.orderAmount = orderAmount
                 this.paymentRef = paymentRef
+                this.isSaudiPaymentEnabled = isSaudiPaymentEnabled
             },
             error = {
                 view.showProgress(false)
@@ -454,6 +460,8 @@ internal class CardPaymentPresenter(
 
         @VisibleForTesting
         internal val LOGO_AMEX_RESOURCE: Int = R.drawable.ic_logo_amex
+        @VisibleForTesting
+        internal val LOGO_MADA_RESOURCE: Int = R.drawable.ic_logo_mada
         @VisibleForTesting
         internal val LOGO_VISA_RESOURCE: Int = R.drawable.ic_logo_visa
         @VisibleForTesting
