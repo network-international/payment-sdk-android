@@ -17,6 +17,7 @@ class CardMapping {
 
         val SUPPORTED_CARD_MAPPING = mapOf(
             "VISA" to CardType.Visa,
+            "MADA" to CardType.Mada,
             "MASTERCARD" to CardType.MasterCard,
             "AMERICAN_EXPRESS" to CardType.AmericanExpress,
             "DISCOVER" to CardType.Discover,
