@@ -8,7 +8,11 @@ data class OrderRequest(
     val language: String = "en",
     val description: String = "Android Demo App",
     val merchantAttributes: Map<String, Any> = mapOf(),
-    val savedCard: SavedCard? = null
+    val savedCard: SavedCard? = null,
+    var type: String? = null,
+    var frequency: String? = null,
+    var recurringDetails: RecurringDetails? = null,
+    var installmentDetails: InstallmentDetails? = null
 )
 
 data class PaymentOrderAmount(
@@ -28,6 +32,23 @@ fun OrderRequest.toMap(): MutableMap<String, Any> {
     )
     if (merchantAttributes.isNotEmpty()) {
         bodyMap["merchantAttributes"] = merchantAttributes
+    }
+    if (!type.isNullOrEmpty()) {
+        bodyMap["type"] = type!!
+    }
+    if (!frequency.isNullOrEmpty()) {
+        bodyMap["frequency"] = frequency!!
+    }
+    recurringDetails?.let {
+        bodyMap["recurringDetails"] = mapOf(
+            "recurringType" to it.recurringType,
+            "numberOfTenure" to it.numberOfTenure
+        )
+    }
+    installmentDetails?.let {
+        bodyMap["installmentDetails"] = mapOf(
+            "numberOfTenure" to it.numberOfTenure
+        )
     }
     savedCard?.let {
         bodyMap["savedCard"] = mapOf(

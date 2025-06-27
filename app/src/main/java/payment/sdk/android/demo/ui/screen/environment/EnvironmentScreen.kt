@@ -5,14 +5,18 @@ import android.content.Context
 import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -80,8 +84,12 @@ fun EnvironmentScreen(
             var isExpandedEnvironments by remember { mutableStateOf(false) }
             var isExpandedMerchantAttributes by remember { mutableStateOf(false) }
             val orderAction = remember { listOf("AUTH", "SALE", "PURCHASE") }
+            val orderType = remember { listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT") }
             var actionIndex by remember {
                 mutableIntStateOf(orderAction.indexOf(state.orderAction))
+            }
+            var typeIndex by remember {
+                mutableIntStateOf(orderType.indexOf(state.orderType))
             }
 
             Column(
@@ -142,6 +150,34 @@ fun EnvironmentScreen(
                         }
                     }
                 }
+
+                HorizontalDivider()
+                Text(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    text = "Order type",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(orderType.size) { index ->
+                        AssistChip(
+                            onClick = {
+                                typeIndex = index
+                                viewModel.onOrderTypeSelected(orderType[index])
+                            },
+                            label = { Text(orderType[index]) },
+                            leadingIcon = if (typeIndex == index) {
+                                { Icon(Icons.Default.Check, contentDescription = null) }
+                            } else null
+                        )
+                    }
+                }
+
 
                 HorizontalDivider()
 

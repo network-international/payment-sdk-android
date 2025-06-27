@@ -15,6 +15,7 @@
     <!-- Title name in payment page -->
     <string name="make_payment">الدفع</string>
     <string name="button_yes">نعم</string>
+    <string name="pay_button">إدفع</string>
 
     <!-- The title of the label shown above the card number text field. The field used to enter the
     Credit or Debit card number. -->
