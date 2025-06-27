@@ -34,15 +34,23 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private fun getIpUrl(stringVal: String, outletRef: String, orderRef: String, paymentRef: String): String {
         val slug =
             "/api/outlets/$outletRef/orders/$orderRef/payments/${paymentRef}/3ds2/requester-ip"
-        if (stringVal.contains("-uat", true) ||
-            stringVal.contains("sandbox", true)
-        ) {
-            return "https://paypage.sandbox.ngenius-payments.com$slug"
+        val isKsa = stringVal.contains("ksa", ignoreCase = true)
+
+        val baseUrl = when {
+            stringVal.contains("-uat", ignoreCase = true) || stringVal.contains("sandbox", ignoreCase = true) ->
+                if (isKsa) "https://paypage.sandbox.ksa.ngenius-payments.com"
+                else "https://paypage.sandbox.ngenius-payments.com"
+
+            stringVal.contains("-dev", ignoreCase = true) ->
+                if (isKsa) "https://paypage-dev.ksa.ngenius-payments.com"
+                else "https://paypage-dev.ngenius-payments.com"
+
+            else ->
+                if (isKsa) "https://paypage.ksa.ngenius-payments.com"
+                else "https://paypage.ngenius-payments.com"
         }
-        if (stringVal.contains("-dev", true)) {
-            return "https://paypage-dev.ngenius-payments.com$slug"
-        }
-        return "https://paypage.ngenius-payments.com$slug"
+
+        return "$baseUrl$slug"
     }
 
     private var progressDialog: AlertDialog? = null

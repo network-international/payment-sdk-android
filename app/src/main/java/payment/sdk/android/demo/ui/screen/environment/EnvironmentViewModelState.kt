@@ -9,4 +9,5 @@ data class EnvironmentViewModelState(
     val merchantAttributes: List<MerchantAttribute> = listOf(),
     val language: String = "en",
     val orderAction: String = "SALE",
+    val orderType: String = "SINGLE"
 )

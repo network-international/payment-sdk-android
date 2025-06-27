@@ -74,6 +74,11 @@ class EnvironmentViewModel(
         _state.update { it.copy(orderAction = action) }
     }
 
+    fun onOrderTypeSelected(type: String) {
+        dataStore.setOrderType(type)
+        _state.update { it.copy(orderType = type) }
+    }
+
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
         dataStore.updateMerchantAttribute(merchantAttribute)
         _state.update { it.copy(merchantAttributes = dataStore.getMerchantAttributes()) }
