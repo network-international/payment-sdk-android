@@ -286,7 +286,7 @@ class MainViewModel(
                     modelClass: Class<T>,
                     handle: SavedStateHandle
                 ): T {
-                    val client = PaymentClient(activity, "FOC")
+                    val client = PaymentClient(activity, "6b50b00a4a324030a0c671")
                     return MainViewModel(
                         paymentClient = client,
                         createOrderApiInteractor = CreateOrderApiInteractor(

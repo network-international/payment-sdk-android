@@ -36,7 +36,7 @@ import payment.sdk.android.savedCard.SavedCardPaymentRequest
 class MainActivity : ComponentActivity(), SamsungPayResponse {
 
     private val paymentClient: PaymentClient by lazy {
-        PaymentClient(this, "DEMO_VAL")
+        PaymentClient(this, "6b50b00a4a324030a0c671")
     }
 
     private val viewModel: MainViewModel by viewModels {
@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                 when (effect.type) {
                     PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
                         effect.order,
-                        "",
+                        "WestZone",
                         this@MainActivity
                     )
 
@@ -172,8 +172,8 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
 
     private fun makeCardPaymentNew(authUrl: String, payPageUrl: String) {
         val googlePayConfig = GooglePayConfig(
-            environment = GooglePayConfig.Environment.Production,
-            merchantGatewayId = "BCR2DN4T27NJW2Y"
+            environment = GooglePayConfig.Environment.Test,
+            merchantGatewayId = "BCR2DN4T263KB4BO"
         )
         paymentsLauncher.launch(
             PaymentsRequest.builder()
