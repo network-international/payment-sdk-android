@@ -46,7 +46,7 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
 
     testImplementation "junit:junit:$junit"
-    api files('libs/samsungpay_2.18.00.jar')
+    api files('libs/samsungpay_2.22.00.jar')
 }
 repositories {
     mavenCentral()

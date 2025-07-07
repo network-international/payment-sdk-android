@@ -31,7 +31,7 @@
             android:value="" />
         <meta-data
             android:name="spay_sdk_api_level"
-            android:value="2.18" />
+            android:value="2.22" />
 
         <activity
             android:name=".demo.MainActivity"
