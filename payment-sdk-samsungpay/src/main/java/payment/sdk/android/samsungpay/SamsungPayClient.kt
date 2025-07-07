@@ -100,7 +100,7 @@ class SamsungPayClient(
         val samsungPaylink = order.embedded!!.payment[0].links!!.samsungPayLink!!.href!!
 
         val customSheet = CustomSheet()
-        customSheet.addControl(makeAmountControl(order.amount!!))
+        customSheet.addControl(makeAmountControl(order.amount!!)!!)
 
         val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
         transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, error: Exception? ->
@@ -154,7 +154,7 @@ class SamsungPayClient(
     }
 
     private fun makeAmountControl(amount: Order.Amount): AmountBoxControl? {
-        val amountBoxControl = AmountBoxControl(AMOUNT_CONTROL_ID, amount.currencyCode)
+        val amountBoxControl = AmountBoxControl(AMOUNT_CONTROL_ID, amount.currencyCode!!)
         amountBoxControl.setAmountTotal(
             amount.value!!.toDouble(),
             AmountConstants.FORMAT_TOTAL_PRICE_ONLY
