@@ -344,7 +344,7 @@ internal class PaymentsViewModel(
                     ),
                     googlePayJsonConfig = GooglePayJsonConfig(),
                     googlePayConfigInteractor = GooglePayConfigInteractor(httpClient),
-                    merchantGatewayId = cardPaymentsIntent.googlePayConfig?.merchantGatewayId!!
+                    merchantGatewayId = cardPaymentsIntent.googlePayConfig?.merchantGatewayId ?: ""
                 ),
                 googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient),
                 getOrderApiInteractor = GetOrderApiInteractor(httpClient)
