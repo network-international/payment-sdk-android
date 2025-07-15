@@ -162,7 +162,11 @@ fun getCardImage(type: CardType?, isWhiteBackground: Boolean = false): Painter {
 
             CardType.JCB -> R.drawable.ic_logo_jcb
             CardType.Discover -> R.drawable.ic_logo_discover
-            CardType.Mada -> R.drawable.ic_logo_mada
+            CardType.Mada ->  if (isWhiteBackground) {
+                R.drawable.ic_logo_mada_dark
+            } else {
+                R.drawable.ic_logo_mada
+            }
             else -> R.drawable.ic_card_back_chip
         }
     )
