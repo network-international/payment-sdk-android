@@ -72,7 +72,8 @@ class SamsungPayClient(
         merchantName: String,
         samsungPayResponse: SamsungPayResponse
     ) {
-        if (order.outletId == null) {
+        val outletId = order.outletId ?: order.embedded?.payment?.firstOrNull()?.outletId
+        if (outletId == null) {
             samsungPayResponse.onFailure("Outlet ID is null in order")
             return
         }
@@ -136,7 +137,7 @@ class SamsungPayClient(
                 }
 
                 val paymentInfo = CustomSheetPaymentInfo.Builder()
-                    .setMerchantId(order.outletId)
+                    .setMerchantId(outletId)
                     .setMerchantName(merchantName)
                     .setOrderNumber(order.reference)
                     .setAllowedCardBrands(allowedCards)
