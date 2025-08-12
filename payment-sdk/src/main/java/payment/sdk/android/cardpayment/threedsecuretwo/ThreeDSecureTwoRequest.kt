@@ -27,15 +27,21 @@ data class ThreeDSecureTwoRequest(
         }
 
         private fun getNotificationUrl(stringVal: String, path: String): String {
-            if (stringVal.contains("-uat", true) ||
-                stringVal.contains("sandbox", true)
-            ) {
-                return "https://api-gateway.sandbox.ngenius-payments.com$path"
+            val isKsa = stringVal.contains("ksa", ignoreCase = true)
+            val baseUrl = when {
+                stringVal.contains("-uat", ignoreCase = true) || stringVal.contains("sandbox", ignoreCase = true) ->
+                    if (isKsa) "https://api-gateway.sandbox.ksa.ngenius-payments.com"
+                    else "https://api-gateway.sandbox.ngenius-payments.com"
+
+                stringVal.contains("-dev", ignoreCase = true) ->
+                    if (isKsa) "https://api-gateway.dev.ksa.ngenius-payments.com"
+                    else "https://api-gateway-dev.ngenius-payments.com"
+
+                else ->
+                    if (isKsa) "https://api-gateway.ksa.ngenius-payments.com"
+                    else "https://api-gateway.ngenius-payments.com"
             }
-            if (stringVal.contains("-dev", true)) {
-                return "https://api-gateway-dev.ngenius-payments.com$path"
-            }
-            return "https://api-gateway.ngenius-payments.com$path"
+            return "$baseUrl$path"
         }
 
         private fun constructThreeDSNotificationURL(responseJson: JSONObject): String {

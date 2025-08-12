@@ -2,21 +2,28 @@ package payment.sdk.android.savedCard.view
 
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,13 +68,38 @@ internal fun SavedCardViewBottomBar(
             },
             shape = RoundedCornerShape(percent = 15),
         ) {
-            Text(
-                text = stringResource(
-                    id = R.string.pay_button_title,
-                    orderAmount.formattedCurrencyString2Decimal(isLTR)
-                ),
-                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-            )
+            if (!orderAmount.isRiyalCurrency()) {
+                Text(
+                    text = stringResource(
+                        id = R.string.pay_button_title,
+                        orderAmount.formattedCurrencyString2Decimal(isLTR)
+                    ),
+                    color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                )
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.pay_button),
+                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Icon(
+                        painter = painterResource(id = R.drawable.btn_riyal),
+                        contentDescription = "Pay Icon",
+                        modifier = Modifier.size(14.dp),
+                        tint = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = orderAmount.getOrderValue(),
+                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    )
+                }
+            }
         }
     }
 }

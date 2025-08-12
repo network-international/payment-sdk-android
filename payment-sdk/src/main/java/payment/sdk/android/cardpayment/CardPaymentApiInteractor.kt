@@ -34,7 +34,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
 
     override fun getOrder(orderUrl: String,
                           paymentCookie: String,
-                          success: (String, String, Set<CardType>, orderAmount: OrderAmount, String, String, JSONObject) -> Unit,
+                          success: (String, String, Set<CardType>, orderAmount: OrderAmount, String, String, JSONObject, Boolean) -> Unit,
                           error: (Exception) -> Unit) {
         httpClient.get(
                 url = orderUrl,
@@ -52,6 +52,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                     val orderValue = response.json("amount")!!.double("value")!!
                     val currencyCode = response.json("amount")!!.string("currencyCode")!!
                     val outletRef = response.string("outletId")
+                    val isSaudiPaymentEnabled = response.boolean("isSaudiPaymentEnabled")!!
                     val orderAmount = OrderAmount(orderValue, currencyCode)
                     val selfLink = response.json("_embedded")
                         ?.array("payment")?.at(0)
@@ -62,7 +63,8 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                         orderAmount,
                         outletRef!!,
                         selfLink,
-                        response
+                        response,
+                        isSaudiPaymentEnabled
                     )
                 },
                 error = { exception ->

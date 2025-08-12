@@ -72,7 +72,8 @@ class SamsungPayClient(
         merchantName: String,
         samsungPayResponse: SamsungPayResponse
     ) {
-        if (order.outletId == null) {
+        val outletId = order.outletId ?: order.embedded?.payment?.firstOrNull()?.outletId
+        if (outletId == null) {
             samsungPayResponse.onFailure("Outlet ID is null in order")
             return
         }
@@ -100,7 +101,7 @@ class SamsungPayClient(
         val samsungPaylink = order.embedded!!.payment[0].links!!.samsungPayLink!!.href!!
 
         val customSheet = CustomSheet()
-        customSheet.addControl(makeAmountControl(order.amount!!))
+        customSheet.addControl(makeAmountControl(order.amount!!)!!)
 
         val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
         transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, error: Exception? ->
@@ -136,7 +137,7 @@ class SamsungPayClient(
                 }
 
                 val paymentInfo = CustomSheetPaymentInfo.Builder()
-                    .setMerchantId(order.outletId)
+                    .setMerchantId(outletId)
                     .setMerchantName(merchantName)
                     .setOrderNumber(order.reference)
                     .setAllowedCardBrands(allowedCards)
@@ -154,7 +155,7 @@ class SamsungPayClient(
     }
 
     private fun makeAmountControl(amount: Order.Amount): AmountBoxControl? {
-        val amountBoxControl = AmountBoxControl(AMOUNT_CONTROL_ID, amount.currencyCode)
+        val amountBoxControl = AmountBoxControl(AMOUNT_CONTROL_ID, amount.currencyCode!!)
         amountBoxControl.setAmountTotal(
             amount.value!!.toDouble(),
             AmountConstants.FORMAT_TOTAL_PRICE_ONLY
