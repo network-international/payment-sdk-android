@@ -32,6 +32,10 @@ interface DataStore {
 
     fun getOrderAction(): String
 
+    fun setOrderType(action: String)
+
+    fun getOrderType(): String
+
     fun addProduct(product: Product)
 
     fun deleteProduct(product: Product)

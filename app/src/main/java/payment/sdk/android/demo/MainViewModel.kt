@@ -26,9 +26,11 @@ import payment.sdk.android.demo.http.ApiServiceAdapter
 import payment.sdk.android.demo.http.CreateOrderApiInteractor
 import payment.sdk.android.demo.http.GetOrderApiInteractor
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.InstallmentDetails
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
+import payment.sdk.android.demo.model.RecurringDetails
 import payment.sdk.android.payments.PaymentsResult
 
 @Keep
@@ -77,8 +79,10 @@ class MainViewModel(
     }
 
     fun createOrderRequest(savedCard: SavedCard? = null): OrderRequest {
-        return OrderRequest(
-            action = dataStore.getOrderAction(),
+        val action = dataStore.getOrderAction()
+        val type = dataStore.getOrderType()
+        val orderRequest = OrderRequest(
+            action = action,
             amount = PaymentOrderAmount(
                 value = uiState.value.total,
                 currencyCode = dataStore.getCurrency().code
@@ -89,6 +93,20 @@ class MainViewModel(
                 .associate { it.key to it.value },
             savedCard = savedCard
         )
+        when (type) {
+            "INSTALLMENT" -> {
+                orderRequest.type = "INSTALLMENT"
+                orderRequest.frequency = "MONTHLY"
+                orderRequest.installmentDetails = InstallmentDetails(2)
+            }
+            "UNSCHEDULED" -> orderRequest.type = "UNSCHEDULED"
+            "RECURRING" -> {
+                orderRequest.type = "RECURRING"
+                orderRequest.frequency = "MONTHLY"
+                orderRequest.recurringDetails = RecurringDetails(10, "FIXED")
+            }
+        }
+        return orderRequest
     }
 
     private fun getEnvironment(): Environment? {
@@ -268,7 +286,7 @@ class MainViewModel(
                     modelClass: Class<T>,
                     handle: SavedStateHandle
                 ): T {
-                    val client = PaymentClient(activity, "FOC")
+                    val client = PaymentClient(activity, "6b50b00a4a324030a0c671")
                     return MainViewModel(
                         paymentClient = client,
                         createOrderApiInteractor = CreateOrderApiInteractor(
