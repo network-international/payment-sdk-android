@@ -60,11 +60,17 @@ class ApiServiceAdapter(
         accessToken: String,
         orderRequest: OrderRequest
     ): Order? {
+        var createOrderUrl = url
+        var contentType = "application/vnd.ni-payment.v2+json"
+        if (orderRequest.type == "RECURRING" || orderRequest.type == "INSTALLMENT") {
+            createOrderUrl = url.replace("transactions", "recurring-payment")
+            contentType = "application/vnd.ni-recurring-payment.v2+json"
+        }
         val response = httpClient.post(
-            url = url,
+            url = createOrderUrl,
             headers = mapOf(
-                HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
-                HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
+                HEADER_CONTENT_TYPE to contentType,
+                HEADER_ACCEPT to contentType,
                 HEADER_AUTH to "Bearer $accessToken"
             ),
             body = Body.Json(

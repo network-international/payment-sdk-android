@@ -20,7 +20,7 @@ class CoroutinesGatewayHttpClient : HttpClient {
         TLSSocketFactoryDelegate()
     }
 
-    private val sdkVersion = "4.0.5"
+    private val sdkVersion = "5.0.0"
 
     @UiThread
     override fun get(

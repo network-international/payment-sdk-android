@@ -54,6 +54,7 @@ class Order {
         var savedCard: SavedCard? = null
         var paymentMethod: PaymentMethod? = null
         var state: String? = null
+        var outletId: String? = null
         var amount: Order.Amount? = null
         var authResponse: AuthResponse? = null
     }

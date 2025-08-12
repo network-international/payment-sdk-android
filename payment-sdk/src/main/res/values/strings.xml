@@ -14,6 +14,7 @@
 
     <!-- Title name in payment page -->
     <string name="make_payment">Make Payment</string>
+    <string name="pay_button">Pay</string>
 
     <!-- Dialog text to notify 3d secure page is opening -->
     <string name="launching_3d_secure">Launching 3D Secure&#8230;</string>

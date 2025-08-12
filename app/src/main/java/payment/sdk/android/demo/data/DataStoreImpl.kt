@@ -55,6 +55,13 @@ class DataStoreImpl(private val context: Context) : DataStore {
     override fun getOrderAction() =
         context.getPreferences().getString(KEY_ORDER_ACTION, "SALE") ?: "SALE"
 
+    override fun setOrderType(action: String) {
+        context.getPreferences().edit().putString(KEY_ORDER_TYPE, action).apply()
+    }
+
+    override fun getOrderType() =
+        context.getPreferences().getString(KEY_ORDER_TYPE, "SINGLE") ?: "SINGLE"
+
     override fun addProduct(product: Product) {
         val products = Product.getProducts(context).toMutableList()
         products.add(product)
@@ -134,6 +141,7 @@ class DataStoreImpl(private val context: Context) : DataStore {
         const val KEY_SAVED_CARDS = "saved_cards"
         const val KEY_SAVED_CARD = "saved_card"
         const val KEY_ORDER_ACTION = "order_action"
+        const val KEY_ORDER_TYPE = "order_type"
 
         private val products = listOf(
             Product(name = "🐊", amount = 1.0),

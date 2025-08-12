@@ -18,7 +18,7 @@ interface PaymentApiInteractor {
     fun getOrder(
             orderUrl: String,
             paymentCookie: String,
-            success: (String, String, Set<CardType>, OrderAmount, String, String, JSONObject) -> Unit,
+            success: (String, String, Set<CardType>, OrderAmount, String, String, JSONObject, Boolean) -> Unit,
             error: (Exception) -> Unit)
 
     fun doPayment(
