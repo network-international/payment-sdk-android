@@ -3,7 +3,7 @@ package payment.sdk.android
 object SDKConfig {
     internal var showOrderAmount: Boolean = false
     internal var showCancelAlert: Boolean = false
-    private var sdkVersion: String = "4.0.5"
+    private var sdkVersion: String = "5.0.0"
 
     fun shouldShowOrderAmount(show: Boolean): SDKConfig {
         this.showOrderAmount = show
