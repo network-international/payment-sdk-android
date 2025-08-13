@@ -14,6 +14,7 @@
         <activity
             android:name="payment.sdk.android.payments.PaymentsActivity"
             android:screenOrientation="portrait"
+            android:theme="@style/SdkTheme.ThreeDSecure" 
             android:exported="false" />
         <activity
             android:name="payment.sdk.android.visaInstalments.VisaInstallmentsActivity"
