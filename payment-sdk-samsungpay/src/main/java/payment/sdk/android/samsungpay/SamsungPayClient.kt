@@ -131,9 +131,13 @@ class SamsungPayClient(
                     }
                 }
 
+                val isSaudiPaymentEnabled = order.isSaudiPaymentEnabled
                 // Notice that some cards are not supported by Samsung Pay that are already supported by Payment Gateway
                 val allowedCards = order.paymentMethods!!.card!!.mapNotNull { cardType ->
                     SamsungPayCardMapper.stringToSamsungPaySdk(cardType)
+                }
+                .filter { brand ->
+                    isSaudiPaymentEnabled || brand != SpaySdk.Brand.MADA
                 }
 
                 val paymentInfo = CustomSheetPaymentInfo.Builder()
