@@ -14,6 +14,7 @@ class Order {
     var reference: String? = null
     var paymentMethods: PaymentMethods? = null
     var language: String = "en"
+    var isSaudiPaymentEnabled: Boolean = false
 
     @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null

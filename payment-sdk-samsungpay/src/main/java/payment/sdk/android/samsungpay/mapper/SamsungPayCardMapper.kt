@@ -12,6 +12,7 @@ class SamsungPayCardMapper {
                     "MASTERCARD" -> SpaySdk.Brand.MASTERCARD
                     "AMERICAN_EXPRESS" -> SpaySdk.Brand.AMERICANEXPRESS
                     "DISCOVER" -> SpaySdk.Brand.DISCOVER
+                    "MADA" -> SpaySdk.Brand.MADA
                     else -> null
                 }
     }
