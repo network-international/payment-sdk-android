@@ -96,15 +96,16 @@ class MainViewModel(
         when (type) {
             "INSTALLMENT" -> {
                 orderRequest.type = "INSTALLMENT"
-                orderRequest.frequency = "MONTHLY"
-                orderRequest.installmentDetails = InstallmentDetails(2)
+                orderRequest.frequency = dataStore.getFrequency()
+                orderRequest.installmentDetails = InstallmentDetails(dataStore.getTenure() ?: 2)
+            }
+            "RECURRING" ->  {
+                orderRequest.type = "RECURRING"
+                orderRequest.frequency = dataStore.getFrequency()
+                orderRequest.recurringDetails =
+                    RecurringDetails(dataStore.getTenure(), dataStore.getRecurringType())
             }
             "UNSCHEDULED" -> orderRequest.type = "UNSCHEDULED"
-            "RECURRING" -> {
-                orderRequest.type = "RECURRING"
-                orderRequest.frequency = "MONTHLY"
-                orderRequest.recurringDetails = RecurringDetails(10, "FIXED")
-            }
         }
         return orderRequest
     }

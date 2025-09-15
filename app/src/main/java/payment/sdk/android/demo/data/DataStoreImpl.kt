@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import androidx.core.content.edit
 
 class DataStoreImpl(private val context: Context) : DataStore {
     override fun saveEnvironment(environment: Environment) {
@@ -61,6 +62,28 @@ class DataStoreImpl(private val context: Context) : DataStore {
 
     override fun getOrderType() =
         context.getPreferences().getString(KEY_ORDER_TYPE, "SINGLE") ?: "SINGLE"
+
+    override fun setRecurringType(recurringType: String) {
+        context.getPreferences().edit { putString(KEY_RECURRING_TYPE, recurringType) }
+    }
+
+    override fun getRecurringType() =
+        context.getPreferences().getString(KEY_RECURRING_TYPE, "FIXED") ?: "FIXED"
+
+    override fun setFrequency(frequency: String) {
+        context.getPreferences().edit { putString(KEY_FREQUENCY, frequency) }
+    }
+
+    override fun getFrequency() =
+        context.getPreferences().getString(KEY_FREQUENCY, "HOURLY") ?: "HOURLY"
+
+    override fun setTenure(tenure: Int?) {
+        context.getPreferences().edit{ putString(KEY_TENURE, tenure.toString()) }
+    }
+
+    override fun getTenure(): Int? {
+        return (context.getPreferences().getString(KEY_TENURE, "") ?: "").toIntOrNull()
+    }
 
     override fun addProduct(product: Product) {
         val products = Product.getProducts(context).toMutableList()
@@ -142,6 +165,9 @@ class DataStoreImpl(private val context: Context) : DataStore {
         const val KEY_SAVED_CARD = "saved_card"
         const val KEY_ORDER_ACTION = "order_action"
         const val KEY_ORDER_TYPE = "order_type"
+        const val KEY_RECURRING_TYPE = "recurring_type"
+        const val KEY_TENURE = "tenure"
+        const val KEY_FREQUENCY = "frequency"
 
         private val products = listOf(
             Product(name = "🐊", amount = 1.0),

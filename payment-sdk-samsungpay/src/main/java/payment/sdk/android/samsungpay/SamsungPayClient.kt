@@ -139,7 +139,7 @@ class SamsungPayClient(
                 .filter { brand ->
                     isSaudiPaymentEnabled || brand != SpaySdk.Brand.MADA
                 }
-
+                val MERCHANT_COUNTRY_CODE = if (isSaudiPaymentEnabled) "SA" else "AE"
                 val paymentInfo = CustomSheetPaymentInfo.Builder()
                     .setMerchantId(outletId)
                     .setMerchantName(merchantName)
@@ -148,6 +148,7 @@ class SamsungPayClient(
                     .setCardHolderNameEnabled(true)
                     .setRecurringEnabled(false)
                     .setCustomSheet(customSheet)
+                    .setMerchantCountryCode(MERCHANT_COUNTRY_CODE)
                     .build()
 
                 paymentManager.startInAppPayWithCustomSheet(

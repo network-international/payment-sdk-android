@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.visaInstalments.model.PlanFrequency
 
 class EnvironmentViewModel(
     private val dataStore: DataStore
@@ -72,6 +73,22 @@ class EnvironmentViewModel(
     fun onOrderActionSelected(action: String) {
         dataStore.setOrderAction(action)
         _state.update { it.copy(orderAction = action) }
+    }
+
+    fun onRecurringTypeActionSelected(action: String) {
+        dataStore.setRecurringType(action)
+        _state.update { it.copy(recurringType = action) }
+    }
+
+    fun onFrequencySelected(frequency: String) {
+        dataStore.setRecurringType(frequency)
+        _state.update { it.copy(frequency = frequency) }
+    }
+
+    fun onTenureChange(tenure: String) {
+        val intTenure = tenure.toIntOrNull()
+        dataStore.setTenure(intTenure)
+        _state.update { it.copy(tenure = intTenure) }
     }
 
     fun onOrderTypeSelected(type: String) {
