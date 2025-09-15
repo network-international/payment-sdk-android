@@ -62,7 +62,8 @@ class ApiServiceAdapter(
     ): Order? {
         var createOrderUrl = url
         var contentType = "application/vnd.ni-payment.v2+json"
-        if (orderRequest.type == "RECURRING" || orderRequest.type == "INSTALLMENT") {
+        if (orderRequest.type?.startsWith("RECURRING", true) == true ||
+            orderRequest.type == "INSTALLMENT") {
             createOrderUrl = url.replace("transactions", "recurring-payment")
             contentType = "application/vnd.ni-recurring-payment.v2+json"
         }

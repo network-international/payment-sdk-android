@@ -36,6 +36,18 @@ interface DataStore {
 
     fun getOrderType(): String
 
+    fun setRecurringType(recurringType: String)
+
+    fun getRecurringType(): String
+
+    fun setFrequency(frequency: String)
+
+    fun getFrequency(): String
+
+    fun setTenure(tenure: Int?)
+
+    fun getTenure(): Int?
+
     fun addProduct(product: Product)
 
     fun deleteProduct(product: Product)

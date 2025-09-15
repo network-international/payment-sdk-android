@@ -42,7 +42,7 @@ android {
     productFlavors {
         demoDebug {
             dimension "version"
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             resValue "string", "app_name", "Demo App (Debug)"
         }
