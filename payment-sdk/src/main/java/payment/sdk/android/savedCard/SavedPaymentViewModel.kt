@@ -36,6 +36,7 @@ import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.core.interactor.VisaRequest
+import payment.sdk.android.payments.requireApplication
 import payment.sdk.android.savedCard.model.SavedCardPaymentState
 import payment.sdk.android.savedCard.model.SavedCardPaymentsVMEffects
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
@@ -332,8 +333,8 @@ internal class SavedPaymentViewModel(
                 val httpClient = CoroutinesGatewayHttpClient()
 
                 return SavedPaymentViewModel(
-                    authApiInteractor = AuthApiInteractor(httpClient),
-                    savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(httpClient),
+                    authApiInteractor = AuthApiInteractor(httpClient, extras.requireApplication()),
+                    savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(httpClient, extras.requireApplication()),
                     getPayerIpInteractor = GetPayerIpInteractor(httpClient),
                     visaInstalmentPlanInteractor = VisaInstallmentPlanInteractor(httpClient),
                     getOrderApiInteractor = GetOrderApiInteractor(httpClient),
