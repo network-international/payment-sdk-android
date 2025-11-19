@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.google.android.gms.wallet.Wallet
-import com.google.android.gms.wallet.WalletConstants
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -333,8 +332,8 @@ internal class PaymentsViewModel(
             val httpClient = CoroutinesGatewayHttpClient()
             return PaymentsViewModel(
                 cardPaymentsIntent = cardPaymentsIntent,
-                authApiInteractor = AuthApiInteractor(httpClient),
-                cardPaymentInteractor = CardPaymentInteractor(httpClient),
+                authApiInteractor = AuthApiInteractor(httpClient, extras.requireApplication()),
+                cardPaymentInteractor = CardPaymentInteractor(httpClient, extras.requireApplication()),
                 visaInstalmentPlanInteractor = VisaInstallmentPlanInteractor(httpClient),
                 getPayerIpInteractor = GetPayerIpInteractor(httpClient),
                 threeDSecureFactory = ThreeDSecureFactory(),
@@ -346,7 +345,7 @@ internal class PaymentsViewModel(
                     googlePayConfigInteractor = GooglePayConfigInteractor(httpClient),
                     merchantGatewayId = cardPaymentsIntent.googlePayConfig?.merchantGatewayId ?: ""
                 ),
-                googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient),
+                googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient, extras.requireApplication()),
                 getOrderApiInteractor = GetOrderApiInteractor(httpClient)
             ) as T
         }
