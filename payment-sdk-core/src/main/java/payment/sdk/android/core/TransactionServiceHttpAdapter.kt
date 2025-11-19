@@ -1,15 +1,20 @@
 package payment.sdk.android.core
 
+import android.content.Context
 import android.net.Uri
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.HttpClient
+import payment.sdk.android.core.interactor.DeviceIdProvider
 import java.util.*
 import kotlin.collections.HashMap
 
-class TransactionServiceHttpAdapter : TransactionService {
+class TransactionServiceHttpAdapter(private val context: Context) : TransactionService {
     val httpClient: HttpClient = CoroutinesGatewayHttpClient()
 
+    private val deviceId by lazy {
+        DeviceIdProvider.getDeviceId(context)
+    }
     override fun getAuthTokenFromCode(url: String, code: String, success: (List<String>, String) -> Unit, error: (Exception) -> Unit) {
         httpClient.post(
             url = url,
@@ -56,7 +61,8 @@ class TransactionServiceHttpAdapter : TransactionService {
                 url = authUrl,
                 headers = mapOf(
                         HEADER_CONTENT_TYPE to "application/x-www-form-urlencoded",
-                        HEADER_ACCEPT to "application/vnd.ni-payment.v2+json"
+                        HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
+                        HEADER_FINGERPRINT to deviceId
                 ),
                 body = Body.Form(mapOf(
                         "code" to authCode
@@ -93,7 +99,8 @@ class TransactionServiceHttpAdapter : TransactionService {
                 headers = mapOf(
                         HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                         HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                        HEADER_AUTHORIZATION to "Bearer $paymentToken"
+                        HEADER_AUTHORIZATION to "Bearer $paymentToken",
+                        HEADER_FINGERPRINT to deviceId
                 ),
 
                 body = Body.JsonStr(body),
@@ -107,6 +114,7 @@ class TransactionServiceHttpAdapter : TransactionService {
 
     companion object {
         internal const val HEADER_ACCEPT = "Accept"
+        internal const val HEADER_FINGERPRINT = "X-Payer-Fingerprint"
         internal const val HEADER_CONTENT_TYPE = "Content-Type"
         internal const val HEADER_SET_COOKIE = "Set-Cookie"
         internal const val HEADER_AUTHORIZATION = "Authorization"
