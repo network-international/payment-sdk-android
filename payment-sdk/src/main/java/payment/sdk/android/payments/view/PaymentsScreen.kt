@@ -289,16 +289,18 @@ fun PaymentsScreen(
 
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                        googlePayUiConfig?.let {
-                            GooglePayButton(
-                                onClick = onGooglePay,
-                                radius = 8.dp,
-                                allowedPaymentMethods = it.allowedPaymentMethods,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp)
-                            )
-                            Spacer(Modifier.height(8.dp))
+                        if (googlePayUiConfig?.canUseGooglePay == true) {
+                            googlePayUiConfig.let {
+                                GooglePayButton(
+                                    onClick = onGooglePay,
+                                    radius = 8.dp,
+                                    allowedPaymentMethods = it.allowedPaymentMethods,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp)
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
                         }
 
                         aaniConfig?.let { config ->
