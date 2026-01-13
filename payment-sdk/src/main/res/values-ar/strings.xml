@@ -111,4 +111,6 @@
     <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
     <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
     <string name="partial_auth_message_question">هل ترغب في المضي قدما مع المبلغ المخفض؟</string>
+
+    <string name="click_to_pay">Click to Pay</string>
 </resources>
