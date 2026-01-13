@@ -170,7 +170,9 @@ class PaymentsActivity : AppCompatActivity() {
                             aaniConfig = authState.aaniConfig,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
-                            }
+                            },
+                            showClickToPay = authState.showClickToPay,
+                            onClickClickToPay = {}
                         )
                     }
 

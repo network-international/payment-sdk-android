@@ -166,7 +166,8 @@ internal class PaymentsViewModel(
                 selfUrl = order.getSelfUrl().orEmpty(),
                 locale = order.language,
                 aaniConfig = aaniConfig,
-                payerIp = payerIp
+                payerIp = payerIp,
+                showClickToPay = supportedWallets.contains("VISA_CLICK_TO_PAY")
             )
         }
     }

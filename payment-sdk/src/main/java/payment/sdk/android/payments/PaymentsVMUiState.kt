@@ -32,7 +32,8 @@ sealed class PaymentsVMUiState(val title: Int, val enableBackButton: Boolean = t
         val amount: Double,
         val currencyCode: String,
         val locale: String,
-        val payerIp: String
+        val payerIp: String,
+        val showClickToPay: Boolean,
     ) : PaymentsVMUiState(R.string.make_payment)
 
     data class ShowVisaPlans(

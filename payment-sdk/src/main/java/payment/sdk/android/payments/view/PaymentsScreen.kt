@@ -60,6 +60,7 @@ import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.savedCard.view.CreditCardBack
 import payment.sdk.android.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
+import payment.sdk.android.clickToPay.ClickToPayButton
 import payment.sdk.android.core.CardType
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.payments.GooglePayUiConfig
@@ -75,7 +76,9 @@ fun PaymentsScreen(
     aaniConfig: AaniPayLauncher.Config?,
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
     onGooglePay: () -> Unit,
-    onClickAaniPay: (AaniPayLauncher.Config) -> Unit
+    onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
+    showClickToPay: Boolean = false,
+    onClickClickToPay: () -> Unit
 ) {
     val cardDetector = remember { CardDetector(supportedCards) }
     var pan by remember { mutableStateOf("") }
@@ -322,6 +325,38 @@ fun PaymentsScreen(
                     }
                 }
             }
+
+            if (showClickToPay) {
+                Spacer(Modifier.height(16.dp))
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Column {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            text = stringResource(R.string.payments_wallets_title),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.subtitle2
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        ClickToPayButton(
+                            onClick = onClickClickToPay,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+            }
         }
         Column(
             modifier = Modifier
@@ -359,7 +394,8 @@ fun Preview() {
             onMakePayment = { _, _, _, _ -> },
             onGooglePay = {},
             aaniConfig = null,
-            onClickAaniPay = {}
+            onClickAaniPay = {},
+            onClickClickToPay = {}
         )
     }
 }
