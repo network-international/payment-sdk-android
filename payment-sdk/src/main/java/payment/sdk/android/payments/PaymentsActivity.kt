@@ -9,6 +9,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -19,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -42,6 +49,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWe
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
 import payment.sdk.android.payments.view.PaymentsScreen
 import payment.sdk.android.sdk.R
@@ -69,20 +77,30 @@ class PaymentsActivity : AppCompatActivity() {
                         if (token.isNotEmpty()) {
                             viewModel.acceptGooglePay(token)
                         } else {
+                            viewModel.setProcessingFinished()
                             finishWithData(PaymentsResult.Failed("Google Pay token is empty"))
                         }
                     } catch (e: Exception) {
+                        viewModel.setProcessingFinished()
                         finishWithData(PaymentsResult.Failed("Failed to parse Google Pay result"))
                     }
                 }
 
-                CommonStatusCodes.CANCELED -> finishWithData(PaymentsResult.Cancelled)
+                CommonStatusCodes.CANCELED -> {
+                    viewModel.setProcessingFinished()
+                    finishWithData(PaymentsResult.Cancelled)
+                }
 
-                AutoResolveHelper.RESULT_ERROR ->
+                AutoResolveHelper.RESULT_ERROR -> {
+                    viewModel.setProcessingFinished()
                     finishWithData(PaymentsResult.Failed("Google Pay error"))
+                }
 
-                CommonStatusCodes.INTERNAL_ERROR ->
+
+                CommonStatusCodes.INTERNAL_ERROR -> {
+                    viewModel.setProcessingFinished()
                     finishWithData(PaymentsResult.Failed("Google Pay error"))
+                }
             }
         }
 
@@ -108,6 +126,7 @@ class PaymentsActivity : AppCompatActivity() {
         initEffects()
         setContent {
             val state by viewModel.uiState.collectAsState()
+            val isProcessing by viewModel.isProcessing.collectAsState()
             Scaffold(
                 backgroundColor = Color(0xFFD6D6D6),
                 topBar = {
@@ -163,11 +182,13 @@ class PaymentsActivity : AppCompatActivity() {
                             formattedAmount = authState.orderAmount,
                             showWallets = authState.showWallets,
                             onGooglePay = {
+                                viewModel.startGooglePayProcess()
                                 authState.googlePayUiConfig?.task?.addOnCompleteListener(
                                     paymentDataLauncher::launch
                                 )
                             },
                             aaniConfig = authState.aaniConfig,
+                            isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
                             }
@@ -209,6 +230,21 @@ class PaymentsActivity : AppCompatActivity() {
                             finishWithData(result.getCardPaymentsState())
                         }
                     }
+                }
+            }
+
+            if (isProcessing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {}
+                        .background(Color.Black.copy(alpha = 0.3f)), // Increased alpha for better visual "disabled" look
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressDialog(message = LoadingMessage.PAYMENT)
                 }
             }
         }
