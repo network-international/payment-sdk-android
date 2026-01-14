@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.TabRowDefaults.Divider
@@ -74,6 +76,7 @@ fun PaymentsScreen(
     formattedAmount: String,
     aaniConfig: AaniPayLauncher.Config?,
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
+    isProcessing: Boolean,
     onGooglePay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit
 ) {
@@ -291,7 +294,12 @@ fun PaymentsScreen(
 
                         googlePayUiConfig?.let {
                             GooglePayButton(
-                                onClick = onGooglePay,
+                                enabled = !isProcessing,
+                                onClick =  {
+                                    if (!isProcessing) {
+                                        onGooglePay()
+                                    }
+                                },
                                 radius = 8.dp,
                                 allowedPaymentMethods = it.allowedPaymentMethods,
                                 modifier = Modifier
@@ -299,6 +307,12 @@ fun PaymentsScreen(
                                     .padding(horizontal = 8.dp)
                             )
                             Spacer(Modifier.height(8.dp))
+                        }
+
+                        if (isProcessing) {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            }
                         }
 
                         aaniConfig?.let { config ->
@@ -359,6 +373,7 @@ fun Preview() {
             onMakePayment = { _, _, _, _ -> },
             onGooglePay = {},
             aaniConfig = null,
+            isProcessing = false,
             onClickAaniPay = {}
         )
     }
