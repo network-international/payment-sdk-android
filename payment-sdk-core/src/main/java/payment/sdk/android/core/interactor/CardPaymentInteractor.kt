@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import androidx.annotation.Keep
 import com.google.gson.Gson
 import payment.sdk.android.core.PaymentResponse
@@ -8,7 +9,8 @@ import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
 
 class CardPaymentInteractor(
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val app: Application
 ) {
     suspend fun makeCardPayment(request: MakeCardPaymentRequest): CardPaymentResponse {
         val bodyMap = mutableMapOf<String, Any>(
@@ -29,12 +31,14 @@ class CardPaymentInteractor(
         request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
+        val deviceId = DeviceIdProvider.getDeviceId(app)
         val response = httpClient.put(
             url = request.paymentUrl,
             headers = mapOf(
                 HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                HEADER_COOKIE to request.paymentCookie
+                HEADER_COOKIE to request.paymentCookie,
+                HEADER_FINGERPRINT to deviceId
             ),
             body = Body.Json(bodyMap)
         )
@@ -56,6 +60,7 @@ class CardPaymentInteractor(
         internal const val PAYMENT_FIELD_VISA_PLAN_ID = "vPlanId"
         internal const val PAYMENT_FIELD_VISA_TERMS = "acceptedTAndCVersion"
         internal const val HEADER_CONTENT_TYPE = "Content-Type"
+        internal const val HEADER_FINGERPRINT = "X-Payer-Fingerprint"
         internal const val HEADER_COOKIE = "Cookie"
         internal const val HEADER_ACCEPT = "Accept"
         internal const val KEY_PAYER_IP = "payerIp"
