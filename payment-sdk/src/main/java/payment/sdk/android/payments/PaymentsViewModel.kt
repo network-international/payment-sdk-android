@@ -74,6 +74,17 @@ internal class PaymentsViewModel(
 
     val effect = _effects.asSharedFlow()
 
+    private val _isProcessing = MutableStateFlow(false)
+    val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
+
+    fun startGooglePayProcess() {
+        _isProcessing.value = true
+    }
+
+    fun setProcessingFinished() {
+        _isProcessing.value = false
+    }
+
     fun authorize() {
         _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.AUTH) }
         viewModelScope.launch(dispatcher) {
