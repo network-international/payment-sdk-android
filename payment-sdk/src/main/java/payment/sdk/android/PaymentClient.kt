@@ -169,7 +169,7 @@ class PaymentClient(
 
             val threedsAuthUri = URI(threeDSecureTwoConfig.threeDSTwoAuthenticationURL)
             val authUrl = "https://${threedsAuthUri.host}/transactions/paymentAuthorization"
-            val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
+            val transactionServiceHttpAdapter = TransactionServiceHttpAdapter(context.applicationContext)
             val outletRef = paymentResponse.outletId
 
             val orderRef = paymentResponse.orderReference

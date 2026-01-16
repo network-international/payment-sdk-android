@@ -1,23 +1,25 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import com.google.gson.Gson
 import payment.sdk.android.core.TransactionServiceHttpAdapter
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
 
-class AuthApiInteractor(private val httpClient: HttpClient) {
+class AuthApiInteractor(private val httpClient: HttpClient, private val app: Application) {
 
     suspend fun authenticate(
         authUrl: String,
         authCode: String
     ): AuthResponse {
-
+        val deviceId = DeviceIdProvider.getDeviceId(app)
         val response = httpClient.post(
             url = authUrl,
             headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/x-www-form-urlencoded",
-                TransactionServiceHttpAdapter.HEADER_ACCEPT to "application/vnd.ni-payment.v2+json"
+                TransactionServiceHttpAdapter.HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
+                TransactionServiceHttpAdapter.HEADER_FINGERPRINT to deviceId
             ),
             body = Body.Form(
                 mapOf(

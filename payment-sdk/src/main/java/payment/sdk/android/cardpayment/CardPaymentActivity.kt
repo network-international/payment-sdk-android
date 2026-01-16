@@ -82,7 +82,8 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
             code = code,
             view = CardPaymentView(findViewById(R.id.bottom_sheet)),
             interactions = this,
-            paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient()),
+            paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient(),
+                context = applicationContext),
             stringResources = StringResourcesImpl(this)
         )
         presenter.init()

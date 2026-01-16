@@ -1,5 +1,6 @@
 package payment.sdk.android.samsungpay
 
+import android.content.Context
 import android.os.Bundle
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
@@ -8,10 +9,11 @@ import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet
 import payment.sdk.android.core.TransactionServiceHttpAdapter
 
 class SamsungPayTransactionListener(
-        private val samsungPayResponse: SamsungPayResponse,
-        private val samsungPayAcceptLink: String,
-        private val paymentToken: String,
-        private val onCardInfoUpdate: (card: CardInfo?, customSheet: CustomSheet?) -> Unit
+    private val context: Context,
+    private val samsungPayResponse: SamsungPayResponse,
+    private val samsungPayAcceptLink: String,
+    private val paymentToken: String,
+    private val onCardInfoUpdate: (card: CardInfo?, customSheet: CustomSheet?) -> Unit
 ) : PaymentManager.CustomSheetTransactionInfoListener {
     override fun onCardInfoUpdated(cardInfo: CardInfo?, customSheet: CustomSheet?) {
         onCardInfoUpdate(cardInfo, customSheet)
@@ -22,7 +24,7 @@ class SamsungPayTransactionListener(
     }
 
     override fun onSuccess(customSheetPaymentInfo: CustomSheetPaymentInfo?, encryptedObject: String?, bundle: Bundle?) {
-        val transactionServiceHttpAdapter = TransactionServiceHttpAdapter()
+        val transactionServiceHttpAdapter = TransactionServiceHttpAdapter(context)
         if (encryptedObject != null) {
             transactionServiceHttpAdapter.acceptSamsungPay(
                     encryptedObject,

@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import com.google.gson.Gson
 import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.SavedCard
@@ -11,6 +12,7 @@ import java.lang.Exception
 
 class SavedCardPaymentApiInteractor(
     private val httpClient: HttpClient,
+    private val app: Application
 ) {
     suspend fun doSavedCardPayment(request: SavedCardPaymentApiRequest): SavedCardResponse {
         val bodyMap = mutableMapOf<String, Any>(
@@ -33,12 +35,14 @@ class SavedCardPaymentApiInteractor(
         request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
+        val deviceId = DeviceIdProvider.getDeviceId(app)
         val response = httpClient.put(
             url = request.savedCardUrl,
             headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 TransactionServiceHttpAdapter.HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer ${request.accessToken}"
+                TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer ${request.accessToken}",
+                TransactionServiceHttpAdapter.HEADER_FINGERPRINT to deviceId
             ),
             body = Body.Json(bodyMap)
         )
