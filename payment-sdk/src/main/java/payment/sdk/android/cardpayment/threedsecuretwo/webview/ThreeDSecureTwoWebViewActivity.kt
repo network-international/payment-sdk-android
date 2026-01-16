@@ -72,7 +72,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         StringResourcesImpl(this)
     }
 
-    private val paymentApiInteractor = CardPaymentApiInteractor(CoroutinesGatewayHttpClient())
+    private lateinit var paymentApiInteractor: CardPaymentApiInteractor
 
     private val threeDSecureWebViews = Stack<ThreeDSecureTwoWebView>()
     private var paymentCookie: String? = null
@@ -92,6 +92,11 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_3d_secure)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        paymentApiInteractor = CardPaymentApiInteractor(
+            CoroutinesGatewayHttpClient(),
+            applicationContext
+        )
 
         val threeDSMethodURL = intent.getStringExtra(THREE_DS_METHOD_URL)
         val threeDSServerTransID = intent.getStringExtra(THREE_DS_SERVER_TRANS_ID)

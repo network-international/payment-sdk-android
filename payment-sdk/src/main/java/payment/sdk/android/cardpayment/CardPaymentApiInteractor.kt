@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment
 
+import android.content.Context
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import androidx.annotation.VisibleForTesting
@@ -7,16 +8,20 @@ import com.google.gson.Gson
 import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
+import payment.sdk.android.core.interactor.DeviceIdProvider
 import payment.sdk.android.core.interactor.VisaRequest
 
-internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : PaymentApiInteractor {
+internal class CardPaymentApiInteractor(private val httpClient: HttpClient, context: Context) : PaymentApiInteractor {
+    private val appContext = context.applicationContext
+    private val deviceId by lazy { DeviceIdProvider.getDeviceId(appContext) }
 
     override fun authorizePayment(url: String, code: String, success: (List<String>, String) -> Unit, error: (Exception) -> Unit) {
         httpClient.post(
                 url = url,
                 headers = mapOf(
                         HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                        HEADER_CONTENT_TYPE to "application/x-www-form-urlencoded"
+                        HEADER_CONTENT_TYPE to "application/x-www-form-urlencoded",
+                        HEADER_FINGERPRINT to deviceId
                 ),
                 body = Body.Form(mapOf(
                         "code" to code
@@ -98,7 +103,9 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
                 headers = mapOf(
                         HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                         HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                        HEADER_COOKIE to paymentCookie
+                        HEADER_COOKIE to paymentCookie,
+                        HEADER_FINGERPRINT to deviceId
+
                 ),
                 body = Body.Json(bodyMap),
                 success = { (_, response) ->
@@ -123,7 +130,8 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
             headers = mapOf(
                 HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                HEADER_COOKIE to paymentCookie
+                HEADER_COOKIE to paymentCookie,
+                HEADER_FINGERPRINT to deviceId
             ),
             body = Body.Json(mapOf(
                 DEVICE_CHANNEL_KEY to "BRW",
@@ -150,7 +158,8 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
             headers = mapOf(
                 HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                HEADER_COOKIE to paymentCookie
+                HEADER_COOKIE to paymentCookie,
+                HEADER_FINGERPRINT to deviceId
             ),
             body = Body.Json(emptyMap()),
             success = { (_, response) ->
@@ -240,6 +249,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient) : Pa
 
         internal const val HEADER_ACCEPT = "Accept"
         internal const val HEADER_CONTENT_TYPE = "Content-Type"
+        internal const val HEADER_FINGERPRINT = "X-Payer-Fingerprint"
         internal const val HEADER_COOKIE = "Cookie"
         internal const val HEADER_SET_COOKIE = "Set-Cookie"
 
