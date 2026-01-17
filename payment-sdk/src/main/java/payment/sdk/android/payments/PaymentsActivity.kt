@@ -128,13 +128,13 @@ class PaymentsActivity : AppCompatActivity() {
             val state by viewModel.uiState.collectAsState()
             val isProcessing by viewModel.isProcessing.collectAsState()
             Scaffold(
-                backgroundColor = Color(0xFFD6D6D6),
+                backgroundColor= colorResource(id = R.color.payment_sdk_text_authentication_page_background_color),
                 topBar = {
                     TopAppBar(
                         title = {
                             Text(
                                 text = stringResource(id = state.title),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                                color = colorResource(id = R.color.payment_sdk_toolbar_text_color)
                             )
                         },
                         backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
