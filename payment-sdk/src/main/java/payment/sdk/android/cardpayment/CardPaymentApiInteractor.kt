@@ -84,7 +84,8 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient, cont
             PAYMENT_FIELD_PAN to pan,
             PAYMENT_FIELD_EXPIRY to expiry,
             PAYMENT_FIELD_CVV to cvv,
-            PAYMENT_FIELD_CARDHOLDER to cardHolder
+            PAYMENT_FIELD_CARDHOLDER to cardHolder,
+            HAS_ACCEPTED_TNC to true
         )
         payerIp?.let {
             bodyMap.put(PAYMENT_FIELD_PAYER_IP, it)
@@ -261,6 +262,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient, cont
         internal const val PAYMENT_FIELD_PLAN_SELECTION_INDICATOR = "planSelectionIndicator"
         internal const val PAYMENT_FIELD_VISA_PLAN_ID = "vPlanId"
         internal const val PAYMENT_FIELD_VISA_TERMS = "acceptedTAndCVersion"
+        internal const val HAS_ACCEPTED_TNC = "hasAcceptedTnc"
     }
 }
 

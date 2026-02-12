@@ -3,6 +3,7 @@ package payment.sdk.android.savedCard.model
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.SubscriptionDetails
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.interactor.SavedCardPaymentApiRequest
 
@@ -16,7 +17,12 @@ internal sealed class SavedCardPaymentState {
         val orderUrl: String,
         val orderAmount: OrderAmount,
         val savedCardPaymentRequest: SavedCardPaymentApiRequest,
-        val visaPlans: VisaPlans? = null
+        val visaPlans: VisaPlans? = null,
+        val isSubscriptionOrder: Boolean? = false,
+        val subscriptionDetails: SubscriptionDetails? = null,
+        val tncUrl: String? = null,
+        val isSaudiPayment: Boolean,
+        val orderType: String
     ) : SavedCardPaymentState()
 
     data class ShowVisaPlans(

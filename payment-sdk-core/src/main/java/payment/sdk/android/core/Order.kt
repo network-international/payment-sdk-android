@@ -20,6 +20,16 @@ class Order {
 
     var savedCard: SavedCard? = null
 
+    var isSaudiPaymentEnabled: Boolean? = false
+
+    var frequency: String? = null
+
+    var type: String? = null
+
+    var recurringDetails: RecurringDetails? = null
+
+    val merchantAttributes: Map<String, Any> = mapOf()
+
     var formattedAmount: String? = null
 
     @SerializedName(value = "_embedded")

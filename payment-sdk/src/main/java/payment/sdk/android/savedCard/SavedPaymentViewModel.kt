@@ -28,6 +28,7 @@ import payment.sdk.android.core.getSavedCardPaymentUrl
 import payment.sdk.android.core.getSelfUrl
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
+import payment.sdk.android.core.interactor.ConfigApiInteractor
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
@@ -39,6 +40,7 @@ import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.payments.requireApplication
 import payment.sdk.android.savedCard.model.SavedCardPaymentState
 import payment.sdk.android.savedCard.model.SavedCardPaymentsVMEffects
+import payment.sdk.android.util.SubscriptionUtils
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.model.PlanFrequency
 
@@ -49,7 +51,8 @@ internal class SavedPaymentViewModel(
     private val visaInstalmentPlanInteractor: VisaInstallmentPlanInteractor,
     private val getOrderApiInteractor: GetOrderApiInteractor,
     private val threeDSecureFactory: ThreeDSecureFactory,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val configApiInteractor: ConfigApiInteractor
 ) : ViewModel() {
 
     private var _state: MutableStateFlow<SavedCardPaymentState> =
@@ -129,6 +132,8 @@ internal class SavedPaymentViewModel(
 
         val payerIp = getPayerIpInteractor.getPayerIp(payPageUrl).orEmpty()
 
+        val tncUrl = configApiInteractor.getTncUrl(orderUrl, accessToken, order.outletId.orEmpty())
+
         val amount =
             order.amount?.value ?: return emitMissingFieldEffect("Failed to fetch order amount")
 
@@ -163,7 +168,12 @@ internal class SavedPaymentViewModel(
             orderUrl = orderUrl,
             visaPlans = visaPlans,
             orderAmount = orderAmount,
-            savedCardPaymentRequest = savedCardPaymentRequest
+            savedCardPaymentRequest = savedCardPaymentRequest,
+            isSubscriptionOrder = SubscriptionUtils.isSubscriptionOrder(order),
+            subscriptionDetails = SubscriptionUtils.getSubscriptionDetails(order),
+            tncUrl = tncUrl,
+            isSaudiPayment = order.isSaudiPaymentEnabled!!,
+            orderType = order.type!!
         )
         if (visaPlans != null && visaPlans.matchedPlans.isNotEmpty()) {
             if (savedCard.recaptureCsc && cvv == null) {
@@ -338,7 +348,8 @@ internal class SavedPaymentViewModel(
                     getPayerIpInteractor = GetPayerIpInteractor(httpClient),
                     visaInstalmentPlanInteractor = VisaInstallmentPlanInteractor(httpClient),
                     getOrderApiInteractor = GetOrderApiInteractor(httpClient),
-                    threeDSecureFactory = ThreeDSecureFactory()
+                    threeDSecureFactory = ThreeDSecureFactory(),
+                    configApiInteractor = ConfigApiInteractor(httpClient)
                 ) as T
             }
         }

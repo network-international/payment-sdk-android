@@ -9,6 +9,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.SubscriptionDetails
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
 import payment.sdk.android.sdk.R
@@ -32,7 +33,12 @@ sealed class PaymentsVMUiState(val title: Int, val enableBackButton: Boolean = t
         val amount: Double,
         val currencyCode: String,
         val locale: String,
-        val payerIp: String
+        val payerIp: String,
+        val isSubscriptionOrder: Boolean = false,
+        val subscriptionDetails: SubscriptionDetails? = null,
+        val tncUrl: String? = null,
+        val isSaudiPayment: Boolean = false,
+        val orderType: String
     ) : PaymentsVMUiState(R.string.make_payment)
 
     data class ShowVisaPlans(

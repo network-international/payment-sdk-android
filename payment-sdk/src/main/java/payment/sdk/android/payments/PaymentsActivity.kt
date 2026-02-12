@@ -191,7 +191,12 @@ class PaymentsActivity : AppCompatActivity() {
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
-                            }
+                            },
+                            isSubscriptionOrder = authState.isSubscriptionOrder,
+                            subscriptionDetails = authState.subscriptionDetails,
+                            tncUrl = authState.tncUrl.orEmpty(),
+                            isSaudiPayment = authState.isSaudiPayment,
+                            orderType = authState.orderType
                         )
                     }
 

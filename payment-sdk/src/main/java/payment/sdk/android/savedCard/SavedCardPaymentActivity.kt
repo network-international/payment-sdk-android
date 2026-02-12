@@ -99,7 +99,12 @@ class SavedCardPaymentActivity : ComponentActivity() {
                         SavedCardPaymentView(
                             modifier = Modifier.padding(contentPadding),
                             savedCard = capturedState.savedCardPaymentRequest.savedCard,
-                            orderAmount = capturedState.orderAmount
+                            orderAmount = capturedState.orderAmount,
+                            isSubscriptionOrder = capturedState.isSubscriptionOrder!!,
+                            subscriptionDetails = capturedState.subscriptionDetails,
+                            tncUrl = capturedState.tncUrl.orEmpty(),
+                            isSaudiPayment = capturedState.isSaudiPayment,
+                            orderType = capturedState.orderType
                         ) { cvv ->
                             viewModel.doSavedCardPayment(
                                 orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,

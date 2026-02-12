@@ -18,7 +18,8 @@ class SavedCardPaymentApiInteractor(
         val bodyMap = mutableMapOf<String, Any>(
             KEY_EXPIRY to request.savedCard.expiry,
             KEY_CARD_TOKEN to request.savedCard.cardToken,
-            KEY_CARDHOLDER_NAME to request.savedCard.cardholderName
+            KEY_CARDHOLDER_NAME to request.savedCard.cardholderName,
+            HAS_ACCEPTED_TNC to true
         )
         request.cvv?.let {
             bodyMap.put(KEY_CVV, it)
@@ -62,6 +63,7 @@ class SavedCardPaymentApiInteractor(
         internal const val KEY_CARDHOLDER_NAME = "cardholderName"
         internal const val KEY_CVV = "cvv"
         internal const val KEY_PAYER_IP = "payerIp"
+        internal const val HAS_ACCEPTED_TNC = "hasAcceptedTnc"
     }
 }
 

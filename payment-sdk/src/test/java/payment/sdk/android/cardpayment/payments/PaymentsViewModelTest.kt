@@ -36,6 +36,7 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.ConfigApiInteractor
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
@@ -71,6 +72,7 @@ class PaymentsViewModelTest {
     private val googlePayConfigFactory: GooglePayConfigFactory = mockk(relaxed = true)
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor = mockk(relaxed = true)
     private val getOrderApiInteractor: GetOrderApiInteractor = mockk(relaxed = true)
+    private val configApiInteractor: ConfigApiInteractor = mockk(relaxed = true)
 
     private lateinit var sut: PaymentsViewModel
 
@@ -87,7 +89,8 @@ class PaymentsViewModelTest {
             googlePayConfigFactory = googlePayConfigFactory,
             googlePayAcceptInteractor = googlePayAcceptInteractor,
             getOrderApiInteractor = getOrderApiInteractor,
-            dispatcher = testDispatcher
+            dispatcher = testDispatcher,
+            configApiInteractor = configApiInteractor
         )
     }
 

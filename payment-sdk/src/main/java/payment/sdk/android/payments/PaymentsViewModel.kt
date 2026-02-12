@@ -40,6 +40,7 @@ import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.ConfigApiInteractor
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
@@ -50,6 +51,7 @@ import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.googlepay.GooglePayJsonConfig
 import payment.sdk.android.googlepay.env
+import payment.sdk.android.util.SubscriptionUtils
 
 @Keep
 internal class PaymentsViewModel(
@@ -62,7 +64,8 @@ internal class PaymentsViewModel(
     private val threeDSecureFactory: ThreeDSecureFactory,
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor,
     private val getOrderApiInteractor: GetOrderApiInteractor,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val configApiInteractor: ConfigApiInteractor
 ) : ViewModel() {
 
     private var _uiState: MutableStateFlow<PaymentsVMUiState> =
@@ -116,6 +119,8 @@ internal class PaymentsViewModel(
         }
 
         val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.paymentUrl).orEmpty()
+
+        val tncUrl = configApiInteractor.getTncUrl(orderUrl, accessToken, order.outletId.orEmpty())
 
         val amount = requireNotNull(order.amount?.value) {
             _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order amount"))
@@ -176,7 +181,12 @@ internal class PaymentsViewModel(
                 selfUrl = order.getSelfUrl().orEmpty(),
                 locale = order.language,
                 aaniConfig = aaniConfig,
-                payerIp = payerIp
+                payerIp = payerIp,
+                isSubscriptionOrder = SubscriptionUtils.isSubscriptionOrder(order),
+                subscriptionDetails = SubscriptionUtils.getSubscriptionDetails(order),
+                tncUrl = tncUrl,
+                isSaudiPayment = order.isSaudiPaymentEnabled!!,
+                orderType = order.type!!
             )
         }
     }
@@ -357,7 +367,8 @@ internal class PaymentsViewModel(
                     merchantGatewayId = cardPaymentsIntent.googlePayConfig?.merchantGatewayId ?: ""
                 ),
                 googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient, extras.requireApplication()),
-                getOrderApiInteractor = GetOrderApiInteractor(httpClient)
+                getOrderApiInteractor = GetOrderApiInteractor(httpClient),
+                configApiInteractor = ConfigApiInteractor(httpClient)
             ) as T
         }
     }

@@ -17,7 +17,8 @@ class CardPaymentInteractor(
             PAYMENT_FIELD_PAN to request.pan,
             PAYMENT_FIELD_EXPIRY to request.expiry,
             PAYMENT_FIELD_CVV to request.cvv,
-            PAYMENT_FIELD_CARDHOLDER to request.cardHolder
+            PAYMENT_FIELD_CARDHOLDER to request.cardHolder,
+            HAS_ACCEPTED_TNC to true
         )
         request.visaRequest?.let {
             bodyMap.put(
@@ -65,6 +66,7 @@ class CardPaymentInteractor(
         internal const val HEADER_ACCEPT = "Accept"
         internal const val KEY_PAYER_IP = "payerIp"
         internal const val PAYMENT_FIELD_VISA = "vis"
+        internal const val HAS_ACCEPTED_TNC = "hasAcceptedTnc"
     }
 }
 

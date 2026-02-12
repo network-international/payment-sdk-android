@@ -60,12 +60,44 @@ class ApiServiceAdapter(
         accessToken: String,
         orderRequest: OrderRequest
     ): Order? {
-        var createOrderUrl = url
-        var contentType = "application/vnd.ni-payment.v2+json"
+        var createOrderUrl = "https://api-gateway-dev.ngenius-payments.com/subscription/outlets/3a85b238-9d42-4fb4-9962-b4c489fb2765/orders/direct-order"
+        var contentType = "application/vnd.ni-subscription.v1+json"
         if (orderRequest.type == "RECURRING" || orderRequest.type == "INSTALLMENT") {
             createOrderUrl = url.replace("transactions", "recurring-payment")
-            contentType = "application/vnd.ni-recurring-payment.v2+json"
+            contentType = "application/vnd.ni-subscription.v1+json"
         }
+        val bodyMap = mutableMapOf(
+            "planReference" to "3d3581a2-b366-4a06-bc70-82b62828ffec",
+            "transactionType" to "RECURRING_PURCHASE",
+            "tenure" to 2,
+            "total" to mapOf(
+                "currencyCode" to "AED",
+                "value" to 1100
+            ),
+            "orderStartDate" to "2026-01-29T01:01:00Z",
+            "firstName" to "Jayavelu",
+            "lastName" to "M",
+            "email" to "jayavelu.mohan@equalexperts.com",
+            "paymentAttempts" to 3
+//            "planReference" to "ae27797e-bfd3-454c-9651-5714caf522ae",
+//            "transactionType" to "INSTALLMENT",
+//            "tenure" to 5,
+//            "total" to mapOf(
+//                "currencyCode" to "AED",
+//                "value" to 100000
+//            ),
+//            "orderStartDate" to "2026-01-27T01:01:00Z",
+//            "invoiceExpiryDate" to "2026-01-29T01:01:00Z",
+//            "firstName" to "Jayavelu",
+//            "lastName" to "M",
+//            "email" to "jayavelu.mohan@equalexperts.com",
+//            "paymentAttempts" to 3,
+//            "skipInvoiceCreatedEmailNotification" to false,
+//            "notifyPayByLink" to true,
+//            "paymentStructure" to "INTRODUCTORY",
+//            "initialInstallmentAmount" to 2000,
+//            "initialPeriodLength" to 1
+        )
         val response = httpClient.post(
             url = createOrderUrl,
             headers = mapOf(
@@ -74,7 +106,7 @@ class ApiServiceAdapter(
                 HEADER_AUTH to "Bearer $accessToken"
             ),
             body = Body.Json(
-                orderRequest.toMap()
+                bodyMap
             )
         )
         return when (response) {

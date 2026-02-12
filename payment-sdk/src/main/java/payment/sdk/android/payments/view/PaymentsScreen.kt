@@ -1,5 +1,6 @@
 package payment.sdk.android.payments.view
 
+import TermsAndConditionsConsent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -47,6 +48,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -63,8 +65,10 @@ import payment.sdk.android.savedCard.view.CreditCardBack
 import payment.sdk.android.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
 import payment.sdk.android.core.CardType
+import payment.sdk.android.core.SubscriptionDetails
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.payments.GooglePayUiConfig
+import payment.sdk.android.payments.RecurringDetailRow
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -78,7 +82,12 @@ fun PaymentsScreen(
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
     isProcessing: Boolean,
     onGooglePay: () -> Unit,
-    onClickAaniPay: (AaniPayLauncher.Config) -> Unit
+    onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
+    isSubscriptionOrder: Boolean,
+    subscriptionDetails: SubscriptionDetails?,
+    tncUrl: String,
+    isSaudiPayment: Boolean,
+    orderType: String
 ) {
     val cardDetector = remember { CardDetector(supportedCards) }
     var pan by remember { mutableStateOf("") }
@@ -97,6 +106,7 @@ fun PaymentsScreen(
     var isCvvFocused by remember { mutableStateOf(false) } // Track the focus state of CVV
     val rotationAngle by animateFloatAsState(targetValue = if (isCvvFocused) 180f else 0f) // Animate between 0 and 180 degrees
 
+    var isRecurringConsentChecked by remember { mutableStateOf(false) }
 
     LaunchedEffect(pan, cvv, expiry.text, cardholderName) {
         isFormValid = CardValidator.isValid(
@@ -114,6 +124,31 @@ fun PaymentsScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
+            if (isSubscriptionOrder && subscriptionDetails != null) {
+                Surface(
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = 4.dp,
+                    color = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = stringResource(R.string.recurring_payment_details),
+                            style = MaterialTheme.typography.subtitle1,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 3.dp)
+                        )
+                        Divider(modifier = Modifier.padding(bottom = 4.dp))
+                        RecurringDetailRow(stringResource(R.string.first_payment_date), subscriptionDetails.startDate)
+                        RecurringDetailRow(stringResource(R.string.last_payment_date), subscriptionDetails.lastPaymentDate)
+                        RecurringDetailRow(stringResource(R.string.recurring_amount), subscriptionDetails.amount)
+                        RecurringDetailRow(stringResource(R.string.frequency), subscriptionDetails.frequency)
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -231,8 +266,23 @@ fun PaymentsScreen(
                             colors = SDKTextFieldColors(),
                         )
 
+                        if (!isSaudiPayment) {
+                            val spacerHeight = if (orderType != "RECURRING" || isSubscriptionOrder) 16.dp else 8.dp
+                            Spacer(Modifier.height(spacerHeight))
+
+                            TermsAndConditionsConsent(
+                                checked = isRecurringConsentChecked,
+                                onCheckedChange = { isRecurringConsentChecked = it },
+                                isSubscriptionOrder = isSubscriptionOrder,
+                                termsUrl = tncUrl,
+                                orderType = orderType
+                            )
+                        }
+
                         val animated = animateColorAsState(
-                            if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
+                            if (isFormValid && (isSaudiPayment || isRecurringConsentChecked))
+                                colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                            else Color.Gray,
                             label = ""
                         )
                         TextButton(
@@ -255,7 +305,7 @@ fun PaymentsScreen(
                                     cardholderName
                                 )
                             },
-                            enabled = isFormValid,
+                            enabled = isFormValid && (!isSubscriptionOrder || isRecurringConsentChecked),
                             shape = RoundedCornerShape(percent = 15),
                         ) {
                             val title = if (SDKConfig.showOrderAmount) stringResource(
@@ -374,7 +424,12 @@ fun Preview() {
             onGooglePay = {},
             aaniConfig = null,
             isProcessing = false,
-            onClickAaniPay = {}
+            onClickAaniPay = {},
+            isSubscriptionOrder = false,
+            subscriptionDetails = null,
+            tncUrl = "",
+            isSaudiPayment = false,
+            orderType = "SINGLE"
         )
     }
 }
