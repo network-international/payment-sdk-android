@@ -121,4 +121,49 @@
     <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
     <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
 
+    <!-- Click to Pay -->
+    <string name="click_to_pay_title">Click to Pay</string>
+    <string name="click_to_pay_button">Click to Pay</string>
+    <string name="click_to_pay_initializing">Initializing Click to Pay…</string>
+    <string name="click_to_pay_processing">Processing payment…</string>
+    <string name="click_to_pay_select_card">Select a card</string>
+    <string name="click_to_pay_verify_identity">Verify your identity</string>
+    <string name="click_to_pay_enter_otp">Enter the code sent to %1$s</string>
+    <string name="click_to_pay_add_card">Add a new card</string>
+    <string name="click_to_pay_pay_with">Pay with Click to Pay</string>
+
+    <!-- Unified Payment Screen -->
+    <string name="payment_separator_text">Or select your payment options</string>
+    <string name="pay_by_card">Pay by card</string>
+    <string name="click_to_pay_section_title">Click to Pay</string>
+    <string name="pay_with_click_to_pay">Pay with Click to Pay</string>
+    <string name="powered_by">Powered by</string>
+    <string name="terms_and_conditions">Terms and Conditions</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="samsung_pay_button">Samsung Pay</string>
+
+    <string name="use_credit_or_debit_card">Use Credit Or Debit Card</string>
+    <string name="select_other_payment_options">Select Other Payment Options</string>
+    <string name="terms_agreement_text">By clicking \"Pay\", you agree to the terms and conditions and authorize this transaction.</string>
+    <string name="google_pay_button">Google Pay</string>
+    <string name="pay_with_google_pay">Pay with Google Pay</string>
+    <string name="pay_with_samsung_pay">Pay with Samsung Pay</string>
+    <string name="pay_with_aani">Pay with AANI</string>
+    <string name="or_select_payment_options">Or select your payment options</string>
+    <string name="expiration_date_label">Expiration date</string>
+    <string name="security_code_label">Security code</string>
+    <string name="name_on_card_label">Name on card</string>
+    <string name="order_summary">Order summary</string>
+
+    <!-- Payment Result Screen -->
+    <string name="payment_result_success_title">You paid %1$s</string>
+    <string name="payment_result_success_title_no_amount">Payment Successful</string>
+    <string name="payment_result_failure_title">Something Went Wrong</string>
+    <string name="payment_result_success_subtitle">Thank you. Your payment has been received.</string>
+    <string name="payment_result_failure_subtitle">Please try again later.</string>
+    <string name="payment_result_transaction_id">Transaction ID</string>
+    <string name="payment_result_reference_number">Reference Number</string>
+    <string name="payment_result_date_time">Date / Time</string>
+    <string name="payment_result_done">Done</string>
+
 </resources>

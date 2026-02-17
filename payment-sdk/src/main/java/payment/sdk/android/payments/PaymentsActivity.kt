@@ -14,22 +14,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
@@ -38,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -51,14 +42,19 @@ import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
-import payment.sdk.android.payments.view.PaymentsScreen
+import payment.sdk.android.payments.model.PaymentResultArgs
+import payment.sdk.android.payments.view.PaymentResultScreen
+import payment.sdk.android.payments.view.UnifiedPaymentPageScreen
 import payment.sdk.android.sdk.R
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class PaymentsActivity : AppCompatActivity() {
+class UnifiedPaymentPageActivity : AppCompatActivity() {
 
-    private val viewModel: PaymentsViewModel by viewModels { PaymentsViewModel.Factory(args) }
+    private val viewModel: UnifiedPaymentPageViewModel by viewModels { UnifiedPaymentPageViewModel.Factory(args) }
 
-    private lateinit var args: PaymentsRequest
+    private lateinit var args: UnifiedPaymentPageRequest
 
     private val paymentDataLauncher =
         registerForActivityResult(GetPaymentDataResult()) { taskResult ->
@@ -78,37 +74,85 @@ class PaymentsActivity : AppCompatActivity() {
                             viewModel.acceptGooglePay(token)
                         } else {
                             viewModel.setProcessingFinished()
-                            finishWithData(PaymentsResult.Failed("Google Pay token is empty"))
+                            finishWithData(UnifiedPaymentPageResult.Failed("Google Pay token is empty"))
                         }
                     } catch (e: Exception) {
                         viewModel.setProcessingFinished()
-                        finishWithData(PaymentsResult.Failed("Failed to parse Google Pay result"))
+                        finishWithData(UnifiedPaymentPageResult.Failed("Failed to parse Google Pay result"))
                     }
                 }
 
                 CommonStatusCodes.CANCELED -> {
                     viewModel.setProcessingFinished()
-                    finishWithData(PaymentsResult.Cancelled)
+                    finishWithData(UnifiedPaymentPageResult.Cancelled)
                 }
 
                 AutoResolveHelper.RESULT_ERROR -> {
                     viewModel.setProcessingFinished()
-                    finishWithData(PaymentsResult.Failed("Google Pay error"))
+                    finishWithData(UnifiedPaymentPageResult.Failed("Google Pay error"))
                 }
 
 
                 CommonStatusCodes.INTERNAL_ERROR -> {
                     viewModel.setProcessingFinished()
-                    finishWithData(PaymentsResult.Failed("Google Pay error"))
+                    finishWithData(UnifiedPaymentPageResult.Failed("Google Pay error"))
                 }
             }
         }
 
     private val aaniPayLauncher = AaniPayLauncher(this) { result ->
         when (result) {
-            AaniPayLauncher.Result.Success -> finishWithData(PaymentsResult.Success)
-            is AaniPayLauncher.Result.Failed -> finishWithData(PaymentsResult.Failed("Aani Pay failed"))
+            AaniPayLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            is AaniPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed("Aani Pay failed"))
             AaniPayLauncher.Result.Canceled -> {}
+        }
+    }
+
+    private val clickToPayLauncher = ClickToPayLauncher(this) { result ->
+        when (result) {
+            ClickToPayLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            ClickToPayLauncher.Result.Authorised -> finishWithData(UnifiedPaymentPageResult.Authorised)
+            ClickToPayLauncher.Result.Captured -> finishWithData(UnifiedPaymentPageResult.Success)
+            ClickToPayLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+            is ClickToPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            ClickToPayLauncher.Result.Canceled -> {}
+            is ClickToPayLauncher.Result.Requires3DS -> {
+                startActivityForResult(
+                    ThreeDSecureWebViewActivity.getIntent(
+                        context = this,
+                        acsUrl = result.acsUrl,
+                        acsPaReq = result.acsPaReq,
+                        acsMd = result.acsMd,
+                        gatewayUrl = null
+                    ),
+                    THREE_D_SECURE_REQUEST_KEY
+                )
+            }
+            is ClickToPayLauncher.Result.Requires3DSTwo -> {
+                val currentState = viewModel.uiState.value
+                val orderUrl = result.orderUrl
+                    ?: (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.orderUrl
+                    ?: ""
+                startActivityForResult(
+                    ThreeDSecureTwoWebViewActivity.getIntent(
+                        context = this,
+                        threeDSMethodData = result.threeDSMethodData,
+                        threeDSMethodNotificationURL = result.threeDSMethodNotificationURL,
+                        threeDSMethodURL = result.threeDSMethodUrl,
+                        threeDSServerTransID = result.threeDSServerTransId,
+                        paymentCookie = result.paymentCookie,
+                        threeDSAuthenticationsUrl = result.threeDSTwoAuthenticationURL,
+                        directoryServerID = result.directoryServerId,
+                        threeDSMessageVersion = result.threeDSMessageVersion,
+                        threeDSTwoChallengeResponseURL = result.threeDSTwoChallengeResponseURL,
+                        outletRef = result.outletRef,
+                        orderRef = result.orderRef,
+                        orderUrl = orderUrl,
+                        paymentRef = result.paymentRef
+                    ),
+                    THREE_D_SECURE_TWO_REQUEST_KEY
+                )
+            }
         }
     }
 
@@ -116,53 +160,32 @@ class PaymentsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setOnBackPressed()
         args = runCatching {
-            requireNotNull(PaymentsRequest.fromIntent(intent)) {
+            requireNotNull(UnifiedPaymentPageRequest.fromIntent(intent)) {
                 "Payments input arguments were not found"
             }
         }.getOrElse {
-            finishWithData(PaymentsResult.Failed("intent args not found"))
+            finishWithData(UnifiedPaymentPageResult.Failed("intent args not found"))
             return
         }
         initEffects()
         setContent {
             val state by viewModel.uiState.collectAsState()
             val isProcessing by viewModel.isProcessing.collectAsState()
-            Scaffold(
-                backgroundColor = Color(0xFFD6D6D6),
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = stringResource(id = state.title),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                            )
-                        },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
-                        navigationIcon = {
-                            if (state.enableBackButton) {
-                                IconButton(onClick = {
-                                    finishWithData(PaymentsResult.Cancelled)
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
-                                        contentDescription = "Back"
-                                    )
-                                }
-                            }
-                        }
-                    )
-                },
-            ) { contentPadding ->
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
                 when (state) {
-                    is PaymentsVMUiState.Authorized -> {
-                        val authState = (state as PaymentsVMUiState.Authorized)
-                        PaymentsScreen(
-                            modifier = Modifier.padding(contentPadding),
+                    is UnifiedPaymentPageVMUiState.Authorized -> {
+                        val authState = (state as UnifiedPaymentPageVMUiState.Authorized)
+                        UnifiedPaymentPageScreen(
                             supportedCards = authState.supportedCards.toMutableSet().apply {
                                 add(CardType.Visa)
                             },
                             googlePayUiConfig = authState.googlePayUiConfig,
+                            isSamsungPayAvailable = authState.isSamsungPayAvailable,
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
                                 viewModel.makeCardPayment(
                                     selfUrl = authState.selfUrl,
@@ -187,24 +210,34 @@ class PaymentsActivity : AppCompatActivity() {
                                     paymentDataLauncher::launch
                                 )
                             },
+                            onSamsungPay = {
+                                finishWithData(UnifiedPaymentPageResult.SamsungPayRequested)
+                            },
                             aaniConfig = authState.aaniConfig,
+                            clickToPayConfig = authState.clickToPayConfig,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
+                            },
+                            onClickToPay = { config ->
+                                clickToPayLauncher.launch(config)
+                            },
+                            onClose = {
+                                finishWithData(UnifiedPaymentPageResult.Cancelled)
                             }
                         )
                     }
 
-                    PaymentsVMUiState.Init -> {
+                    UnifiedPaymentPageVMUiState.Init -> {
                         viewModel.authorize()
                     }
 
-                    is PaymentsVMUiState.Loading -> {
-                        CircularProgressDialog((state as PaymentsVMUiState.Loading).message)
+                    is UnifiedPaymentPageVMUiState.Loading -> {
+                        CircularProgressDialog((state as UnifiedPaymentPageVMUiState.Loading).message)
                     }
 
-                    is PaymentsVMUiState.ShowVisaPlans -> {
-                        val visState = (state as PaymentsVMUiState.ShowVisaPlans)
+                    is UnifiedPaymentPageVMUiState.ShowVisaPlans -> {
+                        val visState = (state as UnifiedPaymentPageVMUiState.ShowVisaPlans)
                         VisaInstalmentsView(
                             instalmentPlans = InstallmentPlan.fromVisaPlans(
                                 visState.visaPlans,
@@ -220,8 +253,8 @@ class PaymentsActivity : AppCompatActivity() {
                         }
                     }
 
-                    is PaymentsVMUiState.InitiatePartialAuth -> {
-                        val partialAuthState = (state as PaymentsVMUiState.InitiatePartialAuth)
+                    is UnifiedPaymentPageVMUiState.InitiatePartialAuth -> {
+                        val partialAuthState = (state as UnifiedPaymentPageVMUiState.InitiatePartialAuth)
                         PartialAuthView(
                             args = PartialAuthActivityArgs.getArgs(
                                 partialAuthState.partialAuthIntent
@@ -230,21 +263,31 @@ class PaymentsActivity : AppCompatActivity() {
                             finishWithData(result.getCardPaymentsState())
                         }
                     }
-                }
-            }
 
-            if (isProcessing) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {}
-                        .background(Color.Black.copy(alpha = 0.3f)), // Increased alpha for better visual "disabled" look
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressDialog(message = LoadingMessage.PAYMENT)
+                    is UnifiedPaymentPageVMUiState.ShowPaymentResult -> {
+                        val resultState = (state as UnifiedPaymentPageVMUiState.ShowPaymentResult)
+                        PaymentResultScreen(
+                            args = resultState.args,
+                            onDone = {
+                                actuallyFinishWithData(resultState.pendingResult)
+                            }
+                        )
+                    }
+                }
+
+                if (isProcessing) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {}
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressDialog(message = LoadingMessage.PAYMENT)
+                    }
                 }
             }
         }
@@ -254,18 +297,18 @@ class PaymentsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.effect.collect {
                 when (it) {
-                    PaymentsVMEffects.Captured -> finishWithData(PaymentsResult.Success)
-                    is PaymentsVMEffects.Failed -> finishWithData(
-                        PaymentsResult.Failed(
+                    UnifiedPaymentPageVMEffects.Captured -> finishWithData(UnifiedPaymentPageResult.Success)
+                    is UnifiedPaymentPageVMEffects.Failed -> finishWithData(
+                        UnifiedPaymentPageResult.Failed(
                             it.error
                         )
                     )
 
-                    is PaymentsVMEffects.InitiateThreeDS -> {
+                    is UnifiedPaymentPageVMEffects.InitiateThreeDS -> {
                         val response = it.threeDSecureDto
                         startActivityForResult(
                             ThreeDSecureWebViewActivity.getIntent(
-                                context = this@PaymentsActivity,
+                                context = this@UnifiedPaymentPageActivity,
                                 acsUrl = response.acsUrl,
                                 acsPaReq = response.acsPaReq,
                                 acsMd = response.acsMd,
@@ -275,11 +318,11 @@ class PaymentsActivity : AppCompatActivity() {
                         )
                     }
 
-                    is PaymentsVMEffects.InitiateThreeDSTwo -> {
+                    is UnifiedPaymentPageVMEffects.InitiateThreeDSTwo -> {
                         val response = it.threeDSecureTwoDto
                         startActivityForResult(
                             ThreeDSecureTwoWebViewActivity.getIntent(
-                                context = this@PaymentsActivity,
+                                context = this@UnifiedPaymentPageActivity,
                                 threeDSMethodData = response.threeDSMethodData,
                                 threeDSMethodNotificationURL = response.threeDSMethodNotificationURL,
                                 threeDSMethodURL = response.threeDSMethodURL,
@@ -298,9 +341,9 @@ class PaymentsActivity : AppCompatActivity() {
                         )
                     }
 
-                    PaymentsVMEffects.PaymentAuthorised -> finishWithData(PaymentsResult.PartiallyAuthorised)
-                    PaymentsVMEffects.PostAuthReview -> finishWithData(PaymentsResult.PostAuthReview)
-                    PaymentsVMEffects.Purchased -> finishWithData(PaymentsResult.Success)
+                    UnifiedPaymentPageVMEffects.PaymentAuthorised -> finishWithData(UnifiedPaymentPageResult.PartiallyAuthorised)
+                    UnifiedPaymentPageVMEffects.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+                    UnifiedPaymentPageVMEffects.Purchased -> finishWithData(UnifiedPaymentPageResult.Success)
                 }
             }
         }
@@ -309,13 +352,18 @@ class PaymentsActivity : AppCompatActivity() {
     private fun setOnBackPressed() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // Disable back button on result screen
+                val currentState = viewModel.uiState.value
+                if (currentState is UnifiedPaymentPageVMUiState.ShowPaymentResult) {
+                    return
+                }
                 if (SDKConfig.showCancelAlert) {
                     showDialog()
                 } else {
                     val intent = Intent().apply {
                         putExtra(
-                            PaymentsLauncherContract.EXTRA_RESULT,
-                            PaymentsResult.Cancelled
+                            UnifiedPaymentPageLauncherContract.EXTRA_RESULT,
+                            UnifiedPaymentPageResult.Cancelled
                         )
                     }
                     setResult(Activity.RESULT_CANCELED, intent)
@@ -344,7 +392,7 @@ class PaymentsActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_CANCELED) {
-            return finishWithData(PaymentsResult.Cancelled)
+            return finishWithData(UnifiedPaymentPageResult.Cancelled)
         }
 
         if (resultCode == RESULT_OK) {
@@ -356,10 +404,10 @@ class PaymentsActivity : AppCompatActivity() {
                                 "State is missing from 3DS Secure result"
                             }
                         when (state) {
-                            "AUTHORISED" -> finishWithData(PaymentsResult.Authorised)
-                            "PURCHASED", "CAPTURED" -> finishWithData(PaymentsResult.Success)
-                            "FAILED" -> finishWithData(PaymentsResult.Failed("3DS Failed"))
-                            "POST_AUTH_REVIEW" -> finishWithData(PaymentsResult.PostAuthReview)
+                            "AUTHORISED" -> finishWithData(UnifiedPaymentPageResult.Authorised)
+                            "PURCHASED", "CAPTURED" -> finishWithData(UnifiedPaymentPageResult.Success)
+                            "FAILED" -> finishWithData(UnifiedPaymentPageResult.Failed("3DS Failed"))
+                            "POST_AUTH_REVIEW" -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
                             "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
                                 runCatching {
                                     requireNotNull(
@@ -370,18 +418,18 @@ class PaymentsActivity : AppCompatActivity() {
                                         "Partial auth intent is missing"
                                     }
                                 }.getOrElse {
-                                    finishWithData(PaymentsResult.Failed(it.message.orEmpty()))
+                                    finishWithData(UnifiedPaymentPageResult.Failed(it.message.orEmpty()))
                                     return
                                 }.let {
                                     viewModel.startPartialAuth(it)
                                 }
                             }
 
-                            else -> finishWithData(PaymentsResult.Failed("3DS Failed"))
+                            else -> finishWithData(UnifiedPaymentPageResult.Failed("3DS Failed"))
                         }
                     }.onFailure {
                         finishWithData(
-                            PaymentsResult.Failed(
+                            UnifiedPaymentPageResult.Failed(
                                 it.message ?: "Failed 3DS"
                             )
                         )
@@ -389,13 +437,61 @@ class PaymentsActivity : AppCompatActivity() {
                 }
             }
         } else {
-            return finishWithData(PaymentsResult.Failed("Failed 3DS"))
+            return finishWithData(UnifiedPaymentPageResult.Failed("Failed 3DS"))
         }
     }
 
-    private fun finishWithData(result: PaymentsResult) {
+    private fun finishWithData(result: UnifiedPaymentPageResult) {
+        // If already on result screen, don't intercept again
+        if (viewModel.uiState.value is UnifiedPaymentPageVMUiState.ShowPaymentResult) {
+            actuallyFinishWithData(result)
+            return
+        }
+        // Show result screen for success/failure statuses
+        when (result) {
+            is UnifiedPaymentPageResult.Success,
+            is UnifiedPaymentPageResult.Authorised -> {
+                showPaymentResult(isSuccess = true, result = result)
+                return
+            }
+            is UnifiedPaymentPageResult.Failed -> {
+                showPaymentResult(isSuccess = false, result = result)
+                return
+            }
+            else -> {
+                // Cancelled, PostAuthReview, SamsungPayRequested, PartialAuth* — skip result screen
+                actuallyFinishWithData(result)
+            }
+        }
+    }
+
+    private fun showPaymentResult(isSuccess: Boolean, result: UnifiedPaymentPageResult) {
+        val currentState = viewModel.uiState.value
+        val formattedAmount = (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.orderAmount
+        val supportedCards = (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.supportedCards ?: emptySet()
+
+        val dateFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+        val dateTime = dateFormatter.format(Date())
+
+        val args = PaymentResultArgs(
+            isSuccess = isSuccess,
+            formattedAmount = formattedAmount,
+            transactionId = "",
+            dateTime = dateTime,
+            supportedCards = supportedCards
+        )
+
+        viewModel.showPaymentResult(
+            UnifiedPaymentPageVMUiState.ShowPaymentResult(
+                args = args,
+                pendingResult = result
+            )
+        )
+    }
+
+    private fun actuallyFinishWithData(result: UnifiedPaymentPageResult) {
         val intent = Intent().apply {
-            putExtra(PaymentsLauncherContract.EXTRA_RESULT, result)
+            putExtra(UnifiedPaymentPageLauncherContract.EXTRA_RESULT, result)
         }
         setResult(Activity.RESULT_OK, intent)
         finish()

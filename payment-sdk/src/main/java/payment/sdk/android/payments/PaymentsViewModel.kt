@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
@@ -34,7 +36,10 @@ import payment.sdk.android.core.getAaniPayLink
 import payment.sdk.android.core.getCardPaymentUrl
 import payment.sdk.android.core.getGooglePayConfigUrl
 import payment.sdk.android.core.getGooglePayUrl
+import payment.sdk.android.core.getPaymentReference
 import payment.sdk.android.core.getSelfUrl
+import payment.sdk.android.core.getPayPageUrl
+import payment.sdk.android.core.getVisaClickToPayUrl
 import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
@@ -52,8 +57,8 @@ import payment.sdk.android.googlepay.GooglePayJsonConfig
 import payment.sdk.android.googlepay.env
 
 @Keep
-internal class PaymentsViewModel(
-    private val cardPaymentsIntent: PaymentsRequest,
+internal class UnifiedPaymentPageViewModel(
+    private val cardPaymentsIntent: UnifiedPaymentPageRequest,
     private val authApiInteractor: AuthApiInteractor,
     private val cardPaymentInteractor: CardPaymentInteractor,
     private val visaInstalmentPlanInteractor: VisaInstallmentPlanInteractor,
@@ -65,12 +70,12 @@ internal class PaymentsViewModel(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
-    private var _uiState: MutableStateFlow<PaymentsVMUiState> =
-        MutableStateFlow(PaymentsVMUiState.Init)
+    private var _uiState: MutableStateFlow<UnifiedPaymentPageVMUiState> =
+        MutableStateFlow(UnifiedPaymentPageVMUiState.Init)
 
-    val uiState: StateFlow<PaymentsVMUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<UnifiedPaymentPageVMUiState> = _uiState.asStateFlow()
 
-    private var _effects = MutableSharedFlow<PaymentsVMEffects>(replay = 1)
+    private var _effects = MutableSharedFlow<UnifiedPaymentPageVMEffects>(replay = 1)
 
     val effect = _effects.asSharedFlow()
 
@@ -85,8 +90,13 @@ internal class PaymentsViewModel(
         _isProcessing.value = false
     }
 
+    fun showPaymentResult(state: UnifiedPaymentPageVMUiState.ShowPaymentResult) {
+        _isProcessing.value = false
+        _uiState.update { state }
+    }
+
     fun authorize() {
-        _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.AUTH) }
+        _uiState.update { UnifiedPaymentPageVMUiState.Loading(LoadingMessage.AUTH) }
         viewModelScope.launch(dispatcher) {
             val authCode = cardPaymentsIntent.paymentUrl.getQueryParameter("code")
             if (authCode.isNullOrBlank()) {
@@ -96,7 +106,7 @@ internal class PaymentsViewModel(
                 authUrl = cardPaymentsIntent.authorizationUrl, authCode = authCode
             )
             when (authResponse) {
-                is AuthResponse.Error -> _effects.emit(PaymentsVMEffects.Failed(authResponse.error.message.orEmpty()))
+                is AuthResponse.Error -> _effects.emit(UnifiedPaymentPageVMEffects.Failed(authResponse.error.message.orEmpty()))
 
                 is AuthResponse.Success -> {
                     getOrder(
@@ -111,19 +121,19 @@ internal class PaymentsViewModel(
 
     suspend fun getOrder(orderUrl: String, accessToken: String, paymentCookie: String) {
         val order = requireNotNull(getOrderApiInteractor.getOrder(orderUrl, accessToken)) {
-            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order details"))
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed("Failed to fetch order details"))
             return
         }
 
         val payerIp = getPayerIpInteractor.getPayerIp(cardPaymentsIntent.paymentUrl).orEmpty()
 
         val amount = requireNotNull(order.amount?.value) {
-            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order amount"))
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed("Failed to fetch order amount"))
             return
         }
 
         val currencyCode = requireNotNull(order.amount?.currencyCode) {
-            _effects.emit(PaymentsVMEffects.Failed("Failed to fetch order currencyCode"))
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed("Failed to fetch order currencyCode"))
             return
         }
 
@@ -154,21 +164,63 @@ internal class PaymentsViewModel(
             )
         }
 
+        // Configure Click to Pay if VISA_CLICK_TO_PAY is in the wallet array and merchant has configured it
+        val clickToPayUrl = order.getVisaClickToPayUrl()
+        val merchantClickToPayConfig = cardPaymentsIntent.clickToPayConfig
+        val isVisaClickToPayEnabled = supportedWallets.contains("VISA_CLICK_TO_PAY")
+
+        val clickToPayConfig = takeIf {
+            merchantClickToPayConfig != null && isVisaClickToPayEnabled
+        }?.let {
+            // Extract order details for building the unified-click-to-pay URL
+            val payment = order.embedded?.payment?.firstOrNull()
+            val outletId = payment?.outletId ?: order.outletId
+            val paymentRef = order.getPaymentReference()
+            // Order ID is typically in the reference before the colon
+            val orderId = order.reference
+
+            val minorUnit = try {
+                java.util.Currency.getInstance(currencyCode).defaultFractionDigits
+            } catch (e: Exception) { 2 }
+            val displayAmount = amount / Math.pow(10.0, minorUnit.toDouble())
+
+            ClickToPayLauncher.Config(
+                clickToPayConfig = merchantClickToPayConfig!!,
+                clickToPayUrl = clickToPayUrl ?: order.getCardPaymentUrl().orEmpty(),
+                amount = displayAmount,
+                currencyCode = currencyCode,
+                accessToken = accessToken,
+                paymentCookie = paymentCookie,
+                orderReference = order.reference,
+                merchantName = merchantClickToPayConfig.dpaName,
+                outletId = outletId,
+                orderId = orderId,
+                paymentRef = paymentRef,
+                payPageUrl = cardPaymentsIntent.paymentUrl,
+                orderUrl = orderUrl,
+                testOtpMode = merchantClickToPayConfig.testOtpMode,
+                locale = order.language
+            )
+        }
+
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
         if (supportedCards.isEmpty()) {
-            _effects.emit(PaymentsVMEffects.Failed("No supported card scheme found"))
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed("No supported card scheme found"))
             return
         }
 
+        val isSamsungPayAvailable = supportedWallets.contains("SAMSUNG_PAY")
+
         _uiState.update {
-            PaymentsVMUiState.Authorized(
+            UnifiedPaymentPageVMUiState.Authorized(
                 accessToken = accessToken,
                 paymentCookie = paymentCookie,
                 orderUrl = orderUrl,
                 supportedCards = CardMapping.mapSupportedCards(supportedCards),
                 googlePayUiConfig = googlePayConfig,
-                showWallets = supportedWallets.contains("GOOGLE_PAY") || apm.contains("AANI"),
+                isSamsungPayAvailable = isSamsungPayAvailable,
+                showWallets = supportedWallets.contains("GOOGLE_PAY") || isSamsungPayAvailable || apm.contains("AANI") || clickToPayConfig != null,
                 orderAmount = order.formattedAmount.orEmpty(),
                 cardPaymentUrl = order.getCardPaymentUrl().orEmpty(),
                 amount = amount,
@@ -176,11 +228,13 @@ internal class PaymentsViewModel(
                 selfUrl = order.getSelfUrl().orEmpty(),
                 locale = order.language,
                 aaniConfig = aaniConfig,
+                clickToPayConfig = clickToPayConfig,
                 payerIp = payerIp
             )
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun makeCardPayment(
         selfUrl: String,
         cardPaymentUrl: String,
@@ -204,7 +258,7 @@ internal class PaymentsViewModel(
             paymentUrl = cardPaymentUrl,
             pan = cardNumber
         )
-        _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
+        _uiState.update { UnifiedPaymentPageVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
             val response = visaInstalmentPlanInteractor.getPlans(
                 cardNumber = cardNumber,
@@ -214,7 +268,7 @@ internal class PaymentsViewModel(
 
             if (response is VisaPlansResponse.Success && response.visaPlans.matchedPlans.isNotEmpty()) {
                 _uiState.update {
-                    PaymentsVMUiState.ShowVisaPlans(
+                    UnifiedPaymentPageVMUiState.ShowVisaPlans(
                         makeCardPaymentRequest = makeCardPaymentRequest,
                         visaPlans = response.visaPlans,
                         orderUrl = orderUrl,
@@ -234,8 +288,8 @@ internal class PaymentsViewModel(
         viewModelScope.launch(dispatcher) {
             val currentState = uiState.value
 
-            if (currentState !is PaymentsVMUiState.Authorized || currentState.googlePayUiConfig?.googlePayAcceptUrl == null) {
-                _effects.emit(PaymentsVMEffects.Failed("Authorization or Google Pay URL is missing"))
+            if (currentState !is UnifiedPaymentPageVMUiState.Authorized || currentState.googlePayUiConfig?.googlePayAcceptUrl == null) {
+                _effects.emit(UnifiedPaymentPageVMEffects.Failed("Authorization or Google Pay URL is missing"))
                 return@launch
             }
 
@@ -246,12 +300,12 @@ internal class PaymentsViewModel(
 
             when (response) {
                 is SDKHttpResponse.Failed -> _effects.emit(
-                    PaymentsVMEffects.Failed(
+                    UnifiedPaymentPageVMEffects.Failed(
                         error = "Google Pay accept failed: ${response.error.message}"
                     )
                 )
 
-                is SDKHttpResponse.Success -> _effects.emit(PaymentsVMEffects.Captured)
+                is SDKHttpResponse.Success -> _effects.emit(UnifiedPaymentPageVMEffects.Captured)
             }
         }
     }
@@ -264,10 +318,10 @@ internal class PaymentsViewModel(
 
         if (response is CardPaymentResponse.Success) {
             when (response.paymentResponse.state) {
-                "AUTHORISED" -> _effects.emit(PaymentsVMEffects.PaymentAuthorised)
-                "PURCHASED" -> _effects.emit(PaymentsVMEffects.Purchased)
-                "CAPTURED" -> _effects.emit(PaymentsVMEffects.Captured)
-                "POST_AUTH_REVIEW" -> _effects.emit(PaymentsVMEffects.PostAuthReview)
+                "AUTHORISED" -> _effects.emit(UnifiedPaymentPageVMEffects.PaymentAuthorised)
+                "PURCHASED" -> _effects.emit(UnifiedPaymentPageVMEffects.Purchased)
+                "CAPTURED" -> _effects.emit(UnifiedPaymentPageVMEffects.Captured)
+                "POST_AUTH_REVIEW" -> _effects.emit(UnifiedPaymentPageVMEffects.PostAuthReview)
                 "AWAIT_3DS" -> {
                     try {
                         if (response.paymentResponse.isThreeDSecureTwo()) {
@@ -276,15 +330,15 @@ internal class PaymentsViewModel(
                                 orderUrl = orderUrl,
                                 paymentCookie = makeCardPaymentRequest.paymentCookie
                             )
-                            _effects.emit(PaymentsVMEffects.InitiateThreeDSTwo(request))
+                            _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDSTwo(request))
                         } else {
                             val request =
                                 threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
-                            _effects.emit(PaymentsVMEffects.InitiateThreeDS(request))
+                            _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDS(request))
                         }
 
                     } catch (e: IllegalArgumentException) {
-                        _effects.emit(PaymentsVMEffects.Failed(e.message.orEmpty()))
+                        _effects.emit(UnifiedPaymentPageVMEffects.Failed(e.message.orEmpty()))
                     }
                 }
 
@@ -294,11 +348,11 @@ internal class PaymentsViewModel(
                     }
                 }
 
-                "FAILED" -> _effects.emit(PaymentsVMEffects.Failed(" Payment Failed ${response.paymentResponse.threeDSOne?.summaryText.orEmpty()}"))
-                else -> _effects.emit(PaymentsVMEffects.Failed("Unknown payment state: $uiState"))
+                "FAILED" -> _effects.emit(UnifiedPaymentPageVMEffects.Failed(" Payment Failed ${response.paymentResponse.threeDSOne?.summaryText.orEmpty()}"))
+                else -> _effects.emit(UnifiedPaymentPageVMEffects.Failed("Unknown payment state: $uiState"))
             }
         } else {
-            _effects.emit(PaymentsVMEffects.Failed((response as CardPaymentResponse.Error).error.message.orEmpty()))
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed((response as CardPaymentResponse.Error).error.message.orEmpty()))
         }
     }
 
@@ -307,7 +361,7 @@ internal class PaymentsViewModel(
         selectedPlan: InstallmentPlan,
         orderUrl: String,
     ) {
-        _uiState.update { PaymentsVMUiState.Loading(LoadingMessage.PAYMENT) }
+        _uiState.update { UnifiedPaymentPageVMUiState.Loading(LoadingMessage.PAYMENT) }
         var visaRequest: VisaRequest? = null
         if (selectedPlan.frequency != PlanFrequency.PayInFull) {
             visaRequest = VisaRequest(
@@ -326,11 +380,11 @@ internal class PaymentsViewModel(
 
     fun startPartialAuth(partialAuthIntent: PartialAuthIntent) {
         _uiState.update {
-            PaymentsVMUiState.InitiatePartialAuth(partialAuthIntent)
+            UnifiedPaymentPageVMUiState.InitiatePartialAuth(partialAuthIntent)
         }
     }
 
-    internal class Factory(private val cardPaymentsIntent: PaymentsRequest) :
+    internal class Factory(private val cardPaymentsIntent: UnifiedPaymentPageRequest) :
         ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
@@ -341,7 +395,7 @@ internal class PaymentsViewModel(
                     .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
                     .build();
             val httpClient = CoroutinesGatewayHttpClient()
-            return PaymentsViewModel(
+            return UnifiedPaymentPageViewModel(
                 cardPaymentsIntent = cardPaymentsIntent,
                 authApiInteractor = AuthApiInteractor(httpClient, extras.requireApplication()),
                 cardPaymentInteractor = CardPaymentInteractor(httpClient, extras.requireApplication()),
