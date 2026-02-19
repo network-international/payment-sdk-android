@@ -39,6 +39,8 @@ import java.util.Locale
 internal fun SavedCardViewBottomBar(
     bringIntoViewRequester: BringIntoViewRequester,
     orderAmount: OrderAmount,
+    isSaudiPayment: Boolean,
+    isConsentAccepted: Boolean,
     onPayClicked: () -> Unit
 ) {
     Card(
@@ -53,6 +55,11 @@ internal fun SavedCardViewBottomBar(
         ),
         elevation = 16.dp
     ) {
+        val isEnabled = if (isSaudiPayment) {
+            true
+        } else {
+            isConsentAccepted
+        }
         val isLTR =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
         TextButton(
@@ -61,8 +68,13 @@ internal fun SavedCardViewBottomBar(
                 .height(56.dp)
                 .padding(8.dp),
             colors = ButtonDefaults.textButtonColors(
-                backgroundColor = colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                backgroundColor = if (isEnabled) {
+                    colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                } else {
+                    Color.Gray
+                }
             ),
+            enabled = isEnabled,
             onClick = {
                 onPayClicked()
             },
@@ -111,7 +123,9 @@ fun PreviewSavedCardViewBottomBar() {
     SDKTheme {
         SavedCardViewBottomBar(
             bringIntoViewRequester = BringIntoViewRequester(),
-            orderAmount = OrderAmount(1.33, "AED")
+            orderAmount = OrderAmount(1.33, "AED"),
+            isSaudiPayment = false,
+            isConsentAccepted = true
         ) {}
     }
 }

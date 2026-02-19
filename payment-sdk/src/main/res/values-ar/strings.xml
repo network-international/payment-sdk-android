@@ -112,15 +112,23 @@
     <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
     <string name="partial_auth_message_question">هل ترغب في المضي قدما مع المبلغ المخفض؟</string>
 
-    <string name="recurring_payment_details">Recurring Payment Details</string>
-    <string name="first_payment_date">FIRST PAYMENT DATE</string>
-    <string name="last_payment_date">LAST PAYMENT DATE</string>
-    <string name="recurring_amount">RECURRING AMOUNT</string>
-    <string name="frequency">FREQUENCY</string>
-    <string name="consent_link_text">Terms of Use</string>
-    <string name="default_consent_link_text">Terms and Conditions</string>
-    <string name="default_terms">"By clicking \"Pay\", you agree to the Terms and Conditions and authorize this transaction"</string>
-    <string name="recurring_consent_terms">You’ll be charged the specified amount at the listed frequency until you cancel. Prices may change as described in the applicable Terms of Use. You can cancel at any time. By subscribing, you agree to the Terms of Use and you authorize storage of your payment method for renewals and other purchases.</string>
-    <string name="installment_consent_terms">You will be charged the agreed instalment amount at the selected frequency for a fixed number of instalments until the total amount is paid in full. Charges will be processed automatically on each scheduled billing date using your stored payment method. Any changes to the instalment amount or payment schedule will require your prior approval. By continuing, you agree to the Terms of Use and authorize the storage and use of your payment method for scheduled instalment payments.</string>
-    <string name="unscheduled_consent_terms">By providing your card details, you consent to the merchant securely storing your card information and processing future payments for services or purchases you explicitly request or approve. Charges will only be processed for services delivered. You may withdraw your consent or delete your saved card at any time by contacting the merchant. By continuing, you agree to the Terms of Use and authorize storage of your payment method for future approved payments.</string>
+    <string name="recurring_payment_details">تفاصيل الدفع المتكرر</string>
+    <string name="first_payment_date">تاريخ الدفعة الأولى</string>
+    <string name="last_payment_date">تاريخ آخر دفعة</string>
+    <string name="recurring_amount">المبلغ المتكرر</string>
+    <string name="frequency">التكرار</string>
+    <string name="consent_link_text">شروط الاستخدام</string>
+    <string name="default_consent_link_text">الشروط والأحكام</string>
+    <string name="default_terms">بالضغط على "الدفع"، فإنك توافق على الشروط والأحكام وتقوم بتفويض هذه الحركة</string>
+    <string name="recurring_consent_terms">باشتراكك، فإنك توافق على شروط الاستخدام وتفوضنا بالاحتفاظ بوسيلة الدفع الخاصة بك لأغراض التجديد وعمليات الشراء الأخرى.يمكنك الإلغاء في أي وقت.قد تتغير الأسعار وفقًا لما هو موضح في شروط الاستخدام المعمول بها.سيتم خصم المبلغ المحدد وفقًا لمعدل التكرار الموضح إلى أن تقوم بالإلغاء.</string>
+    <string name="installment_consent_terms">سيتم خصم مبلغ القسط المتفق عليه وفقًا للوتيرة المحددة لعدد محدد من الأقساط حتى سداد المبلغ الإجمالي بالكامل. سيتم الخصم تلقائيًا باستخدام طريقة الدفع المحفوظة لديك في كل تاريخ إصدار فاتورة. أي تغييرات على مبلغ القسط أو جدول السداد تتطلب موافقتك. بمتابعتك، فإنك توافق على شروط الاستخدام وتفوضنا بحفظ طريقة الدفع الخاصة بك للأقساط المجدولة.</string>
+    <string name="unscheduled_consent_terms">أنت تُفوض التاجر بتخزين بيانات بطاقتك بأمان وتحصيل رسوم الخدمات أو المشتريات المستقبلية التي تُجريها. سيتم تحصيل الرسوم عند استخدام الخدمات. يمكنك إلغاء هذا التفويض في أي وقت. كما يمكنك سحب موافقتك أو حذف بطاقتك المحفوظة في أي وقت من خلال التاجر.</string>
+    <string name="daily_frequency">يومي</string>
+    <string name="weekly_frequency">أسبوعي</string>
+    <string name="biweekly_frequency">كل أسبوعني</string>
+    <string name="fortnightly_frequency">كل أسبوعني</string>
+    <string name="monthly_frequency">شهري</string>
+    <string name="quarterly_frequency">ربع سنوي</string>
+    <string name="twice_yearly_frequency">نصف سنوي</string>
+    <string name="yearly_frequency">سنوي</string>
 </resources>

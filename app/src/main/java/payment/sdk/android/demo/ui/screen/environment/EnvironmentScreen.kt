@@ -84,7 +84,9 @@ fun EnvironmentScreen(
             var isExpandedEnvironments by remember { mutableStateOf(false) }
             var isExpandedMerchantAttributes by remember { mutableStateOf(false) }
             val orderAction = remember { listOf("AUTH", "SALE", "PURCHASE") }
-            val orderType = remember { listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT") }
+            val orderType = remember {
+                listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT", "RECURRING_SUBSCRIPTION", "INSTALLMENT_SUBSCRIPTION")
+            }
             var actionIndex by remember {
                 mutableIntStateOf(orderAction.indexOf(state.orderAction))
             }

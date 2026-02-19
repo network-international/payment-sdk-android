@@ -44,6 +44,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -106,7 +107,7 @@ fun PaymentsScreen(
     var isCvvFocused by remember { mutableStateOf(false) } // Track the focus state of CVV
     val rotationAngle by animateFloatAsState(targetValue = if (isCvvFocused) 180f else 0f) // Animate between 0 and 180 degrees
 
-    var isRecurringConsentChecked by remember { mutableStateOf(false) }
+    var isConsentAccepted by remember { mutableStateOf(false) }
 
     LaunchedEffect(pan, cvv, expiry.text, cardholderName) {
         isFormValid = CardValidator.isValid(
@@ -125,6 +126,20 @@ fun PaymentsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             if (isSubscriptionOrder && subscriptionDetails != null) {
+                val context = LocalContext.current
+                val key = "${subscriptionDetails.frequency}_FREQUENCY"
+                val resId = context.resources.getIdentifier(
+                    key.lowercase(),
+                    "string",
+                    context.packageName
+                )
+
+                val frequency = if (resId != 0) {
+                    context.getString(resId)
+                } else {
+                    subscriptionDetails.frequency
+                }
+
                 Surface(
                     modifier = Modifier
                         .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
@@ -144,7 +159,7 @@ fun PaymentsScreen(
                         RecurringDetailRow(stringResource(R.string.first_payment_date), subscriptionDetails.startDate)
                         RecurringDetailRow(stringResource(R.string.last_payment_date), subscriptionDetails.lastPaymentDate)
                         RecurringDetailRow(stringResource(R.string.recurring_amount), subscriptionDetails.amount)
-                        RecurringDetailRow(stringResource(R.string.frequency), subscriptionDetails.frequency)
+                        RecurringDetailRow(stringResource(R.string.frequency), frequency)
                     }
                 }
             }
@@ -271,8 +286,8 @@ fun PaymentsScreen(
                             Spacer(Modifier.height(spacerHeight))
 
                             TermsAndConditionsConsent(
-                                checked = isRecurringConsentChecked,
-                                onCheckedChange = { isRecurringConsentChecked = it },
+                                checked = isConsentAccepted,
+                                onCheckedChange = { isConsentAccepted = it },
                                 isSubscriptionOrder = isSubscriptionOrder,
                                 termsUrl = tncUrl,
                                 orderType = orderType
@@ -280,7 +295,7 @@ fun PaymentsScreen(
                         }
 
                         val animated = animateColorAsState(
-                            if (isFormValid && (isSaudiPayment || isRecurringConsentChecked))
+                            if (isFormValid && (isSaudiPayment || isConsentAccepted))
                                 colorResource(id = R.color.payment_sdk_pay_button_background_color)
                             else Color.Gray,
                             label = ""
@@ -305,7 +320,7 @@ fun PaymentsScreen(
                                     cardholderName
                                 )
                             },
-                            enabled = isFormValid && (!isSubscriptionOrder || isRecurringConsentChecked),
+                            enabled = isFormValid && (isSaudiPayment || isConsentAccepted),
                             shape = RoundedCornerShape(percent = 15),
                         ) {
                             val title = if (SDKConfig.showOrderAmount) stringResource(
