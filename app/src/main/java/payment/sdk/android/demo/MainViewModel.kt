@@ -32,6 +32,10 @@ import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.demo.model.RecurringDetails
 import payment.sdk.android.payments.PaymentsResult
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 @Keep
 class MainViewModel(
@@ -105,8 +109,46 @@ class MainViewModel(
                 orderRequest.frequency = "MONTHLY"
                 orderRequest.recurringDetails = RecurringDetails(10, "FIXED")
             }
+            "RECURRING_SUBSCRIPTION" -> {
+                orderRequest.planReference = dataStore.getSubscription().planReference
+                orderRequest.transactionType = "RECURRING_PURCHASE"
+                orderRequest.tenure = dataStore.getSubscription().tenure
+                orderRequest.total = PaymentOrderAmount(dataStore.getSubscription().totalAmount, dataStore.getCurrency().code)
+                orderRequest.orderStartDate = getCurrentUtcTime()
+                orderRequest.firstName = "firstName"
+                orderRequest.lastName = "lastName"
+                orderRequest.email = "email@abc.com"
+                orderRequest.paymentAttempts = 3
+            }
+            "INSTALLMENT_SUBSCRIPTION" -> {
+                orderRequest.planReference = dataStore.getSubscription().planReference
+                orderRequest.transactionType = "INSTALLMENT"
+                orderRequest.tenure = dataStore.getSubscription().tenure
+                orderRequest.total = PaymentOrderAmount(dataStore.getSubscription().totalAmount, dataStore.getCurrency().code)
+                orderRequest.orderStartDate = getCurrentUtcTime()
+                orderRequest.invoiceExpiryDate = getCurrentUtcTime(2)
+                orderRequest.firstName = "firstName"
+                orderRequest.lastName = "lastName"
+                orderRequest.email = "email@abc.com"
+                orderRequest.paymentAttempts = 3
+                orderRequest.skipInvoiceCreatedEmailNotification = false
+                orderRequest.notifyPayByLink = true
+                orderRequest.paymentStructure = "INTRODUCTORY"
+                orderRequest.initialInstallmentAmount = 2000
+                orderRequest. initialPeriodLength = 1
+            }
         }
         return orderRequest
+    }
+
+    fun getCurrentUtcTime(monthsToAdd: Int = 0): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        calendar.add(Calendar.MONTH, monthsToAdd)
+
+        return sdf.format(calendar.time)
     }
 
     private fun getEnvironment(): Environment? {

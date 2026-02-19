@@ -9,5 +9,12 @@ data class EnvironmentViewModelState(
     val merchantAttributes: List<MerchantAttribute> = listOf(),
     val language: String = "en",
     val orderAction: String = "SALE",
-    val orderType: String = "SINGLE"
+    val orderType: String = "SINGLE",
+    val subscription: SubscriptionConfig = SubscriptionConfig()
+)
+
+data class SubscriptionConfig(
+    val planReference: String = "",
+    val tenure: Int = 2,
+    val totalAmount: Double = 0.0
 )

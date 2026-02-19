@@ -1,5 +1,7 @@
 package payment.sdk.android.util
 
+import android.view.View
+import androidx.core.text.TextUtilsCompat
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.SubscriptionDetails
@@ -20,11 +22,13 @@ object SubscriptionUtils {
     }
 
     private fun getSubscriptionAmount(amount: Order.Amount?): String {
+        val isLTR =
+            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
         val orderAmount = OrderAmount(
             amount?.value ?: return "",
             amount.currencyCode.orEmpty()
         )
-        return orderAmount.formattedCurrencyString2Decimal(false)
+        return orderAmount.formattedCurrencyString2Decimal(isLTR)
     }
 
     fun isSubscriptionOrder(order: Order): Boolean {

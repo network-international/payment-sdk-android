@@ -9,6 +9,8 @@ import com.google.gson.Gson
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.ui.screen.environment.SubscriptionConfig
+import androidx.core.content.edit
 
 class DataStoreImpl(private val context: Context) : DataStore {
     override fun saveEnvironment(environment: Environment) {
@@ -124,6 +126,24 @@ class DataStoreImpl(private val context: Context) : DataStore {
     override fun getLanguage(): AppLanguage {
         val currency = context.getPreferences().getString(KEY_LANGUAGE, "")
         return AppLanguage.entries.firstOrNull { it.code == currency } ?: AppLanguage.ENGLISH
+    }
+
+    override fun saveSubscription(config: SubscriptionConfig) {
+        context.getPreferences().edit {
+            putString("sub_plan_reference", config.planReference)
+            putInt("sub_tenure", config.tenure)
+            putFloat("sub_total_amount", config.totalAmount.toFloat())
+        }
+    }
+
+    override fun getSubscription(): SubscriptionConfig {
+        val prefs = context.getPreferences()
+
+        return SubscriptionConfig(
+            planReference = prefs.getString("sub_plan_reference", "") ?: "",
+            tenure = prefs.getInt("sub_tenure", 2),
+            totalAmount = prefs.getFloat("sub_total_amount", 0f).toDouble()
+        )
     }
 
     override fun saveCard(savedCard: SavedCard) {

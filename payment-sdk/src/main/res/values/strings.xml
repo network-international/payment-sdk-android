@@ -132,4 +132,12 @@
     <string name="recurring_consent_terms">You’ll be charged the specified amount at the listed frequency until you cancel. Prices may change as described in the applicable Terms of Use. You can cancel at any time. By subscribing, you agree to the Terms of Use and you authorize storage of your payment method for renewals and other purchases.</string>
     <string name="installment_consent_terms">You will be charged the agreed instalment amount at the selected frequency for a fixed number of instalments until the total amount is paid in full. Charges will be processed automatically on each scheduled billing date using your stored payment method. Any changes to the instalment amount or payment schedule will require your prior approval. By continuing, you agree to the Terms of Use and authorize the storage and use of your payment method for scheduled instalment payments.</string>
     <string name="unscheduled_consent_terms">By providing your card details, you consent to the merchant securely storing your card information and processing future payments for services or purchases you explicitly request or approve. Charges will only be processed for services delivered. You may withdraw your consent or delete your saved card at any time by contacting the merchant. By continuing, you agree to the Terms of Use and authorize storage of your payment method for future approved payments.</string>
+    <string name="daily_frequency">Daily</string>
+    <string name="weekly_frequency">Weekly</string>
+    <string name="biweekly_frequency">Bi-Weekly</string>
+    <string name="fortnightly_frequency">Fortnightly</string>
+    <string name="monthly_frequency">Monthly</string>
+    <string name="quarterly_frequency">Quarterly</string>
+    <string name="twice_yearly_frequency">Half Yearly</string>
+    <string name="yearly_frequency">Yearly</string>
 </resources>

@@ -69,7 +69,7 @@ internal fun SavedCardPaymentView(
     val cvvLength = if (savedCard.isAmex()) 4 else 3
 
     var isErrorCvv by remember { mutableStateOf(false) }
-    var isRecurringConsentChecked by remember { mutableStateOf(false) }
+    var isConsentAccepted by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .background(Color.White)
@@ -166,15 +166,15 @@ internal fun SavedCardPaymentView(
         Spacer(modifier = Modifier.weight(1f))
         if (!isSaudiPayment) {
             TermsAndConditionsConsent(
-                checked = isRecurringConsentChecked,
-                onCheckedChange = { isRecurringConsentChecked = it },
+                checked = isConsentAccepted,
+                onCheckedChange = { isConsentAccepted = it },
                 isSubscriptionOrder = isSubscriptionOrder,
                 termsUrl = tncUrl,
                 orderType = orderType
             )
         }
 
-        SavedCardViewBottomBar(bringIntoViewRequester, orderAmount) {
+        SavedCardViewBottomBar(bringIntoViewRequester, orderAmount, isSaudiPayment, isConsentAccepted) {
             isErrorCvv = if (cvv.length == cvvLength) {
                 onStartPayment(cvv)
                 false
