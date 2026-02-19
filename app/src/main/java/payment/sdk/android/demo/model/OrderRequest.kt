@@ -12,7 +12,24 @@ data class OrderRequest(
     var type: String? = null,
     var frequency: String? = null,
     var recurringDetails: RecurringDetails? = null,
-    var installmentDetails: InstallmentDetails? = null
+    var installmentDetails: InstallmentDetails? = null,
+    var planReference: String? = null,
+    var transactionType: String? = null,
+    var tenure: Int? = 0,
+    var total: PaymentOrderAmount? = null,
+    var orderStartDate: String? = null,
+    var firstName: String? = null,
+    var lastName: String? = null,
+    var email: String? = null,
+    var paymentAttempts: Int? = 0,
+    var invoiceExpiryDate: String? = null,
+    var skipInvoiceCreatedEmailNotification: Boolean? = false,
+    var notifyPayByLink: Boolean? = false,
+    var paymentStructure: String? = null,
+    var initialInstallmentAmount: Double? = null,
+    var initialPeriodLength: Int? = null,
+    var trialOfferTenure: Int? = null,
+    var trialOfferAmount: PaymentOrderAmount? = null
 )
 
 data class PaymentOrderAmount(
@@ -60,5 +77,48 @@ fun OrderRequest.toMap(): MutableMap<String, Any> {
             "recaptureCsc" to it.recaptureCsc
         )
     }
+
+    planReference?.let { bodyMap["planReference"] = it }
+
+    transactionType?.let { bodyMap["transactionType"] = it }
+
+    tenure?.let { bodyMap["tenure"] = it }
+
+    total?.let {
+        bodyMap["total"] = mapOf(
+            "currencyCode" to it.currencyCode,
+            "value" to it.value
+        )
+    }
+
+    firstName?.let { bodyMap["firstName"] = it }
+
+    lastName?.let { bodyMap["lastName"] = it }
+
+    email?.let { bodyMap["email"] = it }
+
+    paymentAttempts?.let { bodyMap["paymentAttempts"] = it }
+
+    paymentStructure?.let { bodyMap["paymentStructure"] = it }
+
+    initialInstallmentAmount?.let {
+        bodyMap["initialInstallmentAmount"] = it
+    }
+
+    initialPeriodLength?.let {
+        bodyMap["initialPeriodLength"] = it
+    }
+
+    trialOfferAmount?.let {
+        bodyMap["trialOfferAmount"] = mapOf(
+            "currencyCode" to it.currencyCode,
+            "value" to it.value
+        )
+    }
+
+    trialOfferTenure?.let {
+        bodyMap["trialOfferTenure"] = it
+    }
+
     return bodyMap
 }

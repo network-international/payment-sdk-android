@@ -1,18 +1,17 @@
 package payment.sdk.android.demo.ui.screen.environment
 
-import android.app.LocaleManager
-import android.content.Context
-import android.os.Build
-import android.os.LocaleList
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -23,10 +22,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.BuildConfig
 import payment.sdk.android.SDKConfig
@@ -48,6 +48,7 @@ import payment.sdk.android.demo.isTablet
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
 import payment.sdk.android.demo.ui.screen.SectionView
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +85,9 @@ fun EnvironmentScreen(
             var isExpandedEnvironments by remember { mutableStateOf(false) }
             var isExpandedMerchantAttributes by remember { mutableStateOf(false) }
             val orderAction = remember { listOf("AUTH", "SALE", "PURCHASE") }
-            val orderType = remember { listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT") }
+            val orderType = remember {
+                listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT", "RECURRING_SUBSCRIPTION", "INSTALLMENT_SUBSCRIPTION")
+            }
             var actionIndex by remember {
                 mutableIntStateOf(orderAction.indexOf(state.orderAction))
             }
@@ -95,8 +98,10 @@ fun EnvironmentScreen(
             Column(
                 modifier = Modifier
                     .padding(contentPadding)
+                    .verticalScroll(rememberScrollState())
                     .padding(10.dp)
             ) {
+                var isExpandedSubscription by remember { mutableStateOf(false) }
                 HorizontalDivider()
                 Text(
                     modifier = Modifier
@@ -209,7 +214,10 @@ fun EnvironmentScreen(
                     onExpand = { isExpandedMerchantAttributes = it },
                     showDialog = { showMerchantAttributeDialog = true }
                 ) {
-                    LazyVerticalGrid(columns = GridCells.Fixed(if (isTablet()) 2 else 1)) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(if (isTablet()) 2 else 1),
+                        modifier = Modifier.heightIn(max = 500.dp)
+                    ) {
                         items(state.merchantAttributes) { merchantAttribute ->
                             MerchantAttributeItem(
                                 merchantAttribute = merchantAttribute,
@@ -235,7 +243,10 @@ fun EnvironmentScreen(
                     onExpand = { isExpandedEnvironments = it },
                     showDialog = { showAddEnvironmentDialog = true }
                 ) {
-                    LazyVerticalGrid(columns = GridCells.Fixed(if (isTablet()) 2 else 1)) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(if (isTablet()) 2 else 1),
+                        modifier = Modifier.heightIn(max = 500.dp)
+                    ) {
                         items(state.environments) { environment ->
                             val isSelected = state.selectedEnvironment?.id == environment.id
                             EnvironmentViewItem(
@@ -250,6 +261,185 @@ fun EnvironmentScreen(
                         }
                     }
                 }
+
+                HorizontalDivider()
+
+                SectionView(
+                    title = "Subscription",
+                    count = 1,
+                    isExpanded = isExpandedSubscription,
+                    onExpand = { isExpandedSubscription = it },
+                    showDialog = { isExpandedSubscription = true }
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        val subscription = state.subscription
+
+                        OutlinedTextField(
+                            value = subscription.planReference,
+                            onValueChange = {
+                                viewModel.saveSubscription(
+                                    subscription.copy(planReference = it)
+                                )
+                            },
+                            label = { Text("Plan Reference") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = subscription.tenure.toString(),
+                            onValueChange = {
+                                viewModel.saveSubscription(
+                                    subscription.copy(
+                                        tenure = it.toIntOrNull() ?: 0
+                                    )
+                                )
+                            },
+                            label = { Text("Tenure") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = subscription.totalAmount.toString(),
+                            onValueChange = {
+                                viewModel.saveSubscription(
+                                    subscription.copy(
+                                        totalAmount = it.toDoubleOrNull() ?: 0.0
+                                    )
+                                )
+                            },
+                            label = { Text("Total Amount") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        HorizontalDivider()
+
+                        var isTrialEnabled by remember {
+                            mutableStateOf(
+                                subscription.trialOfferTenure != null &&
+                                        subscription.trialOfferAmount != null
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Enable Trial Offer")
+                            Switch(
+                                checked = isTrialEnabled,
+                                onCheckedChange = { isChecked ->
+                                    isTrialEnabled = isChecked
+
+                                    if (!isChecked) {
+                                        viewModel.saveSubscription(
+                                            subscription.copy(
+                                                trialOfferTenure = null,
+                                                trialOfferAmount = null
+                                            )
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        if (isTrialEnabled) {
+
+                            OutlinedTextField(
+                                value = subscription.trialOfferTenure?.toString() ?: "",
+                                onValueChange = {
+                                    viewModel.saveSubscription(
+                                        subscription.copy(
+                                            trialOfferTenure = it.toIntOrNull()
+                                        )
+                                    )
+                                },
+                                label = { Text("Trial Offer Tenure") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            OutlinedTextField(
+                                value = subscription.trialOfferAmount?.toString() ?: "",
+                                onValueChange = {
+                                    viewModel.saveSubscription(
+                                        subscription.copy(
+                                            trialOfferAmount = it.toDoubleOrNull()
+                                        )
+                                    )
+                                },
+                                label = { Text("Trial Offer Amount") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        HorizontalDivider()
+
+                        var isIntroductoryEnabled by remember {
+                            mutableStateOf(
+                                subscription.initialInstallmentAmount != null &&
+                                        subscription.initialPeriodLength != null
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Enable Introductory Offer")
+                            Switch(
+                                checked = isIntroductoryEnabled,
+                                onCheckedChange = { isChecked ->
+                                    isIntroductoryEnabled = isChecked
+
+                                    if (!isChecked) {
+                                        viewModel.saveSubscription(
+                                            subscription.copy(
+                                                initialInstallmentAmount = null,
+                                                initialPeriodLength = null
+                                            )
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        if (isIntroductoryEnabled) {
+
+                            OutlinedTextField(
+                                value = subscription.initialInstallmentAmount?.toString() ?: "",
+                                onValueChange = {
+                                    viewModel.saveSubscription(
+                                        subscription.copy(
+                                            initialInstallmentAmount = it.toDoubleOrNull()
+                                        )
+                                    )
+                                },
+                                label = { Text("Initial Installment Amount") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            OutlinedTextField(
+                                value = subscription.initialPeriodLength?.toString() ?: "",
+                                onValueChange = {
+                                    viewModel.saveSubscription(
+                                        subscription.copy(
+                                            initialPeriodLength = it.toIntOrNull()
+                                        )
+                                    )
+                                },
+                                label = { Text("Initial Period Length") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+
             }
         }
     )

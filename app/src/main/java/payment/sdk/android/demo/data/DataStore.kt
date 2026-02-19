@@ -6,6 +6,7 @@ import payment.sdk.android.demo.model.Product
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.ui.screen.environment.SubscriptionConfig
 
 interface DataStore {
     fun saveEnvironment(environment: Environment)
@@ -57,4 +58,8 @@ interface DataStore {
     fun setLanguage(language: AppLanguage)
 
     fun getLanguage(): AppLanguage
+
+    fun saveSubscription(config: SubscriptionConfig)
+
+    fun getSubscription(): SubscriptionConfig
 }

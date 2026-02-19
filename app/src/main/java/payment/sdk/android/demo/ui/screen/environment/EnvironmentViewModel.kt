@@ -31,7 +31,8 @@ class EnvironmentViewModel(
                 environments = dataStore.getEnvironments(),
                 selectedEnvironment = dataStore.getSelectedEnvironment(),
                 merchantAttributes = dataStore.getMerchantAttributes(),
-                orderAction = dataStore.getOrderAction()
+                orderAction = dataStore.getOrderAction(),
+                subscription = dataStore.getSubscription()
             )
         }
     }
@@ -62,6 +63,11 @@ class EnvironmentViewModel(
                 selectedEnvironment = dataStore.getSelectedEnvironment()
             )
         }
+    }
+
+    fun saveSubscription(config: SubscriptionConfig) {
+        dataStore.saveSubscription(config)
+        _state.update { it.copy(subscription = config) }
     }
 
     fun onSelectEnvironment(environment: Environment) {
