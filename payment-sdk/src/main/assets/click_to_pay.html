@@ -764,6 +764,27 @@
             color: #8F8F8F;
             margin-top: 4px;
             text-align: right;
+            cursor: pointer;
+        }
+        .add-card-cvv-tooltip {
+            font-size: 13px;
+            color: #fff;
+            margin-top: 8px;
+            text-align: center;
+            padding: 12px 16px;
+            background: #333;
+            border-radius: 8px;
+            position: relative;
+        }
+        .add-card-cvv-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #333;
         }
         .add-card-link-section {
             border: 1px solid #DADADA;
@@ -964,7 +985,7 @@
             <input type="email" id="emailInput" class="form-input" placeholder="Email" autocapitalize="none" autocorrect="off">
         </div>
 
-        <button id="lookupEmailBtn" class="btn btn-primary">Load my cards</button>
+        <button id="lookupEmailBtn" class="btn btn-primary" disabled>Load my cards</button>
 
         <hr class="info-divider">
         <div class="info-toggle" id="infoToggle">
@@ -972,7 +993,7 @@
             <span class="chevron">&#9660;</span>
         </div>
         <div class="info-content" id="infoContent">
-            Click to Pay securely stores your card information with Visa. When you enter your email, we look up cards linked to your account so you can pay without re-entering card details.
+            Click to Pay will use this information to check if you have saved cards. A one-time passcode may be sent to confirm it's you. Message and data rates may apply. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">What is Click to Pay?</a>
         </div>
     </div>
 
@@ -1005,12 +1026,12 @@
         <button id="payBtn" class="btn btn-pay" disabled>Pay</button>
 
         <div class="terms-text">
-            By clicking "Pay", you agree to the <a href="#" class="terms-link">terms and conditions</a> and authorise the transaction.
+            By clicking "Pay", you agree to the <a href="https://ae.visamiddleeast.com/en_AE/legal/my-visa.html" target="_blank" class="terms-link">terms and conditions</a> and authorise the transaction.
         </div>
 
         <div class="brand-logos">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAUCAYAAADskT9PAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAK4SURBVHgBrVZdbtpAEN61HakSeUDKj/JWHwErgNKnwg3CCRpOAJwg5gTQExBOQG4Ab0WBCI7gxyhpJUsNUqTY3s5n7zaLZTcpZiRrf5id+Wa+2Vk4IzmuLho0XNOHcUs4517p1XS8teOTXpe2Bixb3J/LWl8toEtnO6ZpNh/mjpdzhhmn9eUljVM450J46U/Ql3PWVzqYA8Bxdd7VFeisHYbh9OxiZecB4IR0RWOFvh5FMGTvyNH5csi56HDG1qXAaiIzJ7W7ihAcQZQNwVuP99XbPN20PQPOkeaPOIf8uq8iypmgc5uDMKbjaVFfk6Me5hEXIwDK080C8N8SBFaLHIKeq5PaQoG4oQE1UCazE5V2XZeyfb0XAD6l0jTDJqZCsK4yTFl0qSbGinu7sirruiyjTnYCAHmYf/FoaMmle1RffsPkNTyAgzVAbKwgBrGtaw5Oz+PCLwYAQhHPaIi555G4AfeI2LKCJO0a97quXieFAEjDQ7oB3zHHTQD3iPiNojfuNd2/dVIYAERVOwyDe+wBBDlrSxWXIr7SdVWd7AUAhHNEtS2GEX1O79mNVZnosZOV8C22B6EUD+g2xP0ErRd7sjmp3tKX15Q9PwcTgmtL3VbhDEh+kVZf9f2zix82rSf4nRPnuJ6abkMBhW4hAPIdcTE3DN6GQaQ4DM0pRW/T9u1TwrlyDl3qB1FLPVA7A0CUUSRGctl7vEv6P6V4BOeI8vDQamcBRetWdnYCAOeIksXXifXVOyKjvFQp9maOnwLaV0B3BqCnWOeXiq7DZIr1WkgBddP2ACC+k+kened88zscJClma8WvXvGqFjAPQ2uSABXjLOcQrr/l7IOiV7GKUhYd49ofGMEl0EXNybNloSDIiENGXBaxr+wdIaPjUskcgl+sX14+off7PPuf08w0rfa/7P0BQl/IPUTRP3wAAAAASUVORK5CYII=" height="20" alt="Click to Pay" style="object-fit:contain;">
-            <svg width="50" height="24" viewBox="0 0 50 24"><text x="0" y="18" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1a1f71">VISA</text></svg>
+            <span style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>
             <svg width="40" height="24" viewBox="0 0 40 24"><circle cx="14" cy="12" r="10" fill="#EB001B"/><circle cx="26" cy="12" r="10" fill="#F79E1B"/><path d="M20 4.6a10 10 0 0 1 0 14.8 10 10 0 0 1 0-14.8z" fill="#FF5F00"/></svg>
         </div>
 
@@ -1076,7 +1097,7 @@
             <div class="otp-brand-logos">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAUCAYAAADskT9PAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAK4SURBVHgBrVZdbtpAEN61HakSeUDKj/JWHwErgNKnwg3CCRpOAJwg5gTQExBOQG4Ab0WBCI7gxyhpJUsNUqTY3s5n7zaLZTcpZiRrf5id+Wa+2Vk4IzmuLho0XNOHcUs4517p1XS8teOTXpe2Bixb3J/LWl8toEtnO6ZpNh/mjpdzhhmn9eUljVM450J46U/Ql3PWVzqYA8Bxdd7VFeisHYbh9OxiZecB4IR0RWOFvh5FMGTvyNH5csi56HDG1qXAaiIzJ7W7ihAcQZQNwVuP99XbPN20PQPOkeaPOIf8uq8iypmgc5uDMKbjaVFfk6Me5hEXIwDK080C8N8SBFaLHIKeq5PaQoG4oQE1UCazE5V2XZeyfb0XAD6l0jTDJqZCsK4yTFl0qSbGinu7sirruiyjTnYCAHmYf/FoaMmle1RffsPkNTyAgzVAbKwgBrGtaw5Oz+PCLwYAQhHPaIi555G4AfeI2LKCJO0a97quXieFAEjDQ7oB3zHHTQD3iPiNojfuNd2/dVIYAERVOwyDe+wBBDlrSxWXIr7SdVWd7AUAhHNEtS2GEX1O79mNVZnosZOV8C22B6EUD+g2xP0ErRd7sjmp3tKX15Q9PwcTgmtL3VbhDEh+kVZf9f2zix82rSf4nRPnuJ6abkMBhW4hAPIdcTE3DN6GQaQ4DM0pRW/T9u1TwrlyDl3qB1FLPVA7A0CUUSRGctl7vEv6P6V4BOeI8vDQamcBRetWdnYCAOeIksXXifXVOyKjvFQp9maOnwLaV0B3BqCnWOeXiq7DZIr1WkgBddP2ACC+k+kened88zscJClma8WvXvGqFjAPQ2uSABXjLOcQrr/l7IOiV7GKUhYd49ofGMEl0EXNybNloSDIiENGXBaxr+wdIaPjUskcgl+sX14+off7PPuf08w0rfa/7P0BQl/IPUTRP3wAAAAASUVORK5CYII=" height="20" alt="Click to Pay" style="object-fit:contain;">
                 <svg width="40" height="24" viewBox="0 0 40 24"><circle cx="14" cy="12" r="10" fill="#EB001B"/><circle cx="26" cy="12" r="10" fill="#F79E1B"/><path d="M20 4.6a10 10 0 0 1 0 14.8 10 10 0 0 1 0-14.8z" fill="#FF5F00"/></svg>
-                <svg width="50" height="24" viewBox="0 0 50 24"><text x="0" y="18" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1a1f71">VISA</text></svg>
+                <span style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>
             </div>
         </div>
     </div>
@@ -1112,6 +1133,7 @@
                     <label class="add-card-label">Security code</label>
                     <input type="text" id="addCardCvv" class="add-card-input" placeholder="123" inputmode="numeric" maxlength="3" autocomplete="cc-csc">
                     <div class="add-card-cvv-hint">&#8226; What's CVV?</div>
+                    <div class="add-card-cvv-tooltip" style="display:none;"></div>
                 </div>
             </div>
 
@@ -1151,33 +1173,10 @@
                     <div id="countryError" class="field-error-text">Country is required</div>
                 </div>
 
-                <div class="add-card-field">
-                    <label class="add-card-label">Address Line 1</label>
-                    <input type="text" id="addCardLine1" class="add-card-input" placeholder="Street address" maxlength="140">
-                    <div id="line1Error" class="field-error-text">Address is required</div>
-                </div>
-
-                <div class="add-card-row" style="margin-bottom:12px;">
-                    <div class="add-card-field" style="margin-bottom:0;">
-                        <label class="add-card-label">City</label>
-                        <input type="text" id="addCardCity" class="add-card-input" placeholder="City" maxlength="100">
-                        <div id="cityError" class="field-error-text">City is required</div>
-                    </div>
-                    <div class="add-card-field" style="margin-bottom:0;">
-                        <label class="add-card-label">State / Region</label>
-                        <input type="text" id="addCardState" class="add-card-input" placeholder="State" maxlength="50">
-                    </div>
-                </div>
-
-                <div class="add-card-field">
-                    <label class="add-card-label">Zip / Postal Code</label>
-                    <input type="text" id="addCardZip" class="add-card-input" placeholder="Zip code" maxlength="16">
-                </div>
-
                 <div class="add-card-field" style="margin-bottom:0;">
                     <label class="add-card-label">Mobile Number</label>
                     <div class="add-card-phone-row" id="phoneRow">
-                        <span class="add-card-phone-code" id="phoneCodeDisplay">+971</span>
+                        <span class="add-card-phone-code" id="phoneCodeDisplay">&#127462;&#127466; +971</span>
                         <input type="text" id="addCardPhone" class="add-card-phone-input" placeholder="Mobile Number" inputmode="tel">
                     </div>
                     <div id="phoneError" class="field-error-text">Mobile number is required</div>
@@ -1188,7 +1187,7 @@
                 By clicking the button below, you agree to the <a href="#">Terms</a> of Click to Pay and understand your data will be processed according to the <a href="#">Privacy Notice</a>
             </div>
 
-            <button id="addCardSubmitBtn" class="add-card-submit-btn">Add Card</button>
+            <button id="addCardSubmitBtn" class="add-card-submit-btn" disabled>Add Card</button>
             <button id="addCardBackBtn" class="add-card-back-btn">Back</button>
         </div>
     </div>
@@ -1220,11 +1219,12 @@
                 CTP_EMAIL_PLACEHOLDER: 'Email',
                 LOAD_MY_CARDS: 'Load my cards',
                 CTP_INFO_QUESTION: 'How does Click to Pay use my information?',
-                CTP_INFO_CONTENT: 'Click to Pay securely stores your card information with Visa. When you enter your email, we look up cards linked to your account so you can pay without re-entering card details.',
+                CTP_INFO_CONTENT: 'Click to Pay will use this information to check if you have saved cards. A one-time passcode may be sent to confirm it\'s you. Message and data rates may apply. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">What is Click to Pay?</a>',
                 SWITCH_ID: 'Switch ID',
                 VIEW_MORE: 'View more',
+                VIEW_LESS: 'View less',
                 PAY: 'Pay',
-                TERMS_TEXT: 'By clicking "Pay", you agree to the <a href="#" class="terms-link">terms and conditions</a> and authorise the transaction.',
+                TERMS_TEXT: 'By clicking "Pay", you agree to the <a href="https://ae.visamiddleeast.com/en_AE/legal/my-visa.html" target="_blank" class="terms-link">terms and conditions</a> and authorise the transaction.',
                 OR: 'Or',
                 ENTER_CARD_MANUALLY: 'Enter card manually',
                 CONTACT_DETAILS: 'Contact details',
@@ -1238,6 +1238,7 @@
                 EXPIRATION_DATE: 'Expiration date',
                 SECURITY_CODE: 'Security code',
                 CVV_HINT: '\u2022 What\'s CVV?',
+                CVV_TOOLTIP: 'Security code can be located on the back of the card',
                 NAME_ON_CARD: 'Name on card',
                 LINK_CARD_TITLE: 'Link this card to <a href="https://km.visamiddleeast.com/en_KM/products/click-to-pay/consumers.html#What_is_Click_to_Pay_" target="_blank">Click to Pay</a>',
                 LINKING_TEXT: 'You are linking this card to',
@@ -1253,7 +1254,7 @@
                 ZIP_POSTAL_CODE: 'Zip / Postal Code',
                 ZIP_CODE: 'Zip code',
                 MOBILE_NUMBER: 'Mobile Number',
-                ADD_CARD_TERMS: 'By clicking the button below, you agree to the <a href="#">Terms</a> of Click to Pay and understand your data will be processed according to the <a href="#">Privacy Notice</a>',
+                ADD_CARD_TERMS: 'By clicking the button below, you agree to the <a href="https://ae.visamiddleeast.com/en_AE/legal/my-visa.html" target="_blank">Terms</a> of Click to Pay and understand your data will be processed according to the <a href="https://ae.visamiddleeast.com/en_AE/legal/global-privacy-notice.html" target="_blank">Privacy Notice</a>',
                 ADD_CARD: 'Add Card',
                 BACK: 'Back',
                 TRY_AGAIN: 'Try Again',
@@ -1304,11 +1305,12 @@
                 CTP_EMAIL_PLACEHOLDER: 'البريد الإلكتروني',
                 LOAD_MY_CARDS: 'تحميل بطاقاتي',
                 CTP_INFO_QUESTION: 'كيف تستخدم خدمة انقر للدفع معلوماتي؟',
-                CTP_INFO_CONTENT: 'تخزّن خدمة انقر للدفع معلومات بطاقتك بشكل آمن مع فيزا. عند إدخال بريدك الإلكتروني، نبحث عن البطاقات المرتبطة بحسابك حتى تتمكن من الدفع دون إعادة إدخال تفاصيل البطاقة.',
+                CTP_INFO_CONTENT: 'يستخدم كليك تو باي هذه المعلومات للتحقق مما إذا كانت هناك بطاقات مرتبطة بهذا البريد الإلكتروني. قد يتم إرسال رمز مرور لمرة واحدة للتحقق من هويتك. *قد تطبق رسوم الرسائل والبيانات. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">ما هي خدمة كليك تو باي؟</a>',
                 SWITCH_ID: 'تبديل الهوية',
                 VIEW_MORE: 'عرض المزيد',
+                VIEW_LESS: 'عرض أقل',
                 PAY: 'ادفع',
-                TERMS_TEXT: 'بالنقر على "ادفع"، فإنك توافق على <a href="#" class="terms-link">الشروط والأحكام</a> وتفوّض المعاملة.',
+                TERMS_TEXT: 'بالنقر على "ادفع"، فإنك توافق على <a href="https://ae.visamiddleeast.com/ar_AE/legal/my-visa.html" target="_blank" class="terms-link">الشروط والأحكام</a> وتفوّض المعاملة.',
                 OR: 'أو',
                 ENTER_CARD_MANUALLY: 'أدخل البطاقة يدوياً',
                 CONTACT_DETAILS: 'تفاصيل الاتصال',
@@ -1322,6 +1324,7 @@
                 EXPIRATION_DATE: 'تاريخ الانتهاء',
                 SECURITY_CODE: 'رمز الأمان',
                 CVV_HINT: '\u2022 ما هو CVV؟',
+                CVV_TOOLTIP: 'يمكن العثور على رمز الأمان على ظهر البطاقة',
                 NAME_ON_CARD: 'الاسم على البطاقة',
                 LINK_CARD_TITLE: 'ربط هذه البطاقة بـ <a href="https://km.visamiddleeast.com/en_KM/products/click-to-pay/consumers.html#What_is_Click_to_Pay_" target="_blank">انقر للدفع</a>',
                 LINKING_TEXT: 'أنت تربط هذه البطاقة بـ',
@@ -1337,7 +1340,7 @@
                 ZIP_POSTAL_CODE: 'الرمز البريدي',
                 ZIP_CODE: 'الرمز البريدي',
                 MOBILE_NUMBER: 'رقم الهاتف المحمول',
-                ADD_CARD_TERMS: 'بالنقر على الزر أدناه، فإنك توافق على <a href="#">الشروط</a> الخاصة بخدمة انقر للدفع وتفهم أنه سيتم معالجة بياناتك وفقاً <a href="#">لإشعار الخصوصية</a>',
+                ADD_CARD_TERMS: 'بالنقر على الزر أدناه، فإنك توافق على <a href="https://ae.visamiddleeast.com/ar_AE/legal/my-visa.html" target="_blank">الشروط</a> الخاصة بخدمة انقر للدفع وتفهم أنه سيتم معالجة بياناتك وفقاً <a href="https://ae.visamiddleeast.com/ar_AE/legal/global-privacy-notice.html" target="_blank">لإشعار الخصوصية</a>',
                 ADD_CARD: 'إضافة بطاقة',
                 BACK: 'رجوع',
                 TRY_AGAIN: 'حاول مرة أخرى',
@@ -1388,11 +1391,12 @@
                 CTP_EMAIL_PLACEHOLDER: 'E-mail',
                 LOAD_MY_CARDS: 'Charger mes cartes',
                 CTP_INFO_QUESTION: 'Comment Click to Pay utilise-t-il mes informations ?',
-                CTP_INFO_CONTENT: 'Click to Pay stocke en toute sécurité les informations de votre carte avec Visa. Lorsque vous entrez votre e-mail, nous recherchons les cartes liées à votre compte afin que vous puissiez payer sans avoir à ressaisir les détails de votre carte.',
+                CTP_INFO_CONTENT: 'Click to Pay utilisera ces informations pour vérifier si vous avez des cartes enregistrées. Un code à usage unique peut être envoyé pour confirmer votre identité. Des frais de messagerie et de données peuvent s\'appliquer. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">Qu\'est-ce que Click to Pay?</a>',
                 SWITCH_ID: 'Changer d\'identifiant',
                 VIEW_MORE: 'Voir plus',
+                VIEW_LESS: 'Voir moins',
                 PAY: 'Payer',
-                TERMS_TEXT: 'En cliquant sur "Payer", vous acceptez les <a href="#" class="terms-link">termes et conditions</a> et autorisez la transaction.',
+                TERMS_TEXT: 'En cliquant sur "Payer", vous acceptez les <a href="https://ae.visamiddleeast.com/en_AE/legal/my-visa.html" target="_blank" class="terms-link">termes et conditions</a> et autorisez la transaction.',
                 OR: 'Ou',
                 ENTER_CARD_MANUALLY: 'Saisir la carte manuellement',
                 CONTACT_DETAILS: 'Coordonnées',
@@ -1406,6 +1410,7 @@
                 EXPIRATION_DATE: 'Date d\'expiration',
                 SECURITY_CODE: 'Code de sécurité',
                 CVV_HINT: '\u2022 Qu\'est-ce que le CVV ?',
+                CVV_TOOLTIP: 'Le code de sécurité se trouve au dos de la carte',
                 NAME_ON_CARD: 'Nom sur la carte',
                 LINK_CARD_TITLE: 'Lier cette carte à <a href="https://km.visamiddleeast.com/en_KM/products/click-to-pay/consumers.html#What_is_Click_to_Pay_" target="_blank">Click to Pay</a>',
                 LINKING_TEXT: 'Vous liez cette carte à',
@@ -1421,7 +1426,7 @@
                 ZIP_POSTAL_CODE: 'Code postal',
                 ZIP_CODE: 'Code postal',
                 MOBILE_NUMBER: 'Numéro de mobile',
-                ADD_CARD_TERMS: 'En cliquant sur le bouton ci-dessous, vous acceptez les <a href="#">Conditions</a> de Click to Pay et comprenez que vos données seront traitées conformément à <a href="#">l\'Avis de confidentialité</a>',
+                ADD_CARD_TERMS: 'En cliquant sur le bouton ci-dessous, vous acceptez les <a href="https://ae.visamiddleeast.com/en_AE/legal/my-visa.html" target="_blank">Conditions</a> de Click to Pay et comprenez que vos données seront traitées conformément à <a href="https://ae.visamiddleeast.com/en_AE/legal/global-privacy-notice.html" target="_blank">l\'Avis de confidentialité</a>',
                 ADD_CARD: 'Ajouter une carte',
                 BACK: 'Retour',
                 TRY_AGAIN: 'Réessayer',
@@ -1476,6 +1481,16 @@
             return str;
         }
 
+        function maskEmail(email) {
+            if (!email) return '';
+            var parts = email.split('@');
+            if (parts.length !== 2) return email;
+            var local = parts[0];
+            var domain = parts[1];
+            if (local.length <= 2) return local.charAt(0) + '***@' + domain;
+            return local.charAt(0) + '***' + local.charAt(local.length - 1) + '@' + domain;
+        }
+
         function applyLocaleToHtml() {
             // Loading
             var el = document.querySelector('#loading .loading-message');
@@ -1504,7 +1519,7 @@
             el = document.querySelector('#infoToggle > span:first-child');
             if (el) el.textContent = t('CTP_INFO_QUESTION');
             el = document.getElementById('infoContent');
-            if (el) el.textContent = t('CTP_INFO_CONTENT');
+            if (el) el.innerHTML = t('CTP_INFO_CONTENT');
 
             // Card selection
             el = document.querySelector('.amount-row-label');
@@ -1552,10 +1567,6 @@
                 'addCardFirstName': 'FIRST_NAME',
                 'addCardLastName': 'LAST_NAME',
                 'addCardCountry': 'COUNTRY',
-                'addCardLine1': 'ADDRESS_LINE_1',
-                'addCardCity': 'CITY',
-                'addCardState': 'STATE_REGION',
-                'addCardZip': 'ZIP_POSTAL_CODE',
                 'addCardPhone': 'MOBILE_NUMBER'
             };
             labels.forEach(function(label) {
@@ -1592,14 +1603,6 @@
             if (el) el.placeholder = t('FIRST_NAME');
             el = document.getElementById('addCardLastName');
             if (el) el.placeholder = t('LAST_NAME');
-            el = document.getElementById('addCardLine1');
-            if (el) el.placeholder = t('STREET_ADDRESS');
-            el = document.getElementById('addCardCity');
-            if (el) el.placeholder = t('CITY');
-            el = document.getElementById('addCardState');
-            if (el) el.placeholder = t('STATE');
-            el = document.getElementById('addCardZip');
-            if (el) el.placeholder = t('ZIP_CODE');
             el = document.getElementById('addCardPhone');
             if (el) el.placeholder = t('MOBILE_NUMBER');
 
@@ -1607,9 +1610,22 @@
             el = document.querySelector('#addCardCountry option[disabled]');
             if (el) el.textContent = t('SELECT_COUNTRY');
 
-            // CVV hint
+            // CVV hint + tooltip
             el = document.querySelector('.add-card-cvv-hint');
-            if (el) el.textContent = t('CVV_HINT');
+            if (el) {
+                el.textContent = t('CVV_HINT');
+                el.onclick = function() {
+                    var tip = document.querySelector('.add-card-cvv-tooltip');
+                    if (tip) {
+                        if (tip.style.display === 'none') {
+                            tip.textContent = t('CVV_TOOLTIP');
+                            tip.style.display = 'block';
+                        } else {
+                            tip.style.display = 'none';
+                        }
+                    }
+                };
+            }
 
             // Link card section
             el = document.querySelector('.add-card-link-title');
@@ -1644,10 +1660,6 @@
             if (el) el.textContent = t('LAST_NAME_REQUIRED');
             el = document.getElementById('countryError');
             if (el) el.textContent = t('COUNTRY_REQUIRED');
-            el = document.getElementById('line1Error');
-            if (el) el.textContent = t('ADDRESS_REQUIRED');
-            el = document.getElementById('cityError');
-            if (el) el.textContent = t('CITY_REQUIRED');
             el = document.getElementById('phoneError');
             if (el) el.textContent = t('PHONE_REQUIRED');
         }
@@ -1660,26 +1672,13 @@
                 rtlStyle.id = 'rtl-overrides';
                 rtlStyle.textContent = [
                     'body { text-align: right; }',
-                    '.ctp-header { flex-direction: row-reverse; }',
-                    '.amount-section { flex-direction: row-reverse; }',
-                    '.amount-row { flex-direction: row-reverse; }',
-                    '.email-row { flex-direction: row-reverse; }',
-                    '.card-item { flex-direction: row-reverse; }',
                     '.card-radio { margin-right: 0; margin-left: 12px; }',
                     '.card-art { margin-right: 0; margin-left: 12px; }',
                     '.card-info { text-align: right; }',
-                    '.card-expiry { flex-direction: row-reverse; }',
                     '.form-input, .add-card-input, .add-card-phone-input, .add-card-select { text-align: right; }',
-                    '.info-toggle { flex-direction: row-reverse; }',
                     '.info-content { text-align: right; }',
-                    '.otp-contact-card { flex-direction: row-reverse; }',
                     '.otp-switch-id { margin-left: 0; margin-right: 12px; }',
                     '.otp-instruction { text-align: right; }',
-                    '.otp-skip-row { flex-direction: row-reverse; }',
-                    '.otp-skip-left { flex-direction: row-reverse; }',
-                    '.add-card-row { flex-direction: row-reverse; }',
-                    '.add-card-link-header { flex-direction: row-reverse; }',
-                    '.add-card-phone-row { flex-direction: row-reverse; }',
                     '.add-card-phone-code { border-right: none; border-left: 1px solid #DADADA; }',
                     '.add-card-select-arrow { right: auto; left: 14px; }',
                     '.add-card-cvv-hint { text-align: left; }',
@@ -2131,14 +2130,10 @@
 
         async function lookupConsumer(email, validationData) {
             try {
-                // After OTP verification (validationData present), show the GIF loading.
-                // First lookup shows the regular spinner since OTP may be required first.
                 if (autoCheckoutAfterAdd) {
                     showLoading(t('PROCESSING_PAYMENT'));
-                } else if (validationData && nativeWillLookup) {
-                    showLookupLoading();
                 } else {
-                    showLoading(t('LOOKING_UP'));
+                    showLookupLoading();
                 }
                 log('Calling Vsb.getCards');
 
@@ -2313,9 +2308,9 @@
             var currencyFirst = config.currencyCode + ' ' + amountNum;
             document.getElementById('payBtn').textContent = t('PAY') + ' ' + currencyFirst;
 
-            // Update email display (show full email)
+            // Update email display (masked)
             if (userEmail) {
-                document.getElementById('cardEmailDisplay').textContent = userEmail;
+                document.getElementById('cardEmailDisplay').textContent = maskEmail(userEmail);
             }
 
             // Update amount row (currency first)
@@ -2344,7 +2339,7 @@
                 var brandIcon = '';
                 var nl = network.toLowerCase();
                 if (nl === 'visa') {
-                    brandIcon = '<svg class="card-brand-icon" width="30" height="12" viewBox="0 0 50 20"><text x="0" y="15" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="#1a1f71">VISA</text></svg>';
+                    brandIcon = '<span class="card-brand-icon" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>';
                 } else if (nl === 'mastercard') {
                     brandIcon = '<svg class="card-brand-icon" width="20" height="12" viewBox="0 0 24 15"><circle cx="8" cy="7.5" r="6" fill="#EB001B"/><circle cx="16" cy="7.5" r="6" fill="#F79E1B"/><path d="M12 2.6a6 6 0 0 1 0 9.8 6 6 0 0 1 0-9.8z" fill="#FF5F00"/></svg>';
                 }
@@ -2368,9 +2363,12 @@
             });
 
             // Show "View more" if there are hidden cards
+            _cardsExpanded = false;
             var viewMoreRow = document.getElementById('viewMoreRow');
+            var viewMoreBtn = document.getElementById('viewMoreBtn');
             if (cards.length > maxVisibleCards) {
                 viewMoreRow.classList.remove('hidden');
+                viewMoreBtn.textContent = t('VIEW_MORE');
             } else {
                 viewMoreRow.classList.add('hidden');
             }
@@ -2614,9 +2612,13 @@
 
         // Event listeners
 
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
         document.getElementById('lookupEmailBtn').onclick = function() {
             var email = document.getElementById('emailInput').value.trim();
-            if (email && email.indexOf('@') >= 0) {
+            if (isValidEmail(email)) {
                 lookupConsumer(email);
             } else {
                 showError(t('INVALID_EMAIL'));
@@ -2629,6 +2631,11 @@
                 postToNative('onAddCardRequired', {});
             };
         }
+
+        document.getElementById('emailInput').addEventListener('input', function() {
+            var email = this.value.trim();
+            document.getElementById('lookupEmailBtn').disabled = !isValidEmail(email);
+        });
 
         document.getElementById('emailInput').onkeypress = function(e) {
             if (e.key === 'Enter') {
@@ -2781,14 +2788,25 @@
             showView('emailEntry');
         };
 
-        // Card selection: View more
+        // Card selection: View more / View less toggle
+        var _cardsExpanded = false;
         document.getElementById('viewMoreBtn').onclick = function() {
-            var overflowCards = document.querySelectorAll('.card-item[data-overflow]');
-            overflowCards.forEach(function(el) {
-                el.classList.remove('hidden');
-                el.removeAttribute('data-overflow');
-            });
-            document.getElementById('viewMoreRow').classList.add('hidden');
+            var btn = document.getElementById('viewMoreBtn');
+            if (!_cardsExpanded) {
+                var overflowCards = document.querySelectorAll('.card-item.hidden[data-overflow]');
+                overflowCards.forEach(function(el) {
+                    el.classList.remove('hidden');
+                });
+                btn.textContent = t('VIEW_LESS');
+                _cardsExpanded = true;
+            } else {
+                var overflowCards = document.querySelectorAll('.card-item[data-overflow]');
+                overflowCards.forEach(function(el) {
+                    el.classList.add('hidden');
+                });
+                btn.textContent = t('VIEW_MORE');
+                _cardsExpanded = false;
+            }
         };
 
         // Cookie helpers for probe mode — persist email across sessions
@@ -3135,9 +3153,24 @@
             {country:"ZW",callingCode:"263",fullName:"Zimbabwe"}
         ];
 
+        // Convert ISO-2 country code to flag emoji
+        function countryCodeToFlag(code) {
+            if (!code || code.length !== 2) return '';
+            var c = code.toUpperCase();
+            return String.fromCodePoint(c.charCodeAt(0) + 0x1F1A5) + String.fromCodePoint(c.charCodeAt(1) + 0x1F1A5);
+        }
+
         // Populate the country dropdown (use fresh lookup to avoid init-order issues)
         var selectedCountryCode = 'AE';
         var selectedCallingCode = '971';
+
+        function updatePhoneCodeDisplay(callingCode, countryCode) {
+            var display = document.getElementById('phoneCodeDisplay');
+            if (display) {
+                var flag = countryCodeToFlag(countryCode);
+                display.textContent = flag + ' +' + callingCode;
+            }
+        }
 
         function populateCountryDropdown() {
             var sel = document.getElementById('addCardCountry');
@@ -3147,7 +3180,7 @@
                 countriesList.forEach(function(c) {
                     var opt = document.createElement('option');
                     opt.value = c.country;
-                    opt.textContent = c.fullName + ' (+' + c.callingCode + ')';
+                    opt.textContent = countryCodeToFlag(c.country) + ' ' + c.fullName + ' (+' + c.callingCode + ')';
                     sel.appendChild(opt);
                 });
             }
@@ -3161,13 +3194,14 @@
                 if (found) {
                     selectedCountryCode = found.country;
                     selectedCallingCode = found.callingCode;
-                    document.getElementById('phoneCodeDisplay').textContent = '+' + found.callingCode;
+                    updatePhoneCodeDisplay(found.callingCode, found.country);
                 }
                 document.getElementById('countryError').classList.remove('visible');
                 sel.classList.remove('input-error');
             };
         }
         populateCountryDropdown();
+        updatePhoneCodeDisplay('971', 'AE');
 
         // Clicking the phone code display opens the country dropdown
         document.getElementById('phoneCodeDisplay').onclick = function() {
@@ -3197,11 +3231,7 @@
             document.getElementById('addCardCountry').classList.remove('placeholder');
             selectedCountryCode = 'AE';
             selectedCallingCode = '971';
-            document.getElementById('phoneCodeDisplay').textContent = '+971';
-            document.getElementById('addCardLine1').value = '';
-            document.getElementById('addCardCity').value = '';
-            document.getElementById('addCardState').value = '';
-            document.getElementById('addCardZip').value = '';
+            updatePhoneCodeDisplay('971', 'AE');
             document.getElementById('addCardPhone').value = '';
 
             // Pre-populate fields from consumer profile data (from getCards response)
@@ -3219,7 +3249,7 @@
                     }
                     if (mob.countryCode) {
                         selectedCallingCode = mob.countryCode;
-                        document.getElementById('phoneCodeDisplay').textContent = '+' + mob.countryCode;
+                        updatePhoneCodeDisplay(mob.countryCode, selectedCountryCode);
                     }
                 }
                 if (consumerProfileData.countryCode) {
@@ -3227,6 +3257,7 @@
                     document.getElementById('addCardCountry').value = cc;
                     document.getElementById('addCardCountry').classList.remove('placeholder');
                     selectedCountryCode = cc;
+                    updatePhoneCodeDisplay(selectedCallingCode, cc);
                 }
                 log('Pre-populated add card form from consumer profile');
             }
@@ -3245,14 +3276,12 @@
         }
 
         function clearRequiredFieldErrors() {
-            ['firstNameError','lastNameError','countryError','line1Error','cityError','phoneError'].forEach(function(id) {
+            ['firstNameError','lastNameError','countryError','phoneError'].forEach(function(id) {
                 document.getElementById(id).classList.remove('visible');
             });
             document.getElementById('addCardFirstName').classList.remove('input-error');
             document.getElementById('addCardLastName').classList.remove('input-error');
             document.getElementById('addCardCountry').classList.remove('input-error');
-            document.getElementById('addCardLine1').classList.remove('input-error');
-            document.getElementById('addCardCity').classList.remove('input-error');
             document.getElementById('phoneRow').classList.remove('input-error');
         }
 
@@ -3296,7 +3325,7 @@
 
         function getCardBrandSvg(brand) {
             if (brand === 'visa') {
-                return '<svg width="40" height="16" viewBox="0 0 50 20"><text x="0" y="16" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1a1f71">VISA</text></svg>';
+                return '<span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>';
             }
             if (brand === 'mastercard') {
                 return '<svg width="32" height="20" viewBox="0 0 32 20"><circle cx="11" cy="10" r="8" fill="#EB001B"/><circle cx="21" cy="10" r="8" fill="#F79E1B"/><path d="M16 3.4a8 8 0 0 1 0 13.2 8 8 0 0 1 0-13.2z" fill="#FF5F00"/></svg>';
@@ -3329,6 +3358,27 @@
         }
 
         var cardNumberValidated = false;
+
+        // Enable/disable Add Card button based on required fields
+        function updateAddCardButtonState() {
+            var cardNum = document.getElementById('addCardNumber').value.replace(/[^0-9]/g, '');
+            var expiry = document.getElementById('addCardExpiry').value;
+            var cvv = document.getElementById('addCardCvv').value;
+            var firstName = document.getElementById('addCardFirstName').value.trim();
+            var lastName = document.getElementById('addCardLastName').value.trim();
+
+            var brand = detectCardBrand(cardNum);
+            var expectedLen = getExpectedCardLength(brand);
+            var requiredCvvLen = (brand === 'amex') ? 4 : 3;
+
+            var valid = cardNum.length >= expectedLen &&
+                        expiry.length === 5 && !isExpiryExpired(expiry) &&
+                        cvv.length >= requiredCvvLen &&
+                        firstName.length > 0 &&
+                        lastName.length > 0;
+
+            document.getElementById('addCardSubmitBtn').disabled = !valid;
+        }
 
         document.getElementById('addCardNumber').oninput = function(e) {
             var val = e.target.value.replace(/[^0-9]/g, '');
@@ -3387,6 +3437,7 @@
             }
 
             hideAddCardError();
+            updateAddCardButtonState();
         };
 
         // Also validate on blur (when user leaves field)
@@ -3459,8 +3510,8 @@
         }
 
         var expiryField = document.getElementById('addCardExpiry');
-        expiryField.oninput = function() { formatExpiryField(expiryField); };
-        expiryField.onkeyup = function() { formatExpiryField(expiryField); };
+        expiryField.oninput = function() { formatExpiryField(expiryField); updateAddCardButtonState(); };
+        expiryField.onkeyup = function() { formatExpiryField(expiryField); updateAddCardButtonState(); };
 
         document.getElementById('addCardExpiry').onblur = function(e) {
             var val = e.target.value;
@@ -3476,6 +3527,7 @@
         document.getElementById('addCardCvv').oninput = function(e) {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
             hideAddCardError();
+            updateAddCardButtonState();
         };
 
         // Phone numeric only + max 14 digits + clear errors
@@ -3497,9 +3549,9 @@
             }
         };
         document.getElementById('addCardFirstName').oninput = function(e) {
-            // Allow letters, spaces, Arabic chars only
             document.getElementById('firstNameError').classList.remove('visible');
             e.target.classList.remove('input-error');
+            updateAddCardButtonState();
         };
 
         document.getElementById('addCardLastName').onblur = function(e) {
@@ -3515,6 +3567,7 @@
         document.getElementById('addCardLastName').oninput = function(e) {
             document.getElementById('lastNameError').classList.remove('visible');
             e.target.classList.remove('input-error');
+            updateAddCardButtonState();
         };
 
         // Phone blur validation — only format check, not required
@@ -3557,10 +3610,6 @@
             var firstName = document.getElementById('addCardFirstName').value.trim();
             var lastName = document.getElementById('addCardLastName').value.trim();
             var country = document.getElementById('addCardCountry').value;
-            var addressLine1 = document.getElementById('addCardLine1').value.trim();
-            var city = document.getElementById('addCardCity').value.trim();
-            var state = document.getElementById('addCardState').value.trim();
-            var zip = document.getElementById('addCardZip').value.trim();
             var phone = document.getElementById('addCardPhone').value.trim();
 
             // Validation — card fields
@@ -3604,6 +3653,9 @@
             }
 
             if (hasErrors) return;
+
+            // Disable button while processing
+            document.getElementById('addCardSubmitBtn').disabled = true;
 
             var expiryParts = expiry.split('/');
             var expMonth = expiryParts[0];
@@ -3893,10 +3945,12 @@
                     log('Full result keys: ' + Object.keys(result).join(', '));
                     showAddCardError(errMsg);
                     showView('addCardView');
+                    updateAddCardButtonState();
                 } else {
                     log('Unexpected add card result: ' + JSON.stringify(result));
                     showAddCardError('Unexpected response: ' + (result.actionCode || 'Unknown'));
                     showView('addCardView');
+                    updateAddCardButtonState();
                 }
 
             } catch (e) {
@@ -3907,6 +3961,7 @@
                 log('Add card error detail: ' + errDetail);
                 showAddCardError(errDetail ? t('FAILED_ADD_CARD_WITH_ERROR', { error: errDetail }) : t('FAILED_ADD_CARD'));
                 showView('addCardView');
+                updateAddCardButtonState();
             }
         };
 
