@@ -383,6 +383,10 @@
             border: none;
             padding: 8px;
         }
+        .otp-resend-link:disabled {
+            color: #8e8e93;
+            cursor: default;
+        }
         .otp-divider {
             height: 1px;
             background: #DADADA;
@@ -973,6 +977,10 @@
         <div class="ctp-header">
             <span class="ctp-title">Click to Pay</span>
             <button class="ctp-close-btn" onclick="Android.onClose()">&times;</button>
+        </div>
+
+        <div id="emailErrorBanner" class="add-card-error-banner">
+            <span class="add-card-error-text"></span>
         </div>
 
         <div class="amount-section">
@@ -1839,6 +1847,20 @@
             showView('errorState');
         }
 
+        function showEmailError(message) {
+            var banner = document.getElementById('emailErrorBanner');
+            if (banner) {
+                banner.querySelector('.add-card-error-text').textContent = message;
+                banner.classList.add('visible');
+            }
+            showView('emailEntry');
+        }
+
+        function hideEmailError() {
+            var banner = document.getElementById('emailErrorBanner');
+            if (banner) banner.classList.remove('visible');
+        }
+
         function formatAmount(amount, currencyCode) {
             try {
                 return parseFloat(amount).toLocaleString(_currentLocale || 'en', {
@@ -2216,6 +2238,7 @@
                         document.getElementById('otpDestination').textContent = maskedChannel;
                         clearOtpBoxes();
                         showView('otpVerification');
+                        startResendTimer();
                         // Focus first OTP box
                         setTimeout(function() {
                             document.getElementById('otpHiddenInput').focus();
@@ -2225,11 +2248,7 @@
                         initiateIdentityValidation(validationChannels[0].id);
                     } else {
                         if (isProbeMode) { isProbeMode = false; showView('emailEntry'); return; }
-                        showError(t('UNABLE_VERIFY'));
-                        postToNative('onError', {
-                            reason: 'NO_VALIDATION_CHANNEL',
-                            message: 'No verification method available'
-                        });
+                        showEmailError(t('UNABLE_VERIFY'));
                     }
                 } else if (result.actionCode === 'ADD_CARD') {
                     showAddCardForm();
@@ -2273,25 +2292,17 @@
                     }
 
                     if (isProbeMode) { isProbeMode = false; showView('emailEntry'); return; }
-                    showError(errorMsg);
-                    postToNative('onError', { reason: errorReason, message: errorMsg });
+                    showEmailError(errorMsg);
                 } else {
                     log('Unknown action code: ' + result.actionCode + ', full result: ' + JSON.stringify(result));
                     if (isProbeMode) { isProbeMode = false; showView('emailEntry'); return; }
-                    showError('Unexpected response: ' + result.actionCode);
-                    postToNative('onError', {
-                        reason: 'UNKNOWN_ACTION_CODE',
-                        message: 'Unknown action code: ' + result.actionCode
-                    });
+                    showEmailError('Unexpected response: ' + result.actionCode);
                 }
 
             } catch (e) {
                 log('getCards error: ' + JSON.stringify(e));
                 if (isProbeMode) { isProbeMode = false; showView('emailEntry'); return; }
-                postToNative('onError', {
-                    reason: e.reason || 'LOOKUP_ERROR',
-                    message: e.message || 'Failed to look up cards'
-                });
+                showEmailError(e.message || 'Failed to look up cards');
             }
         }
 
@@ -2416,6 +2427,7 @@
                 document.getElementById('otpDestination').textContent = maskedDestination;
                 clearOtpBoxes();
                 showView('otpVerification');
+                startResendTimer();
                 setTimeout(function() {
                     document.getElementById('otpHiddenInput').focus();
                 }, 300);
@@ -2424,7 +2436,7 @@
 
             } catch (e) {
                 log('IDV initiation error: ' + JSON.stringify(e));
-                showError(t('FAILED_SEND_CODE', { error: e.message || 'Unknown error' }));
+                showEmailError(t('FAILED_SEND_CODE', { error: e.message || 'Unknown error' }));
             }
         }
 
@@ -2617,11 +2629,12 @@
         }
 
         document.getElementById('lookupEmailBtn').onclick = function() {
+            hideEmailError();
             var email = document.getElementById('emailInput').value.trim();
             if (isValidEmail(email)) {
                 lookupConsumer(email);
             } else {
-                showError(t('INVALID_EMAIL'));
+                showEmailError(t('INVALID_EMAIL'));
             }
         };
 
@@ -2660,9 +2673,38 @@
             }
         };
 
-        document.getElementById('resendOtpBtn').onclick = function() {
+        var resendTimerInterval = null;
+
+        function startResendTimer() {
+            var btn = document.getElementById('resendOtpBtn');
+            var seconds = 30;
+            btn.disabled = true;
+            btn.textContent = t('RESEND_CODE') + ' (' + seconds + 's)';
+            if (resendTimerInterval) clearInterval(resendTimerInterval);
+            resendTimerInterval = setInterval(function() {
+                seconds--;
+                if (seconds <= 0) {
+                    clearInterval(resendTimerInterval);
+                    resendTimerInterval = null;
+                    btn.disabled = false;
+                    btn.textContent = t('RESEND_CODE');
+                } else {
+                    btn.textContent = t('RESEND_CODE') + ' (' + seconds + 's)';
+                }
+            }, 1000);
+        }
+
+        document.getElementById('resendOtpBtn').onclick = async function() {
             if (validationChannels.length > 0) {
-                initiateIdentityValidation(validationChannels[0].id);
+                var btn = document.getElementById('resendOtpBtn');
+                btn.disabled = true;
+                btn.textContent = t('SENDING_CODE') + '...';
+                try {
+                    await initiateIdentityValidation(validationChannels[0].id);
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.textContent = t('RESEND_CODE');
+                }
             }
         };
 
@@ -2905,6 +2947,7 @@
                         document.getElementById('otpDestination').textContent = maskedChannel;
                         clearOtpBoxes();
                         showView('otpVerification');
+                        startResendTimer();
                         setTimeout(function() {
                             document.getElementById('otpHiddenInput').focus();
                         }, 300);
@@ -3371,11 +3414,13 @@
             var expectedLen = getExpectedCardLength(brand);
             var requiredCvvLen = (brand === 'amex') ? 4 : 3;
 
+            var phone = document.getElementById('addCardPhone').value.trim();
             var valid = cardNum.length >= expectedLen &&
                         expiry.length === 5 && !isExpiryExpired(expiry) &&
                         cvv.length >= requiredCvvLen &&
                         firstName.length > 0 &&
-                        lastName.length > 0;
+                        lastName.length > 0 &&
+                        phone.length >= 4;
 
             document.getElementById('addCardSubmitBtn').disabled = !valid;
         }
@@ -3535,6 +3580,7 @@
             e.target.value = e.target.value.replace(/[^0-9]/g, '').substring(0, 14);
             document.getElementById('phoneError').classList.remove('visible');
             document.getElementById('phoneRow').classList.remove('input-error');
+            updateAddCardButtonState();
         };
 
         // Blur validation for required fields
@@ -3570,10 +3616,14 @@
             updateAddCardButtonState();
         };
 
-        // Phone blur validation — only format check, not required
+        // Phone blur validation — required field
         document.getElementById('addCardPhone').onblur = function(e) {
             var val = e.target.value.trim();
-            if (val && (val.length < 4 || val.length > 14)) {
+            if (!val) {
+                document.getElementById('phoneError').textContent = t('PHONE_REQUIRED');
+                document.getElementById('phoneError').classList.add('visible');
+                document.getElementById('phoneRow').classList.add('input-error');
+            } else if (val.length < 4 || val.length > 14) {
                 document.getElementById('phoneError').textContent = t('PHONE_INVALID');
                 document.getElementById('phoneError').classList.add('visible');
                 document.getElementById('phoneRow').classList.add('input-error');
@@ -3643,9 +3693,13 @@
                 document.getElementById('addCardLastName').classList.add('input-error');
                 hasErrors = true;
             }
-            // country, addressLine1, city, phone are optional per PayPageV2 reference
-            // Only validate phone format if provided (not required)
-            if (phone && (phone.length < 4 || phone.length > 14)) {
+            // Phone is required
+            if (!phone) {
+                document.getElementById('phoneError').textContent = t('PHONE_REQUIRED');
+                document.getElementById('phoneError').classList.add('visible');
+                document.getElementById('phoneRow').classList.add('input-error');
+                hasErrors = true;
+            } else if (phone.length < 4 || phone.length > 14) {
                 document.getElementById('phoneError').textContent = t('PHONE_INVALID');
                 document.getElementById('phoneError').classList.add('visible');
                 document.getElementById('phoneRow').classList.add('input-error');
