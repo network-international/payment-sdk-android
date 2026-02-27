@@ -1256,7 +1256,8 @@
                 LOAD_MY_CARDS: 'Load my cards',
                 CTP_INFO_QUESTION: 'How does Click to Pay use my information?',
                 CTP_INFO_CONTENT: 'Click to Pay will use this information to check if you have saved cards. A one-time passcode may be sent to confirm it\'s you. Message and data rates may apply. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">What is Click to Pay?</a>',
-                SWITCH_ID: 'Enter another email to access a different set of linked cards.',
+                SWITCH_ID: 'Switch ID',
+                SWITCH_ID_DESC: 'Enter another email to access a different set of linked cards.',
                 VIEW_MORE: 'View more',
                 VIEW_LESS: 'View less',
                 PAY: 'Pay',
@@ -1342,7 +1343,8 @@
                 LOAD_MY_CARDS: 'تحميل بطاقاتي',
                 CTP_INFO_QUESTION: 'كيف تستخدم خدمة كليك تو باي معلوماتي؟',
                 CTP_INFO_CONTENT: 'يستخدم كليك تو باي هذه المعلومات للتحقق مما إذا كانت هناك بطاقات مرتبطة بهذا البريد الإلكتروني. قد يتم إرسال رمز مرور لمرة واحدة للتحقق من هويتك. *قد تطبق رسوم الرسائل والبيانات. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">ما هي خدمة كليك تو باي؟</a>',
-                SWITCH_ID: 'أدخل بريدًا إلكترونيًا آخر للوصول إلى مجموعة مختلفة من البطاقات المرتبطة.',
+                SWITCH_ID: 'تبديل الهوية',
+                SWITCH_ID_DESC: 'أدخل بريدًا إلكترونيًا آخر للوصول إلى مجموعة مختلفة من البطاقات المرتبطة.',
                 VIEW_MORE: 'عرض المزيد',
                 VIEW_LESS: 'عرض أقل',
                 PAY: 'ادفع',
@@ -1428,7 +1430,8 @@
                 LOAD_MY_CARDS: 'Charger mes cartes',
                 CTP_INFO_QUESTION: 'Comment Click to Pay utilise-t-il mes informations ?',
                 CTP_INFO_CONTENT: 'Click to Pay utilisera ces informations pour vérifier si vous avez des cartes enregistrées. Un code à usage unique peut être envoyé pour confirmer votre identité. Des frais de messagerie et de données peuvent s\'appliquer. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">Qu\'est-ce que Click to Pay?</a>',
-                SWITCH_ID: 'Saisissez un autre e-mail pour accéder à un ensemble différent de cartes liées.',
+                SWITCH_ID: 'Changer d\'identifiant',
+                SWITCH_ID_DESC: 'Saisissez un autre e-mail pour accéder à un ensemble différent de cartes liées.',
                 VIEW_MORE: 'Voir plus',
                 VIEW_LESS: 'Voir moins',
                 PAY: 'Payer',
@@ -1559,7 +1562,7 @@
 
             // Switch ID view
             el = document.getElementById('switchIdLabel');
-            if (el) el.textContent = t('SWITCH_ID');
+            if (el) el.textContent = t('SWITCH_ID_DESC');
             el = document.getElementById('switchIdLookupBtn');
             if (el) el.textContent = t('LOAD_MY_CARDS');
             el = document.getElementById('switchIdBackBtn');
