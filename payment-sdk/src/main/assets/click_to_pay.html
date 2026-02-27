@@ -1307,7 +1307,7 @@
             ar: {
                 CLICK_TO_PAY: 'كليك تو باي',
                 INITIALIZING: 'جارٍ تهيئة خدمة كليك تو باي...',
-                LOOKING_UP_CARDS: 'خدمة كليك تو باي تبحث عن بطاقاتك المرتبطة....',
+                LOOKING_UP_CARDS: 'خدمة كليك تو باي تبحث عن بطاقاتك المحفوظة....',
                 TOTAL_LABEL: 'الإجمالي',
                 CTP_EMAIL_LABEL: 'أدخل البريد الإلكتروني للوصول إلى البطاقات المرتبطة',
                 CTP_EMAIL_PLACEHOLDER: 'البريد الإلكتروني',
@@ -1322,7 +1322,7 @@
                 OR: 'أو',
                 ENTER_CARD_MANUALLY: 'أدخل البطاقة يدوياً',
                 CONTACT_DETAILS: 'تفاصيل الاتصال',
-                OTP_FOUND_TITLE: 'عثرت خدمة كليك تو باي على بطاقاتك المرتبطة',
+                OTP_FOUND_TITLE: 'عثرت خدمة كليك تو باي على بطاقاتك المحفوظة',
                 OTP_INSTRUCTION: 'للوصول إلى بطاقاتك، أدخل الرمز المرسل إلى',
                 RESEND_CODE: 'إعادة إرسال الرمز',
                 SKIP_VERIFICATION: 'تخطي التحقق في المرة القادمة',
@@ -2695,16 +2695,19 @@
         }
 
         document.getElementById('resendOtpBtn').onclick = async function() {
-            if (validationChannels.length > 0) {
-                var btn = document.getElementById('resendOtpBtn');
-                btn.disabled = true;
-                btn.textContent = t('SENDING_CODE') + '...';
-                try {
+            var btn = document.getElementById('resendOtpBtn');
+            btn.disabled = true;
+            btn.textContent = t('SENDING_CODE') + '...';
+            try {
+                if (userEmail) {
+                    await lookupConsumer(userEmail);
+                } else if (validationChannels.length > 0) {
                     await initiateIdentityValidation(validationChannels[0].id);
-                } catch (e) {
-                    btn.disabled = false;
-                    btn.textContent = t('RESEND_CODE');
                 }
+            } catch (e) {
+                log('Resend OTP error: ' + JSON.stringify(e));
+                btn.disabled = false;
+                btn.textContent = t('RESEND_CODE');
             }
         };
 
