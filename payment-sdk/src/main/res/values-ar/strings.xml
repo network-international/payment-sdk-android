@@ -7,7 +7,7 @@
     <string name="submitting_payment">تقديم الدفع&#8230;</string>
 
     <!-- Button used to cancel the payment process and close(dismiss) the payment view -->
-    <string name="cancel_button">إلغا</string>
+    <string name="cancel_button">إلغاء</string>
 
     <!-- Button used to complete the payment. -->
     <string name="pay_button_title">%1s إدفع</string>
@@ -64,7 +64,7 @@
     <string name="error_card_not_supported">البطاقة غير مدعومة لهذه المعاملة</string>
 
     <!-- Progress Message when authorizing payment url -->
-    <string name="message_authorizing">يجيز …</string>
+    <string name="message_authorizing">جارٍ التفويض …</string>
 
     <!-- Progress Message when loading order details -->
     <string name="message_loading_order_details">جارٍ تحميل تفاصيل الطلب …</string>
@@ -96,7 +96,7 @@
     <string name="visa_pay_in_instalment">%1$s الدفع بمقدار</string>
     <string name="visa_pay_in_full">الدفع بالكامل</string>
 
-    <string name="aani">AANI</string>
+    <string name="aani">Aani Pay</string>
     <string name="aani_mobile_number">رقم الجوال</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>
     <string name="aani_passport_id">رقم جواز السفر</string>
@@ -106,9 +106,48 @@
     <string name="aani_paying_amount">جارٍ دفع %1$s</string>
     <string name="aani_tap_notification">اضغط على الإشعار الذي تلقيته في التطبيق لإكمال عملية الدفع.</string>
     <string name="aani_note_do_not_close">ملاحظة: يرجى عدم إغلاق التطبيق أثناء تشغيل المؤقت.</string>
+    <string name="aani_qr_code">رمز QR</string>
+    <string name="aani_generate_qr">إنشاء رمز QR</string>
+    <string name="aani_scan_qr_to_pay">امسح رمز QR لإتمام الدفع</string>
 
     <string name="paypage_title_awaiting_partial_auth_approval">تأكيد العميل</string>
     <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
     <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
     <string name="partial_auth_message_question">هل ترغب في المضي قدما مع المبلغ المخفض؟</string>
+
+    <!-- Unified Payment Screen -->
+    <string name="payment_separator_text">أو اختر خيارات الدفع الخاصة بك</string>
+    <string name="pay_by_card">الدفع بالبطاقة</string>
+    <string name="click_to_pay_section_title">كليك تو باي</string>
+    <string name="pay_with_click_to_pay">ادفع باستخدام كليك تو باي</string>
+    <string name="powered_by">مدعوم بواسطة</string>
+    <string name="terms_and_conditions">الشروط والأحكام</string>
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="samsung_pay_button">Samsung Pay</string>
+
+    <string name="use_credit_or_debit_card">استخدم بطاقة ائتمان أو خصم</string>
+    <string name="select_other_payment_options">اختر خيارات الدفع الأخرى</string>
+    <string name="terms_agreement_text">بالضغط على \"ادفع\"، فإنك توافق على الشروط والأحكام وتصرح بهذه المعاملة.</string>
+    <string name="google_pay_button">Google Pay</string>
+    <string name="pay_with_google_pay">الدفع عبر Google Pay</string>
+    <string name="pay_with_samsung_pay">الدفع عبر Samsung Pay</string>
+    <string name="pay_with_aani">الدفع عبر AANI</string>
+    <string name="or_select_payment_options">أو اختر خيارات الدفع الخاصة بك</string>
+    <string name="expiration_date_label">تاريخ الانتهاء</string>
+    <string name="security_code_label">رمز الأمان</string>
+    <string name="name_on_card_label">الاسم على البطاقة</string>
+    <string name="order_summary">ملخص الطلب</string>
+    <string name="whats_cvv">ما هو CVV؟</string>
+    <string name="cvv_tooltip">يمكن العثور على رمز الأمان على ظهر البطاقة</string>
+
+    <!-- Payment Result Screen -->
+    <string name="payment_result_success_title">لقد دفعت %1$s</string>
+    <string name="payment_result_success_title_no_amount">تمت عملية الدفع بنجاح</string>
+    <string name="payment_result_failure_title">حدث خطأ ما</string>
+    <string name="payment_result_success_subtitle">شكراً لك! تم استلام دفعتك.</string>
+    <string name="payment_result_failure_subtitle">يرجى المحاولة مرة أخرى لاحقاً.</string>
+    <string name="payment_result_transaction_id">رقم المعاملة</string>
+    <string name="payment_result_reference_number">الرقم المرجعي</string>
+    <string name="payment_result_date_time">التاريخ / الوقت</string>
+    <string name="payment_result_done">تم</string>
 </resources>
