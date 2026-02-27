@@ -1005,6 +1005,35 @@
         </div>
     </div>
 
+    <!-- Switch ID state -->
+    <div id="switchIdView" class="card hidden">
+        <div class="ctp-header">
+            <span class="ctp-title">Click to Pay</span>
+            <span id="switchIdCloseBtn" class="close-btn">&times;</span>
+        </div>
+
+        <div class="form-group">
+            <label id="switchIdLabel" class="form-label">Enter another email to access a different set of linked cards.</label>
+            <input type="email" id="switchIdEmailInput" class="form-input" placeholder="email@example.com" autocapitalize="none" autocorrect="off">
+        </div>
+
+        <button id="switchIdLookupBtn" class="btn btn-primary" disabled>Load my cards</button>
+
+        <button id="switchIdBackBtn" class="add-card-back-btn">Back</button>
+
+        <div class="or-divider">
+            <span>Or</span>
+        </div>
+
+        <button id="switchIdManualBtn" class="enter-card-link">Enter card manually</button>
+
+        <div class="brand-logos">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAUCAYAAADskT9PAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAK4SURBVHgBrVZdbtpAEN61HakSeUDKj/JWHwErgNKnwg3CCRpOAJwg5gTQExBOQG4Ab0WBCI7gxyhpJUsNUqTY3s5n7zaLZTcpZiRrf5id+Wa+2Vk4IzmuLho0XNOHcUs4517p1XS8teOTXpe2Bixb3J/LWl8toEtnO6ZpNh/mjpdzhhmn9eUljVM450J46U/Ql3PWVzqYA8Bxdd7VFeisHYbh9OxiZecB4IR0RWOFvh5FMGTvyNH5csi56HDG1qXAaiIzJ7W7ihAcQZQNwVuP99XbPN20PQPOkeaPOIf8uq8iypmgc5uDMKbjaVFfk6Me5hEXIwDK080C8N8SBFaLHIKeq5PaQoG4oQE1UCazE5V2XZeyfb0XAD6l0jTDJqZCsK4yTFl0qSbGinu7sirruiyjTnYCAHmYf/FoaMmle1RffsPkNTyAgzVAbKwgBrGtaw5Oz+PCLwYAQhHPaIi555G4AfeI2LKCJO0a97quXieFAEjDQ7oB3zHHTQD3iPiNojfuNd2/dVIYAERVOwyDe+wBBDlrSxWXIr7SdVWd7AUAhHNEtS2GEX1O79mNVZnosZOV8C22B6EUD+g2xP0ErRd7sjmp3tKX15Q9PwcTgmtL3VbhDEh+kVZf9f2zix82rSf4nRPnuJ6abkMBhW4hAPIdcTE3DN6GQaQ4DM0pRW/T9u1TwrlyDl3qB1FLPVA7A0CUUSRGctl7vEv6P6V4BOeI8vDQamcBRetWdnYCAOeIksXXifXVOyKjvFQp9maOnwLaV0B3BqCnWOeXiq7DZIr1WkgBddP2ACC+k+kened88zscJClma8WvXvGqFjAPQ2uSABXjLOcQrr/l7IOiV7GKUhYd49ofGMEl0EXNybNloSDIiENGXBaxr+wdIaPjUskcgl+sX14+off7PPuf08w0rfa/7P0BQl/IPUTRP3wAAAAASUVORK5CYII=" height="20" alt="Click to Pay" style="object-fit:contain;">
+            <img class="visa-logo-img" src="" height="20" alt="Visa" style="object-fit:contain;">
+            <svg width="40" height="24" viewBox="0 0 40 24"><circle cx="14" cy="12" r="10" fill="#EB001B"/><circle cx="26" cy="12" r="10" fill="#F79E1B"/><path d="M20 4.6a10 10 0 0 1 0 14.8 10 10 0 0 1 0-14.8z" fill="#FF5F00"/></svg>
+        </div>
+    </div>
+
     <!-- Card selection state -->
     <div id="cardSelection" class="card hidden">
         <div class="ctp-header">
@@ -1039,7 +1068,7 @@
 
         <div class="brand-logos">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAUCAYAAADskT9PAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAK4SURBVHgBrVZdbtpAEN61HakSeUDKj/JWHwErgNKnwg3CCRpOAJwg5gTQExBOQG4Ab0WBCI7gxyhpJUsNUqTY3s5n7zaLZTcpZiRrf5id+Wa+2Vk4IzmuLho0XNOHcUs4517p1XS8teOTXpe2Bixb3J/LWl8toEtnO6ZpNh/mjpdzhhmn9eUljVM450J46U/Ql3PWVzqYA8Bxdd7VFeisHYbh9OxiZecB4IR0RWOFvh5FMGTvyNH5csi56HDG1qXAaiIzJ7W7ihAcQZQNwVuP99XbPN20PQPOkeaPOIf8uq8iypmgc5uDMKbjaVFfk6Me5hEXIwDK080C8N8SBFaLHIKeq5PaQoG4oQE1UCazE5V2XZeyfb0XAD6l0jTDJqZCsK4yTFl0qSbGinu7sirruiyjTnYCAHmYf/FoaMmle1RffsPkNTyAgzVAbKwgBrGtaw5Oz+PCLwYAQhHPaIi555G4AfeI2LKCJO0a97quXieFAEjDQ7oB3zHHTQD3iPiNojfuNd2/dVIYAERVOwyDe+wBBDlrSxWXIr7SdVWd7AUAhHNEtS2GEX1O79mNVZnosZOV8C22B6EUD+g2xP0ErRd7sjmp3tKX15Q9PwcTgmtL3VbhDEh+kVZf9f2zix82rSf4nRPnuJ6abkMBhW4hAPIdcTE3DN6GQaQ4DM0pRW/T9u1TwrlyDl3qB1FLPVA7A0CUUSRGctl7vEv6P6V4BOeI8vDQamcBRetWdnYCAOeIksXXifXVOyKjvFQp9maOnwLaV0B3BqCnWOeXiq7DZIr1WkgBddP2ACC+k+kened88zscJClma8WvXvGqFjAPQ2uSABXjLOcQrr/l7IOiV7GKUhYd49ofGMEl0EXNybNloSDIiENGXBaxr+wdIaPjUskcgl+sX14+off7PPuf08w0rfa/7P0BQl/IPUTRP3wAAAAASUVORK5CYII=" height="20" alt="Click to Pay" style="object-fit:contain;">
-            <span style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>
+            <img class="visa-logo-img" src="" height="20" alt="Visa" style="object-fit:contain;">
             <svg width="40" height="24" viewBox="0 0 40 24"><circle cx="14" cy="12" r="10" fill="#EB001B"/><circle cx="26" cy="12" r="10" fill="#F79E1B"/><path d="M20 4.6a10 10 0 0 1 0 14.8 10 10 0 0 1 0-14.8z" fill="#FF5F00"/></svg>
         </div>
 
@@ -1097,15 +1126,14 @@
                     <input type="checkbox" id="skipVerificationCheckbox" class="otp-skip-checkbox">
                     <label class="otp-skip-label" for="skipVerificationCheckbox">Skip verification for next time</label>
                 </div>
-                <span class="otp-skip-chevron">&#8964;</span>
             </div>
 
             <button id="verifyOtpBtn" class="otp-verify-btn" disabled>Verify and Continue</button>
 
             <div class="otp-brand-logos">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAUCAYAAADskT9PAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAK4SURBVHgBrVZdbtpAEN61HakSeUDKj/JWHwErgNKnwg3CCRpOAJwg5gTQExBOQG4Ab0WBCI7gxyhpJUsNUqTY3s5n7zaLZTcpZiRrf5id+Wa+2Vk4IzmuLho0XNOHcUs4517p1XS8teOTXpe2Bixb3J/LWl8toEtnO6ZpNh/mjpdzhhmn9eUljVM450J46U/Ql3PWVzqYA8Bxdd7VFeisHYbh9OxiZecB4IR0RWOFvh5FMGTvyNH5csi56HDG1qXAaiIzJ7W7ihAcQZQNwVuP99XbPN20PQPOkeaPOIf8uq8iypmgc5uDMKbjaVFfk6Me5hEXIwDK080C8N8SBFaLHIKeq5PaQoG4oQE1UCazE5V2XZeyfb0XAD6l0jTDJqZCsK4yTFl0qSbGinu7sirruiyjTnYCAHmYf/FoaMmle1RffsPkNTyAgzVAbKwgBrGtaw5Oz+PCLwYAQhHPaIi555G4AfeI2LKCJO0a97quXieFAEjDQ7oB3zHHTQD3iPiNojfuNd2/dVIYAERVOwyDe+wBBDlrSxWXIr7SdVWd7AUAhHNEtS2GEX1O79mNVZnosZOV8C22B6EUD+g2xP0ErRd7sjmp3tKX15Q9PwcTgmtL3VbhDEh+kVZf9f2zix82rSf4nRPnuJ6abkMBhW4hAPIdcTE3DN6GQaQ4DM0pRW/T9u1TwrlyDl3qB1FLPVA7A0CUUSRGctl7vEv6P6V4BOeI8vDQamcBRetWdnYCAOeIksXXifXVOyKjvFQp9maOnwLaV0B3BqCnWOeXiq7DZIr1WkgBddP2ACC+k+kened88zscJClma8WvXvGqFjAPQ2uSABXjLOcQrr/l7IOiV7GKUhYd49ofGMEl0EXNybNloSDIiENGXBaxr+wdIaPjUskcgl+sX14+off7PPuf08w0rfa/7P0BQl/IPUTRP3wAAAAASUVORK5CYII=" height="20" alt="Click to Pay" style="object-fit:contain;">
+                <img class="visa-logo-img" src="" height="20" alt="Visa" style="object-fit:contain;">
                 <svg width="40" height="24" viewBox="0 0 40 24"><circle cx="14" cy="12" r="10" fill="#EB001B"/><circle cx="26" cy="12" r="10" fill="#F79E1B"/><path d="M20 4.6a10 10 0 0 1 0 14.8 10 10 0 0 1 0-14.8z" fill="#FF5F00"/></svg>
-                <span style="font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>
             </div>
         </div>
     </div>
@@ -1228,7 +1256,7 @@
                 LOAD_MY_CARDS: 'Load my cards',
                 CTP_INFO_QUESTION: 'How does Click to Pay use my information?',
                 CTP_INFO_CONTENT: 'Click to Pay will use this information to check if you have saved cards. A one-time passcode may be sent to confirm it\'s you. Message and data rates may apply. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">What is Click to Pay?</a>',
-                SWITCH_ID: 'Switch ID',
+                SWITCH_ID: 'Enter another email to access a different set of linked cards.',
                 VIEW_MORE: 'View more',
                 VIEW_LESS: 'View less',
                 PAY: 'Pay',
@@ -1314,7 +1342,7 @@
                 LOAD_MY_CARDS: 'تحميل بطاقاتي',
                 CTP_INFO_QUESTION: 'كيف تستخدم خدمة كليك تو باي معلوماتي؟',
                 CTP_INFO_CONTENT: 'يستخدم كليك تو باي هذه المعلومات للتحقق مما إذا كانت هناك بطاقات مرتبطة بهذا البريد الإلكتروني. قد يتم إرسال رمز مرور لمرة واحدة للتحقق من هويتك. *قد تطبق رسوم الرسائل والبيانات. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">ما هي خدمة كليك تو باي؟</a>',
-                SWITCH_ID: 'تبديل الهوية',
+                SWITCH_ID: 'أدخل بريدًا إلكترونيًا آخر للوصول إلى مجموعة مختلفة من البطاقات المرتبطة.',
                 VIEW_MORE: 'عرض المزيد',
                 VIEW_LESS: 'عرض أقل',
                 PAY: 'ادفع',
@@ -1400,7 +1428,7 @@
                 LOAD_MY_CARDS: 'Charger mes cartes',
                 CTP_INFO_QUESTION: 'Comment Click to Pay utilise-t-il mes informations ?',
                 CTP_INFO_CONTENT: 'Click to Pay utilisera ces informations pour vérifier si vous avez des cartes enregistrées. Un code à usage unique peut être envoyé pour confirmer votre identité. Des frais de messagerie et de données peuvent s\'appliquer. <a href="https://usa.visa.com/pay-with-visa/checkout-faq.html" target="_blank" style="color:#1a1f71;">Qu\'est-ce que Click to Pay?</a>',
-                SWITCH_ID: 'Changer d\'identifiant',
+                SWITCH_ID: 'Saisissez un autre e-mail pour accéder à un ensemble différent de cartes liées.',
                 VIEW_MORE: 'Voir plus',
                 VIEW_LESS: 'Voir moins',
                 PAY: 'Payer',
@@ -1528,6 +1556,18 @@
             if (el) el.textContent = t('CTP_INFO_QUESTION');
             el = document.getElementById('infoContent');
             if (el) el.innerHTML = t('CTP_INFO_CONTENT');
+
+            // Switch ID view
+            el = document.getElementById('switchIdLabel');
+            if (el) el.textContent = t('SWITCH_ID');
+            el = document.getElementById('switchIdLookupBtn');
+            if (el) el.textContent = t('LOAD_MY_CARDS');
+            el = document.getElementById('switchIdBackBtn');
+            if (el) el.textContent = t('BACK');
+            el = document.querySelector('#switchIdView .or-divider span');
+            if (el) el.textContent = t('OR');
+            el = document.getElementById('switchIdManualBtn');
+            if (el) el.textContent = t('ENTER_CARD_MANUALLY');
 
             // Card selection
             el = document.querySelector('.amount-row-label');
@@ -1827,7 +1867,7 @@
         }
 
         function showView(viewId) {
-            ['loading', 'lookupLoading', 'emailEntry', 'cardSelection', 'otpVerification', 'addCardView', 'errorState'].forEach(function(id) {
+            ['loading', 'lookupLoading', 'emailEntry', 'switchIdView', 'cardSelection', 'otpVerification', 'addCardView', 'errorState'].forEach(function(id) {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
@@ -2350,7 +2390,7 @@
                 var brandIcon = '';
                 var nl = network.toLowerCase();
                 if (nl === 'visa') {
-                    brandIcon = '<span class="card-brand-icon" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>';
+                    brandIcon = getVisaLogoHtml(12);
                 } else if (nl === 'mastercard') {
                     brandIcon = '<svg class="card-brand-icon" width="20" height="12" viewBox="0 0 24 15"><circle cx="8" cy="7.5" r="6" fill="#EB001B"/><circle cx="16" cy="7.5" r="6" fill="#F79E1B"/><path d="M12 2.6a6 6 0 0 1 0 9.8 6 6 0 0 1 0-9.8z" fill="#FF5F00"/></svg>';
                 }
@@ -2716,14 +2756,16 @@
             postToNative('onCanceled', {});
         };
 
-        // OTP Switch ID button
+        // OTP Switch ID button — show switch ID view
+        var switchIdPreviousView = 'cardSelection';
         document.getElementById('otpSwitchIdBtn').onclick = function() {
-            clearStoredCtpEmail();
-            userEmail = null;
             selectedCard = null;
-            document.getElementById('emailInput').value = '';
             clearOtpBoxes();
-            showView('emailEntry');
+            switchIdPreviousView = 'otpVerification';
+            var input = document.getElementById('switchIdEmailInput');
+            input.value = userEmail || '';
+            document.getElementById('switchIdLookupBtn').disabled = !(input.value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value));
+            showView('switchIdView');
         };
 
         // Single hidden input approach: one real <input> captures all keystrokes,
@@ -2826,11 +2868,46 @@
 
         // Card selection: Switch ID
         document.getElementById('switchIdBtn').onclick = function() {
-            clearStoredCtpEmail();
-            userEmail = null;
             selectedCard = null;
-            document.getElementById('emailInput').value = '';
-            showView('emailEntry');
+            switchIdPreviousView = 'cardSelection';
+            var input = document.getElementById('switchIdEmailInput');
+            input.value = userEmail || '';
+            document.getElementById('switchIdLookupBtn').disabled = !(input.value.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value));
+            showView('switchIdView');
+        };
+
+        // Switch ID view: email input validation
+        document.getElementById('switchIdEmailInput').oninput = function() {
+            var val = this.value.trim();
+            var valid = val.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+            document.getElementById('switchIdLookupBtn').disabled = !valid;
+        };
+
+        // Switch ID view: Load my cards button
+        document.getElementById('switchIdLookupBtn').onclick = async function() {
+            var email = document.getElementById('switchIdEmailInput').value.trim();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+            userEmail = email;
+            clearStoredCtpEmail();
+            selectedCard = null;
+            showView('lookupLoading');
+            lookupConsumer(email);
+        };
+
+        // Switch ID view: Back button
+        document.getElementById('switchIdBackBtn').onclick = function() {
+            showView(switchIdPreviousView);
+        };
+
+        // Switch ID view: Close button
+        document.getElementById('switchIdCloseBtn').onclick = function() {
+            postToNative('onCanceled', {});
+        };
+
+        // Switch ID view: Enter card manually
+        document.getElementById('switchIdManualBtn').onclick = function() {
+            previousView = 'switchIdView';
+            showView('addCardView');
         };
 
         // Card selection: View more / View less toggle
@@ -2992,6 +3069,28 @@
                 img.src = dataUri;
                 log('Lookup GIF image set');
             }
+        }
+
+        // Visa logo data URI (injected from native with actual asset image)
+        var visaLogoDataUri = '';
+
+        // Set the Visa logo image source (called from native with base64 data URI)
+        function setVisaLogo(dataUri) {
+            visaLogoDataUri = dataUri;
+            // Update all existing visa logo placeholders
+            var imgs = document.querySelectorAll('.visa-logo-img');
+            for (var i = 0; i < imgs.length; i++) {
+                imgs[i].src = dataUri;
+            }
+            log('Visa logo set');
+        }
+
+        function getVisaLogoHtml(height) {
+            if (visaLogoDataUri) {
+                return '<img class="visa-logo-img" src="' + visaLogoDataUri + '" height="' + (height || 20) + '" alt="Visa" style="object-fit:contain;">';
+            }
+            // Fallback to text if logo not yet injected
+            return '<span style="font-family:Arial,Helvetica,sans-serif;font-size:' + (height === 12 ? '12' : '14') + 'px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>';
         }
 
         // --- Add Card form logic ---
@@ -3371,7 +3470,7 @@
 
         function getCardBrandSvg(brand) {
             if (brand === 'visa') {
-                return '<span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;font-style:italic;color:#1a1f71;">VISA</span>';
+                return getVisaLogoHtml(14);
             }
             if (brand === 'mastercard') {
                 return '<svg width="32" height="20" viewBox="0 0 32 20"><circle cx="11" cy="10" r="8" fill="#EB001B"/><circle cx="21" cy="10" r="8" fill="#F79E1B"/><path d="M16 3.4a8 8 0 0 1 0 13.2 8 8 0 0 1 0-13.2z" fill="#FF5F00"/></svg>';
@@ -4042,6 +4141,7 @@
         window.verifyOtp = verifyOtp;
         window.initiateIdentityValidation = initiateIdentityValidation;
         window.setLookupGif = setLookupGif;
+        window.setVisaLogo = setVisaLogo;
         window.setNativeWillLookup = setNativeWillLookup;
         window.setProbeMode = setProbeMode;
         window.showTestOtpPage = showTestOtpPage;
