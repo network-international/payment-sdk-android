@@ -33,7 +33,6 @@ fun AddEnvironmentDialog(
     onCancel: () -> Unit,
     onAddEnvironment: (environment: Environment) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
     var apiKey by remember { mutableStateOf("") }
     var outletReference by remember { mutableStateOf("") }
     var realm by remember { mutableStateOf("") }
@@ -76,9 +75,9 @@ fun AddEnvironmentDialog(
 
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
+            value = realm,
+            onValueChange = { realm = it },
+            label = { Text("Realm") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -95,13 +94,6 @@ fun AddEnvironmentDialog(
             label = { Text("Outlet Reference") },
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = realm,
-            onValueChange = { realm = it },
-            label = { Text("Realm") },
-            modifier = Modifier.fillMaxWidth()
-        )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -112,7 +104,7 @@ fun AddEnvironmentDialog(
                     onAddEnvironment(
                         Environment(
                             type = entries[selectedEnvironment],
-                            name = name,
+                            name = realm,
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
@@ -121,8 +113,7 @@ fun AddEnvironmentDialog(
                     )
                     onCancel()
                 },
-                enabled = name.isNotBlank() &&
-                        apiKey.isNotBlank() &&
+                enabled = apiKey.isNotBlank() &&
                         outletReference.isNotBlank() &&
                         realm.isNotBlank(),
                 modifier = Modifier

@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
@@ -61,7 +62,7 @@ internal fun SavedCardViewBottomBar(
                 .height(56.dp)
                 .padding(8.dp),
             colors = ButtonDefaults.textButtonColors(
-                backgroundColor = colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                backgroundColor = sdkColor(R.color.payment_sdk_pay_button_background_color)
             ),
             onClick = {
                 onPayClicked()
@@ -74,13 +75,13 @@ internal fun SavedCardViewBottomBar(
                         id = R.string.pay_button_title,
                         orderAmount.formattedCurrencyString2Decimal(isLTR)
                     ),
-                    color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                    color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                 )
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.pay_button),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -89,14 +90,14 @@ internal fun SavedCardViewBottomBar(
                         painter = painterResource(id = R.drawable.btn_riyal),
                         contentDescription = "Pay Icon",
                         modifier = Modifier.size(14.dp),
-                        tint = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        tint = sdkColor(R.color.payment_sdk_pay_button_text_color)
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
                         text = orderAmount.getOrderValue(),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                     )
                 }
             }

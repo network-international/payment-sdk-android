@@ -34,6 +34,15 @@ class DataStoreImpl(private val context: Context) : DataStore {
         Environment.saveEnvironments(context, environments)
     }
 
+    override fun updateEnvironment(environment: Environment) {
+        val environments = Environment.getEnvironments(context).toMutableList()
+        val index = environments.indexOfFirst { it.id == environment.id }
+        if (index != -1) {
+            environments[index] = environment
+            Environment.saveEnvironments(context, environments)
+        }
+    }
+
     override fun getMerchantAttributes() = MerchantAttribute.getMerchantAttributes(context)
 
     override fun saveMerchantAttribute(merchantAttribute: MerchantAttribute) {
@@ -135,6 +144,14 @@ class DataStoreImpl(private val context: Context) : DataStore {
         }
     }
 
+    override fun setSDKColor(key: String, hex: String) {
+        context.getPreferences().edit().putString(key, hex).apply()
+    }
+
+    override fun getSDKColor(key: String, default: String): String {
+        return context.getPreferences().getString(key, default) ?: default
+    }
+
     companion object {
         const val KEY_CURRENCY = "currency"
         const val KEY_LANGUAGE = "language"
@@ -144,14 +161,18 @@ class DataStoreImpl(private val context: Context) : DataStore {
         const val KEY_ORDER_TYPE = "order_type"
 
         private val products = listOf(
-            Product(name = "🐊", amount = 1.0),
-            Product(name = "🦏", amount = 450.0),
-            Product(name = "🐋", amount = 450.12),
-            Product(name = "🦠", amount = 700.0),
-            Product(name = "🐙", amount = 1500.0),
-            Product(name = "🐡", amount = 2200.0),
-            Product(name = "🐶", amount = 3000.0),
-            Product(name = "🦊", amount = 3000.12),
+            Product(name = "Quick Test", amount = 0.10),
+            Product(name = "Micro", amount = 0.50),
+            Product(name = "Small", amount = 1.0),
+            Product(name = "Basic", amount = 2.0),
+            Product(name = "Standard", amount = 5.0),
+            Product(name = "Medium", amount = 10.0),
+            Product(name = "Large", amount = 50.0),
+            Product(name = "Premium", amount = 100.0),
+            Product(name = "Pro", amount = 450.0),
+            Product(name = "Business", amount = 1000.0),
+            Product(name = "Enterprise", amount = 2200.0),
+            Product(name = "Ultimate", amount = 3000.0),
         )
     }
 }

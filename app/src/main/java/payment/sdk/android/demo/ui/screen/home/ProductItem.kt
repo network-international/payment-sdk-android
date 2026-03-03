@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.formatCurrency
 import payment.sdk.android.demo.model.Product
@@ -39,14 +40,12 @@ fun ProductItem(
         } else {
             MaterialTheme.colorScheme.surface
         },
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outline
-            }
-        ),
+        shadowElevation = if (isSelected) 0.dp else 2.dp,
+        border = if (isSelected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            null
+        },
         modifier = Modifier
             .padding(8.dp)
             .clip(MaterialTheme.shapes.small)
@@ -65,13 +64,14 @@ fun ProductItem(
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = "$currency ${product.amount.formatCurrency()}",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
             if (product.isLocal && !isSelected) {

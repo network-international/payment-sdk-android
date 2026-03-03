@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Top-left corner -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,7V3h4V1H1v6h2z" />
+    <!-- Top-right corner -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M17,1v2h4v4h2V1h-6z" />
+    <!-- Bottom-left corner -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,17H1v6h6v-2H3v-4z" />
+    <!-- Bottom-right corner -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M21,17v4h-4v2h6v-6h-2z" />
+    <!-- QR code blocks -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,5h4v4H5V5zM15,5h4v4h-4V5zM5,15h4v4H5v-4zM13,13h2v2h-2v-2zM17,13h2v2h-2v-2zM13,17h2v2h-2v-2zM17,17h2v2h-2v-2zM11,5h2v4h-2V5zM5,11h4v2H5v-2zM11,11h2v2h-2v-2zM15,11h4v2h-4v-2z" />
+</vector>

@@ -56,6 +56,7 @@ internal class GooglePayJsonConfig() {
      * @param allowedCardNetworks List of allowed card networks.
      * @return JSON array of allowed payment methods.
      */
+    @Suppress("UNUSED_PARAMETER")
     fun getAllowedPaymentMethods(
         allowedAuthMethods: List<String>,
         allowedCardNetworks: List<String>,

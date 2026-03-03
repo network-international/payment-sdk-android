@@ -11,17 +11,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 private val DarkColors = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = Color(0xFF1E1D22)
+    primary = NIBlueDark,
+    onPrimary = Color(0xFF002D6E),
+    primaryContainer = NIBlueDarkContainer,
+    onPrimaryContainer = NIBlueLight,
+    secondary = NISlateDark,
+    onSecondary = Color(0xFF1B2D45),
+    background = Color(0xFF1A1B1F),
+    surface = Color(0xFF1A1B1F),
+    error = NIError
 )
 
 private val LightColors = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color.White
+    primary = NIBlue,
+    onPrimary = Color.White,
+    primaryContainer = NIBlueLight,
+    onPrimaryContainer = Color(0xFF001A42),
+    secondary = NISlate,
+    onSecondary = Color.White,
+    background = NISurface,
+    surface = NISurface,
+    error = NIError
 )
 
 val Shapes = Shapes(

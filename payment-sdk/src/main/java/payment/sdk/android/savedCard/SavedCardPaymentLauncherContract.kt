@@ -3,16 +3,16 @@ package payment.sdk.android.savedCard
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
-import payment.sdk.android.payments.PaymentsResult
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 
 internal class SavedCardPaymentLauncherContract :
-    ActivityResultContract<SavedCardPaymentRequest, PaymentsResult>() {
+    ActivityResultContract<SavedCardPaymentRequest, UnifiedPaymentPageResult>() {
     override fun createIntent(context: Context, input: SavedCardPaymentRequest): Intent {
         return input.toIntent(context)
     }
 
-    override fun parseResult(resultCode: Int, intent: Intent?): PaymentsResult {
-        return intent?.getParcelableExtra(EXTRA_RESULT) ?: PaymentsResult.Failed(
+    override fun parseResult(resultCode: Int, intent: Intent?): UnifiedPaymentPageResult {
+        return intent?.getParcelableExtra(EXTRA_RESULT) ?: UnifiedPaymentPageResult.Failed(
             "Error while processing result."
         )
     }

@@ -9,9 +9,8 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -27,9 +26,9 @@ fun PayButton(
             .padding(vertical = 8.dp),
         colors = ButtonDefaults.textButtonColors(
             backgroundColor = if (isValid) {
-                colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                sdkColor(R.color.payment_sdk_pay_button_background_color)
             } else {
-                Color.Gray
+                sdkColor(R.color.payment_sdk_button_disabled_background_color)
             },
         ),
         onClick = onClick,
@@ -38,7 +37,11 @@ fun PayButton(
     ) {
         Text(
             text = text,
-            color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+            color = if (isValid) {
+                sdkColor(R.color.payment_sdk_pay_button_text_color)
+            } else {
+                sdkColor(R.color.payment_sdk_button_disabled_text_color)
+            }
         )
     }
 }

@@ -57,6 +57,10 @@ class Order {
         var outletId: String? = null
         var amount: Order.Amount? = null
         var authResponse: AuthResponse? = null
+
+        /** Click to Pay (Visa Unified Click to Pay) enabled flag */
+        @SerializedName(value = "vctpEnabled")
+        var vctpEnabled: Boolean? = null
     }
 
     @Keep
@@ -87,6 +91,16 @@ class Order {
 
         @SerializedName(value = "payment:aani")
         var aaniPayment: Href? = null
+
+        @SerializedName(value = "payment:aani-qr")
+        var aaniQrPayment: Href? = null
+
+        @SerializedName(value = "payment:click-to-pay")
+        var clickToPayLink: Href? = null
+
+        /** Visa Click to Pay link - from wallet array containing VISA_CLICK_TO_PAY */
+        @SerializedName(value = "payment:visa_click_to_pay")
+        var visaClickToPayLink: Href? = null
     }
 
     @Keep
@@ -132,4 +146,18 @@ fun Order.getSelfUrl() = embedded?.payment?.firstOrNull()?.links?.selfLink?.href
 
 fun Order.getAaniPayLink() = embedded?.payment?.firstOrNull()?.links?.aaniPayment?.href
 
+fun Order.getAaniQrPayLink() = embedded?.payment?.firstOrNull()?.links?.aaniQrPayment?.href
+
 fun Order.getSavedCardPaymentUrl() = embedded?.payment?.firstOrNull()?.links?.savedCard?.href
+
+fun Order.getClickToPayUrl() = embedded?.payment?.firstOrNull()?.links?.clickToPayLink?.href
+
+/** Get the Visa Click to Pay URL from payment:visa_click_to_pay link */
+fun Order.getVisaClickToPayUrl() = embedded?.payment?.firstOrNull()?.links?.visaClickToPayLink?.href
+
+/** Check if Visa Click to Pay is enabled by checking wallet array */
+fun Order.isVisaClickToPayEnabled() = paymentMethods?.wallet?.contains("VISA_CLICK_TO_PAY") == true
+
+fun Order.getPaymentReference() = embedded?.payment?.firstOrNull()?.reference
+
+fun Order.getOrderId() = embedded?.payment?.firstOrNull()?.reference?.substringBefore(":")?.trim()

@@ -18,8 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleEventObserver
 import payment.sdk.android.demo.MainViewModelUiState
 import payment.sdk.android.demo.MainViewModelStateType
@@ -45,6 +45,7 @@ fun HomeScreen(
     onDeleteSavedCard: (SavedCard) -> Unit,
     onPaySavedCard: (SavedCard) -> Unit,
     onRefresh: () -> Unit,
+    onClickWhatYouNeed: () -> Unit = {},
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(LocalLifecycleOwner.current) {
@@ -63,9 +64,10 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopBar(
-                topAppBarText = "Demo Store",
+                topAppBarText = "N-Genius Demo",
                 onAddProduct = { showAddProductDialog = true },
-                onSettingClicked = onClickEnvironment
+                onSettingClicked = onClickEnvironment,
+                onInfoClicked = onClickWhatYouNeed
             )
         },
         content = { contentPadding ->

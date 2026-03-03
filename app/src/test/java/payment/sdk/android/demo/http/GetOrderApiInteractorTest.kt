@@ -20,6 +20,7 @@ import payment.sdk.android.demo.Result
 import payment.sdk.android.core.Order
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
+import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 
@@ -40,7 +41,8 @@ class GetOrderApiInteractorTest {
         name = "test",
         apiKey = "key",
         outletReference = "ref",
-        realm = "name"
+        realm = "name",
+        region = Region.UAE
     )
 
     private val orderRequest = OrderRequest(

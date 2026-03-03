@@ -44,20 +44,20 @@ import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.payments.GooglePayUiConfig
-import payment.sdk.android.payments.PaymentsRequest
-import payment.sdk.android.payments.PaymentsVMEffects
-import payment.sdk.android.payments.PaymentsVMUiState
-import payment.sdk.android.payments.PaymentsViewModel
+import payment.sdk.android.payments.UnifiedPaymentPageRequest
+import payment.sdk.android.payments.UnifiedPaymentPageVMEffects
+import payment.sdk.android.payments.UnifiedPaymentPageVMUiState
+import payment.sdk.android.payments.UnifiedPaymentPageViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PaymentsViewModelTest {
+class UnifiedPaymentPageViewModelTest {
 
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    private val intent: PaymentsRequest = PaymentsRequest.Builder()
+    private val intent: UnifiedPaymentPageRequest = UnifiedPaymentPageRequest.Builder()
         .payPageUrl(TEST_PAYMENT_URL)
         .gatewayAuthorizationUrl("authUrl")
 //        .setLanguageCode("en")
@@ -72,12 +72,12 @@ class PaymentsViewModelTest {
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor = mockk(relaxed = true)
     private val getOrderApiInteractor: GetOrderApiInteractor = mockk(relaxed = true)
 
-    private lateinit var sut: PaymentsViewModel
+    private lateinit var sut: UnifiedPaymentPageViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = PaymentsViewModel(
+        sut = UnifiedPaymentPageViewModel(
             cardPaymentsIntent = intent,
             authApiInteractor = authApiInteractor,
             cardPaymentInteractor = cardPaymentInteractor,
@@ -98,7 +98,7 @@ class PaymentsViewModelTest {
 
     @Test
     fun `test authorize success without googlePayConfig`() = runTest {
-        val states: MutableList<PaymentsVMUiState> = mutableListOf()
+        val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
 
         val orderResponse = Gson().fromJson(
             ClassLoader.getSystemResource("orderResponse.json").readText(),
@@ -132,15 +132,15 @@ class PaymentsViewModelTest {
 
         coVerify(exactly = 1) { getPayerIpInteractor.getPayerIp(any()) }
 
-        assertTrue(states[0] is PaymentsVMUiState.Init)
-        assertTrue(states[1] is PaymentsVMUiState.Loading)
-        assertTrue(states[2] is PaymentsVMUiState.Authorized)
+        assertTrue(states[0] is UnifiedPaymentPageVMUiState.Init)
+        assertTrue(states[1] is UnifiedPaymentPageVMUiState.Loading)
+        assertTrue(states[2] is UnifiedPaymentPageVMUiState.Authorized)
     }
 
     @Test
     fun `test authorize success without with googlePayConfig but cannot pay with googlePay`() =
         runTest {
-            val states: MutableList<PaymentsVMUiState> = mutableListOf()
+            val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
             val orderResponse = Gson().fromJson(
                 ClassLoader.getSystemResource("orderResponse.json").readText(),
                 Order::class.java
@@ -174,20 +174,20 @@ class PaymentsViewModelTest {
 
             coVerify(exactly = 1) { authApiInteractor.authenticate(any(), any()) }
 
-            assertTrue(states[0] is PaymentsVMUiState.Init)
-            assertTrue(states[1] is PaymentsVMUiState.Loading)
-            assertTrue(states.last() is PaymentsVMUiState.Authorized)
+            assertTrue(states[0] is UnifiedPaymentPageVMUiState.Init)
+            assertTrue(states[1] is UnifiedPaymentPageVMUiState.Loading)
+            assertTrue(states.last() is UnifiedPaymentPageVMUiState.Authorized)
 
-            val state = (states.last() as PaymentsVMUiState.Authorized)
+            val state = (states.last() as UnifiedPaymentPageVMUiState.Authorized)
 
             assertTrue(state.showWallets)
         }
 
     @Test
     fun `test authorize failure with invalid auth code`() = runTest {
-        val states: MutableList<PaymentsVMUiState> = mutableListOf()
+        val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
 
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.uiState.toList(states)
@@ -205,9 +205,9 @@ class PaymentsViewModelTest {
 
         coVerify(exactly = 1) { authApiInteractor.authenticate(any(), any()) }
 
-        assertTrue(states[0] is PaymentsVMUiState.Init)
-        assertTrue(states[1] is PaymentsVMUiState.Loading)
-        assertTrue(effects.first() is PaymentsVMEffects.Failed)
+        assertTrue(states[0] is UnifiedPaymentPageVMUiState.Init)
+        assertTrue(states[1] is UnifiedPaymentPageVMUiState.Loading)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Failed)
     }
 
     @Test
@@ -216,7 +216,7 @@ class PaymentsViewModelTest {
             ClassLoader.getSystemResource("paymentResponse.json").readText(),
             PaymentResponse::class.java
         )
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -244,12 +244,12 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.Captured)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Captured)
     }
 
     @Test
     fun `test make card payment failure`() = runTest {
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -277,12 +277,12 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.Failed)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Failed)
     }
 
     @Test
     fun `test make card payment shows visa plans`() = runTest {
-        val uiState: MutableList<PaymentsVMUiState> = mutableListOf()
+        val uiState: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
 
         val visaResponse = Gson().fromJson(
             ClassLoader.getSystemResource("visaEligibilityResponse.json").readText(),
@@ -320,9 +320,9 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { visaInstalmentPlanInteractor.getPlans(any(), any(), any(), any()) }
 
         assertTrue(uiState.isNotEmpty())
-        assertTrue(uiState[0] is PaymentsVMUiState.Init)
-        assertTrue(uiState[1] is PaymentsVMUiState.Loading)
-        assertTrue(uiState[2] is PaymentsVMUiState.ShowVisaPlans)
+        assertTrue(uiState[0] is UnifiedPaymentPageVMUiState.Init)
+        assertTrue(uiState[1] is UnifiedPaymentPageVMUiState.Loading)
+        assertTrue(uiState[2] is UnifiedPaymentPageVMUiState.ShowVisaPlans)
     }
 
     @Test
@@ -332,7 +332,7 @@ class PaymentsViewModelTest {
             PaymentResponse::class.java
         )
 
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -364,12 +364,12 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { threeDSecureFactory.buildThreeDSecureTwoDto(any(), any(), any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.InitiateThreeDSTwo)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.InitiateThreeDSTwo)
     }
 
     @Test
     fun `test acceptGooglePay success`() = runTest {
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -416,12 +416,12 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { googlePayAcceptInteractor.accept(any(), any(), any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.Captured)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Captured)
     }
 
     @Test
     fun `test acceptGooglePay failure if not authorized`() = runTest {
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -442,16 +442,16 @@ class PaymentsViewModelTest {
         coVerify(exactly = 0) { googlePayAcceptInteractor.accept(any(), any(), any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.Failed)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Failed)
         assertEquals(
             "Authorization or Google Pay URL is missing",
-            (effects.first() as PaymentsVMEffects.Failed).error
+            (effects.first() as UnifiedPaymentPageVMEffects.Failed).error
         )
     }
 
     @Test
     fun `test acceptGooglePay failure when authorized but accept fails`() = runTest {
-        val effects: MutableList<PaymentsVMEffects> = mutableListOf()
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
             sut.effect.toList(effects)
@@ -496,10 +496,10 @@ class PaymentsViewModelTest {
         coVerify(exactly = 1) { googlePayAcceptInteractor.accept(any(), any(), any()) }
 
         assertTrue(effects.isNotEmpty())
-        assertTrue(effects.first() is PaymentsVMEffects.Failed)
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Failed)
         assertEquals(
             "Google Pay accept failed: 502",
-            (effects.first() as PaymentsVMEffects.Failed).error
+            (effects.first() as UnifiedPaymentPageVMEffects.Failed).error
         )
     }
 

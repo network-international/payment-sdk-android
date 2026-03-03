@@ -30,6 +30,16 @@ import payment.sdk.android.sdk.R
 
 class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
+    override fun attachBaseContext(newBase: Context) {
+        val lang = SDKConfig.getLanguage()
+        val locale = java.util.Locale(lang)
+        val config = newBase.resources.configuration.apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     private lateinit var presenter: CardPaymentContract.Presenter
 
     private val partialAuthActivityLauncher = registerForActivityResult(

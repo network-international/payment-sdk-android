@@ -36,7 +36,8 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val amount: Double,
         val currencyCode: String,
         val locale: String,
-        val payerIp: String
+        val payerIp: String,
+        val orderReference: String = ""
     ) : UnifiedPaymentPageVMUiState(R.string.make_payment)
 
     data class ShowVisaPlans(

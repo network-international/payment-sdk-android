@@ -1,6 +1,8 @@
 package payment.sdk.android.core.interactor
 
 import com.google.gson.JsonParser
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse

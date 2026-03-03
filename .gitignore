@@ -67,3 +67,6 @@ fastlane/readme.md
 
 # MacOS
 .DS_Store
+
+# Documentation (internal only)
+ARCHITECTURE.md

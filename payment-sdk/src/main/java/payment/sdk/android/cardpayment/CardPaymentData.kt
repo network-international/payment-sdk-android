@@ -3,7 +3,7 @@ package payment.sdk.android.cardpayment
 import android.content.Intent
 import android.os.Parcel
 import android.os.Parcelable
-import payment.sdk.android.payments.PaymentsResult
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 
 class CardPaymentData constructor(
     val code: Int,
@@ -20,15 +20,15 @@ class CardPaymentData constructor(
         dest.writeString(reason)
     }
 
-    fun getCardPaymentsState(): PaymentsResult {
+    fun getCardPaymentsState(): UnifiedPaymentPageResult {
         return when (code) {
-            STATUS_PAYMENT_AUTHORIZED -> PaymentsResult.Authorised
-            STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> PaymentsResult.Success
-            STATUS_POST_AUTH_REVIEW -> PaymentsResult.PostAuthReview
-            STATUS_PARTIAL_AUTH_DECLINED -> PaymentsResult.PartialAuthDeclined
-            STATUS_PARTIAL_AUTH_DECLINE_FAILED -> PaymentsResult.PartialAuthDeclineFailed
-            STATUS_PARTIALLY_AUTHORISED -> PaymentsResult.PartiallyAuthorised
-            STATUS_PAYMENT_FAILED -> PaymentsResult.Failed(reason.orEmpty())
+            STATUS_PAYMENT_AUTHORIZED -> UnifiedPaymentPageResult.Authorised
+            STATUS_PAYMENT_PURCHASED, STATUS_PAYMENT_CAPTURED -> UnifiedPaymentPageResult.Success
+            STATUS_POST_AUTH_REVIEW -> UnifiedPaymentPageResult.PostAuthReview
+            STATUS_PARTIAL_AUTH_DECLINED -> UnifiedPaymentPageResult.PartialAuthDeclined
+            STATUS_PARTIAL_AUTH_DECLINE_FAILED -> UnifiedPaymentPageResult.PartialAuthDeclineFailed
+            STATUS_PARTIALLY_AUTHORISED -> UnifiedPaymentPageResult.PartiallyAuthorised
+            STATUS_PAYMENT_FAILED -> UnifiedPaymentPageResult.Failed(reason.orEmpty())
             else -> throw IllegalArgumentException("Cannot Parse CardPayment Data Intent")
         }
     }

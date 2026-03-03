@@ -2,10 +2,14 @@ package payment.sdk.android.demo.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// NI Brand Blue palette
+val NIBlue = Color(0xFF0055DE)
+val NIBlueLight = Color(0xFFE3EDFF)
+val NISlate = Color(0xFF425473)
+val NISurface = Color(0xFFFAFBFE)
+val NIError = Color(0xFFD32F2F)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Dark theme variants
+val NIBlueDark = Color(0xFF9DBFFF)
+val NIBlueDarkContainer = Color(0xFF1A3A6E)
+val NISlateDark = Color(0xFFB0C4DE)

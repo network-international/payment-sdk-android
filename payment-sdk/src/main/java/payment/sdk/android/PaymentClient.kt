@@ -48,13 +48,13 @@ class PaymentClient(
     /**
      * Launches the card payment activity. This method is deprecated. and will be removed in future releases
      *
-     * Use `PaymentsLauncher` and `PaymentsRequest` to initiate payments.
+     * Use `UnifiedPaymentPageLauncher` and `UnifiedPaymentPageRequest` to initiate payments.
      *
      * @param request of type [CardPaymentRequest] The request object containing the payment URL and code.
      * @param requestCode The request code for the activity result.
-     * @deprecated Use [PaymentsLauncher] and [PaymentsRequest] instead.
+     * @deprecated Use [UnifiedPaymentPageLauncher] and [UnifiedPaymentPageRequest] instead.
      */
-    @Deprecated("Use PaymentsLauncher and PaymentsRequest instead", ReplaceWith("PaymentsLauncher.launch(PaymentsRequest)"))
+    @Deprecated("Use UnifiedPaymentPageLauncher and UnifiedPaymentPageRequest instead", ReplaceWith("UnifiedPaymentPageLauncher.launch(UnifiedPaymentPageRequest)"))
     fun launchCardPayment(request: CardPaymentRequest, requestCode: Int) {
         context.startActivityForResult(CardPaymentActivity.getIntent(
                 context = context,

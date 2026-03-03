@@ -3,13 +3,13 @@ package payment.sdk.android.cardpayment.payments
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
-import payment.sdk.android.payments.PaymentsRequest
+import payment.sdk.android.payments.UnifiedPaymentPageRequest
 
-class PaymentsRequestTest {
+class UnifiedPaymentPageRequestTest {
 
     @Test
     fun `test successful build`() {
-        val request = PaymentsRequest.builder()
+        val request = UnifiedPaymentPageRequest.builder()
             .gatewayAuthorizationUrl("https://example.com/gateway")
             .payPageUrl("https://example.com/pay")
             .build()
@@ -21,7 +21,7 @@ class PaymentsRequestTest {
     @Test
     fun `test missing gatewayUrl`() {
         val exception = assertThrows(IllegalStateException::class.java) {
-            PaymentsRequest.builder()
+            UnifiedPaymentPageRequest.builder()
                 .payPageUrl("https://example.com/pay")
                 .build()
         }
@@ -31,7 +31,7 @@ class PaymentsRequestTest {
     @Test
     fun `test missing payPageUrl`() {
         val exception = assertThrows(IllegalStateException::class.java) {
-            PaymentsRequest.builder()
+            UnifiedPaymentPageRequest.builder()
                 .gatewayAuthorizationUrl("https://example.com/gateway")
                 .build()
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import payment.sdk.android.cardpayment.theme.sdkColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,7 +69,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 28.sp,
-                color = colorResource(id = R.color.payment_sdk_pay_button_background_color)
+                color = sdkColor(R.color.payment_sdk_pay_button_background_color)
             )
         )
 

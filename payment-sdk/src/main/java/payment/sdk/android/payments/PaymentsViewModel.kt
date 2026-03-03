@@ -33,6 +33,7 @@ import payment.sdk.android.core.Utils.getQueryParameter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
 import payment.sdk.android.core.getAaniPayLink
+import payment.sdk.android.core.getAaniQrPayLink
 import payment.sdk.android.core.getCardPaymentUrl
 import payment.sdk.android.core.getGooglePayConfigUrl
 import payment.sdk.android.core.getGooglePayUrl
@@ -53,6 +54,7 @@ import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.googlepay.GooglePayConfigFactory
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.googlepay.GooglePayJsonConfig
 import payment.sdk.android.googlepay.env
 
@@ -81,6 +83,9 @@ internal class UnifiedPaymentPageViewModel(
 
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
+
+    var orderReference: String = ""
+        private set
 
     fun startGooglePayProcess() {
         _isProcessing.value = true
@@ -160,7 +165,8 @@ internal class UnifiedPaymentPageViewModel(
                 currencyCode = currencyCode,
                 payerIp = payerIp,
                 accessToken = accessToken,
-                anniPaymentLink = order.getAaniPayLink().orEmpty()
+                anniPaymentLink = order.getAaniPayLink().orEmpty(),
+                anniQrPaymentLink = order.getAaniQrPayLink().orEmpty(),
             )
         }
 
@@ -199,7 +205,7 @@ internal class UnifiedPaymentPageViewModel(
                 payPageUrl = cardPaymentsIntent.paymentUrl,
                 orderUrl = orderUrl,
                 testOtpMode = merchantClickToPayConfig.testOtpMode,
-                locale = order.language
+                locale = SDKConfig.getLanguage()
             )
         }
 
@@ -211,6 +217,8 @@ internal class UnifiedPaymentPageViewModel(
         }
 
         val isSamsungPayAvailable = supportedWallets.contains("SAMSUNG_PAY")
+
+        orderReference = order.reference.orEmpty()
 
         _uiState.update {
             UnifiedPaymentPageVMUiState.Authorized(
@@ -226,10 +234,11 @@ internal class UnifiedPaymentPageViewModel(
                 amount = amount,
                 currencyCode = currencyCode,
                 selfUrl = order.getSelfUrl().orEmpty(),
-                locale = order.language,
+                locale = SDKConfig.getLanguage(),
                 aaniConfig = aaniConfig,
                 clickToPayConfig = clickToPayConfig,
-                payerIp = payerIp
+                payerIp = payerIp,
+                orderReference = order.reference.orEmpty()
             )
         }
     }

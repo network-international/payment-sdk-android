@@ -47,6 +47,7 @@ class AaniPayLauncher(
     class Config(
         val amount: Double,
         val anniPaymentLink: String,
+        val anniQrPaymentLink: String,
         val currencyCode: String,
         val accessToken: String,
         val payerIp: String,

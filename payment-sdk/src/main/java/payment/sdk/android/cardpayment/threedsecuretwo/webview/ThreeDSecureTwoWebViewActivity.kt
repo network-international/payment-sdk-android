@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -137,6 +138,20 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         webView.init(this)
         pushNewWebView(webView)
 
+        // Handle back press using OnBackPressedCallback (replaces deprecated onBackPressed)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when {
+                    threeDSecureWebViews.peek().canGoBack() -> threeDSecureWebViews.peek().goBack()
+                    threeDSecureWebViews.size > 1 -> popCurrentWebView()
+                    else -> {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
+
         if(threeDSMethodData == null || threeDSMethodURL == null) {
             fingerPrintCompleted = true
             onCompleteFingerPrint("U")
@@ -234,7 +249,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                     finishWithResult(state)
                 }
             },
-            error = { exception ->
+            error = { _ ->
                 Log.e("ThreeDSTwoWebActivity", "ThreeDS Authentications failed")
                 finishWithResult()
             }
@@ -253,17 +268,20 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             paymentApiInteractor.postThreeDSTwoChallengeResponse(
                 threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL!!,
                 paymentCookie = paymentCookie!!,
-                success = { state, response ->
+                success = { _, _ ->
                     paymentApiInteractor.getOrder(
                         orderUrl = orderUrl!!,
                         paymentCookie = paymentCookie!!,
                         success = { _, _, _, _, _, _, order, _ ->
                             val orderResponse = Gson().fromJson(order.toString(), Order::class.java)
-                            val orderState: String? = order
-                                .getJSONObject("_embedded")
-                                ?.getJSONArray("payment")
-                                ?.getJSONObject(0)
-                                ?.getString("state")
+                            val orderState: String? = try {
+                                order.getJSONObject("_embedded")
+                                    .getJSONArray("payment")
+                                    .getJSONObject(0)
+                                    .getString("state")
+                            } catch (_: Exception) {
+                                null
+                            }
                             finishWithResult(orderState, orderResponse.toIntent(paymentCookie))
                         },
                         error = {
@@ -323,7 +341,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                         browserData.browserIP = ipResponse.getString("requesterIp")
                         postAuthentications(browserData, threeDSCompInd);
                     },
-                    error = { exception ->
+                    error = { _ ->
                         browserData.browserIP = "192.168.1.1"
                         postAuthentications(browserData, threeDSCompInd);
                         Log.e(
@@ -368,12 +386,11 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         finish()
     }
 
+    @Deprecated("Deprecated in Java", ReplaceWith("onBackPressedDispatcher.onBackPressed()"))
     override fun onBackPressed() {
-        when {
-            threeDSecureWebViews.peek().canGoBack() -> threeDSecureWebViews.peek().goBack()
-            threeDSecureWebViews.size > 1 -> popCurrentWebView()
-            else -> super.onBackPressed()
-        }
+        // Handled by OnBackPressedCallback registered in onCreate
+        @Suppress("DEPRECATION")
+        super.onBackPressed()
     }
 
     fun setWebViewToolbarTitle(title: Int) {

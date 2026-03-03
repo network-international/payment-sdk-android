@@ -2,6 +2,7 @@ package payment.sdk.android.payments
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -51,6 +52,16 @@ import java.util.Date
 import java.util.Locale
 
 class UnifiedPaymentPageActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = SDKConfig.getLanguage()
+        val locale = Locale(lang)
+        val config = newBase.resources.configuration.apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     private val viewModel: UnifiedPaymentPageViewModel by viewModels { UnifiedPaymentPageViewModel.Factory(args) }
 
@@ -467,8 +478,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
     private fun showPaymentResult(isSuccess: Boolean, result: UnifiedPaymentPageResult) {
         val currentState = viewModel.uiState.value
-        val formattedAmount = (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.orderAmount
-        val supportedCards = (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.supportedCards ?: emptySet()
+        val authorizedState = currentState as? UnifiedPaymentPageVMUiState.Authorized
+        val formattedAmount = authorizedState?.orderAmount
+        val supportedCards = authorizedState?.supportedCards ?: emptySet()
+        val orderReference = viewModel.orderReference
 
         val dateFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
         val dateTime = dateFormatter.format(Date())
@@ -476,7 +489,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
         val args = PaymentResultArgs(
             isSuccess = isSuccess,
             formattedAmount = formattedAmount,
-            transactionId = "",
+            transactionId = orderReference,
             dateTime = dateTime,
             supportedCards = supportedCards
         )

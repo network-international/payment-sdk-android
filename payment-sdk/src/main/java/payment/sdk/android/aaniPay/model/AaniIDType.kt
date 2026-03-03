@@ -51,7 +51,17 @@ internal enum class AaniIDType(
         length = Int.MAX_VALUE,
         sample = "example@example.com",
         label = "EMAIL"
+    ),
+    QR_CODE(
+        resourceId = R.string.aani_qr_code,
+        regex = ".*".toRegex(),
+        keyboardType = KeyboardType.Text,
+        length = 0,
+        sample = "",
+        label = "QR_CODE"
     );
+
+    val requiresInput: Boolean get() = this != QR_CODE
 
     fun validate(input: String) = regex.matches(input)
 }

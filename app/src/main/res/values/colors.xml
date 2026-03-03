@@ -6,4 +6,12 @@
     <color name="lighterGrey">#ddd</color>
     <color name="darkerGrey">#aaa</color>
     <color name="red">#FF0000</color>
+
+    <!-- SDK color overrides -->
+    <color name="payment_sdk_toolbar_color">#0055DE</color>
+    <color name="payment_sdk_toolbar_text_color">#FFFFFF</color>
+    <color name="payment_sdk_pay_button_background_color">#0055DE</color>
+    <color name="payment_sdk_pay_button_text_color">#FFFFFF</color>
+    <color name="payment_sdk_button_disabled_background_color">#D1D1D6</color>
+    <color name="payment_sdk_button_disabled_text_color">#8E8E93</color>
 </resources>

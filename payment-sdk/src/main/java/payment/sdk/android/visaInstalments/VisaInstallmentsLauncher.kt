@@ -8,7 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
-import payment.sdk.android.payments.PaymentsRequest.Builder
+import payment.sdk.android.payments.UnifiedPaymentPageRequest.Builder
 
 class VisaInstallmentsLauncher(private val activityResultLauncher: ActivityResultLauncher<Config>) {
     constructor(

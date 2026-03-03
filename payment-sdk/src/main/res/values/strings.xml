@@ -111,7 +111,7 @@
     <string name="partial_auth_message_question">Do you wish to process the transaction with the reduced amount?</string>
 
 
-    <string name="aani">AANI</string>
+    <string name="aani">Pay with AANI</string>
     <string name="aani_mobile_number">Mobile number</string>
     <string name="aani_emirates_id">Emirates ID</string>
     <string name="aani_passport_id">Passport ID</string>
@@ -120,6 +120,19 @@
     <string name="aani_paying_amount">Paying %1$s</string>
     <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
     <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
+    <string name="aani_qr_code">Pay with QR</string>
+    <string name="aani_generate_qr">Generate QR Code</string>
+    <string name="aani_scan_qr_to_pay">Scan QR → Approve Payment → Done</string>
+    <string name="aani_generating_qr">Generating QR Code</string>
+    <string name="aani_keep_modal_open">Please keep the modal open</string>
+    <string name="aani_qr_expired">QR Code Expired</string>
+    <string name="aani_qr_expired_message">QR codes expire after 5 minutes</string>
+    <string name="aani_generate_new_qr">Generate New QR Code</string>
+    <string name="aani_qr_failed">QR Generation Failed</string>
+    <string name="aani_qr_failed_message">Unable to connect to payment gateway</string>
+    <string name="aani_try_again">Try Again</string>
+    <string name="aani_payment_timeout">Payment Timeout</string>
+    <string name="aani_payment_timeout_message">Payment was not completed in time</string>
 
     <!-- Click to Pay -->
     <string name="click_to_pay_title">Click to Pay</string>
@@ -148,22 +161,24 @@
     <string name="google_pay_button">Google Pay</string>
     <string name="pay_with_google_pay">Pay with Google Pay</string>
     <string name="pay_with_samsung_pay">Pay with Samsung Pay</string>
-    <string name="pay_with_aani">Pay with AANI</string>
+    <string name="pay_with_aani">Request to Pay</string>
     <string name="or_select_payment_options">Or select your payment options</string>
     <string name="expiration_date_label">Expiration date</string>
     <string name="security_code_label">Security code</string>
     <string name="name_on_card_label">Name on card</string>
     <string name="order_summary">Order summary</string>
+    <string name="whats_cvv">What\'s CVV?</string>
+    <string name="cvv_tooltip">Security code can be located on the back of the card</string>
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">You paid %1$s</string>
     <string name="payment_result_success_title_no_amount">Payment Successful</string>
     <string name="payment_result_failure_title">Something Went Wrong</string>
-    <string name="payment_result_success_subtitle">Thank you. Your payment has been received.</string>
+    <string name="payment_result_success_subtitle">Thank you! your payment has been received.</string>
     <string name="payment_result_failure_subtitle">Please try again later.</string>
-    <string name="payment_result_transaction_id">Transaction ID</string>
+    <string name="payment_result_transaction_id">Reference number</string>
     <string name="payment_result_reference_number">Reference Number</string>
-    <string name="payment_result_date_time">Date / Time</string>
+    <string name="payment_result_date_time">Transaction Date</string>
     <string name="payment_result_done">Done</string>
 
 </resources>

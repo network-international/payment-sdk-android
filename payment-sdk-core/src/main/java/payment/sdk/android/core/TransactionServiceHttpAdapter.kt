@@ -37,8 +37,8 @@ class TransactionServiceHttpAdapter(private val context: Context) : TransactionS
     }
 
     override fun authorizePayment(order: Order, onResponse: (authTokens: HashMap<String, String>?, error: Exception?) -> Unit) {
-        val authUrl = order?.links?.paymentAuthorizationUrl?.href
-        val paymentUrl = order?.links?.paymentUrl?.href
+        val authUrl = order.links?.paymentAuthorizationUrl?.href
+        val paymentUrl = order.links?.paymentUrl?.href
 
         if (paymentUrl == null) {
             onResponse(null, Exception("No authcode found"))

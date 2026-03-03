@@ -5,13 +5,13 @@ import com.google.gson.annotations.SerializedName
 
 @Keep
 data class AaniPayResponse(
-    val _id: String,
-    val _links: Links,
+    val _id: String? = null,
+    val _links: Links? = null,
     val aani: Aani?,
     val amount: Order.Amount,
-    val orderReference: String,
-    val outletId: String,
-    val reference: String,
+    val orderReference: String? = null,
+    val outletId: String? = null,
+    val reference: String? = null,
     val state: String
 )
 
@@ -23,5 +23,7 @@ data class Links(
 
 @Keep
 data class Aani(
-    val deepLinkUrl: String?
+    val deepLinkUrl: String?,
+    val qrCodeId: String? = null,
+    val qrCodeTransactionId: String? = null
 )

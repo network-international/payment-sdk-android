@@ -5,16 +5,17 @@ import android.content.Intent
 import android.os.Parcelable
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
+import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.googlepay.GooglePayConfig
 
 /**
- * `PaymentsRequest` class represents the request for launching the payment page.
+ * `UnifiedPaymentPageRequest` class represents the request for launching the payment page.
  *
  * Use the `Builder` pattern to set necessary parameters and create an instance.
  *
  * Usage:
  * ```
- * val request = PaymentsRequest.builder()
+ * val request = UnifiedPaymentPageRequest.builder()
  *     .gatewayAuthorizationUrl(authUrl)
  *     .payPageUrl(payPageUrl)
  *     .build()
@@ -23,21 +24,24 @@ import payment.sdk.android.googlepay.GooglePayConfig
  * @property authorizationUrl The authorization URL for gateway authentication.
  * @property paymentUrl The URL for the payment page.
  * @property googlePayConfig Optional configuration for Google Pay.
+ * @property clickToPayConfig Optional configuration for Click to Pay.
  */
 @Parcelize
-class PaymentsRequest private constructor(
+class UnifiedPaymentPageRequest private constructor(
     val authorizationUrl: String,
     val paymentUrl: String,
-    val googlePayConfig: GooglePayConfig?
+    val googlePayConfig: GooglePayConfig?,
+    val clickToPayConfig: ClickToPayConfig?
 ) : Parcelable {
 
     /**
-     * Builder class for []PaymentsRequest].
+     * Builder class for []UnifiedPaymentPageRequest].
      */
     class Builder {
         private lateinit var _authorizationUrl: String
         private lateinit var _paymentUrl: String
         private var _googlePayConfig: GooglePayConfig? = null
+        private var _clickToPayConfig: ClickToPayConfig? = null
 
         /**
          * Sets the authorization URL for gateway authentication.
@@ -70,18 +74,29 @@ class PaymentsRequest private constructor(
         }
 
         /**
-         * Builds the `PaymentsRequest` instance.
+         * Sets the Click to Pay configuration for the payment request.
          *
-         * @return An instance of `PaymentsRequest`.
+         * @param clickToPayConfig The Click to Pay configuration.
+         * @return The builder instance.
+         */
+        fun setClickToPayConfig(clickToPayConfig: ClickToPayConfig) = apply {
+            this._clickToPayConfig = clickToPayConfig
+        }
+
+        /**
+         * Builds the `UnifiedPaymentPageRequest` instance.
+         *
+         * @return An instance of `UnifiedPaymentPageRequest`.
          * @throws IllegalStateException if required fields are not initialized.
          */
-        fun build(): PaymentsRequest {
+        fun build(): UnifiedPaymentPageRequest {
             check(this::_authorizationUrl.isInitialized) { "Gateway url should not be null" }
             check(this::_paymentUrl.isInitialized) { "Pay page url should not be null" }
-            return PaymentsRequest(
+            return UnifiedPaymentPageRequest(
                 authorizationUrl = _authorizationUrl,
                 paymentUrl = _paymentUrl,
-                googlePayConfig = _googlePayConfig
+                googlePayConfig = _googlePayConfig,
+                clickToPayConfig = _clickToPayConfig
             )
         }
     }
@@ -96,7 +111,7 @@ class PaymentsRequest private constructor(
      */
     fun toIntent(context: Context) = Intent(
         context,
-        PaymentsActivity::class.java
+        UnifiedPaymentPageActivity::class.java
     ).apply {
         putExtra(
             EXTRA_INTENT,
@@ -106,21 +121,21 @@ class PaymentsRequest private constructor(
 
     companion object {
         /**
-         * Creates a new builder instance for `PaymentsRequest`.
+         * Creates a new builder instance for `UnifiedPaymentPageRequest`.
          *
-         * @return A new `PaymentsRequest.Builder` instance.
+         * @return A new `UnifiedPaymentPageRequest.Builder` instance.
          */
         fun builder() = Builder()
         private const val EXTRA_ARGS = "payments_request_args"
         private const val EXTRA_INTENT = "payments_request_args_intent"
 
         /**
-         * Retrieves a `PaymentsRequest` from an intent.
+         * Retrieves a `UnifiedPaymentPageRequest` from an intent.
          *
-         * @param intent The intent containing the `PaymentsRequest`.
-         * @return The `PaymentsRequest` if available, or `null`.
+         * @param intent The intent containing the `UnifiedPaymentPageRequest`.
+         * @return The `UnifiedPaymentPageRequest` if available, or `null`.
          */
-        fun fromIntent(intent: Intent): PaymentsRequest? {
+        fun fromIntent(intent: Intent): UnifiedPaymentPageRequest? {
             val inputIntent = intent.getBundleExtra(EXTRA_INTENT)
             return inputIntent?.getParcelable(EXTRA_ARGS)
         }

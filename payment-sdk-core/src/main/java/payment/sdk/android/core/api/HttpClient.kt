@@ -24,6 +24,8 @@ interface HttpClient {
     suspend fun put(url: String, headers: Map<String, String>, body: Body): SDKHttpResponse
 
     suspend fun post(url: String, headers: Map<String, String>, body: Body): SDKHttpResponse
+
+    suspend fun delete(url: String, headers: Map<String, String>): SDKHttpResponse
 }
 
 

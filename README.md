@@ -1,5 +1,3 @@
-:warning: Whilst we make some improvements to our mobile experiences, we’ve temporarily removed the EMV 3DS SDK. Please contact ecom-reintegration@network.global to obtain the files you need.
-
 # Payment SDK for Android
 
 ![Banner](assets/banner.jpg)
@@ -7,200 +5,488 @@
 [![Build Status](https://travis-ci.com/network-international/payment-sdk-android.svg?branch=master)](https://travis-ci.com/network-international/payment-sdk-android)
 [![](https://jitpack.io/v/network-international/payment-sdk-android.svg)](https://jitpack.io/#network-international/payment-sdk-android)
 
-## Specifications
+The Payment SDK for Android provides a pre-built checkout experience for accepting payments in your Android app. It supports card payments, Google Pay, Samsung Pay, Click to Pay, saved cards, Visa Installments, Aani Pay, and partial authorization — all with 3D Secure support.
 
-#### Android API Level:
+## Requirements
 
-Android SDK and the sample merchant app support a minimum API level 21 (Android
-Kitkat).
-For more details, please refer to Android API level requirements [online](https://developer.android.com/guide/topics/manifest/uses-sdk-element#min)
+| Requirement | Version |
+|-------------|---------|
+| **Min SDK** | 21 (Android 5.0 Lollipop) |
+| **Target SDK** | 34 (Android 14) |
+| **Compile SDK** | 34 |
+| **Java** | 17 |
+| **Kotlin** | 1.9.22+ |
+| **Gradle** | 8.10.2+ |
+| **Android Gradle Plugin** | 8.7.3+ |
 
-#### Languages
+#### Supported Languages
 
-Android SDK supports English and Arabic.
-
-## Installation
-
-```groovy
-allprojects {
-  repositories {
-    ...
-    maven { url 'https://jitpack.io' }
-  }
-}
-
-dependencies {
-  // Required
-  implementation 'com.github.network-international.payment-sdk-android:payment-sdk-core:1.0.0'
-
-  // For card payment
-  implementation 'com.github.network-international.payment-sdk-android:payment-sdk:1.0.0'
-
-  //For samsung payment
-  implementation 'com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:1.0.0'
-}
-```
-
-### `payment-sdk-core`
-
-This module contains the common interfaces and classes used by the other SDK modules.
-
-### `payment-sdk`
-
-This SDK contains the Android Pay Page source code for card payment. The module handles getting card details from the User, and submitting payment requests to the Payment Gateway. If 3D Secure is required with the existing payment flow, this will be handled by the page page as well. A successful or failed payment response will be returned to merchant app in an Intent bundle.
-
-### `payment-sdk-samsungpay`
-
-This SDK contains the Samsung Pay source code for samsung in-app payment journey.
-
-## Card integration
-
-SDK provides the PaymentClient class to launch various payment methods and get payment in the merchant app. PaymentClient requires an activity instance parameter to be instantiated. Please see the sample app for more details about using PaymentClient. It requires an activity instance rather than a Context since card payment result could only return the result to a calling activity.
-
-The following code shows how to construct PaymentClient by passing an Activity
-reference:
-
-```kotlin
-class PaymentClient(private val context: Activity)
-```
-
-### **New Card API with Jetpack Compose Support**
-
-**version 4.0.0-rc1** introduces support for **Jetpack Compose** in our Card API! This release brings a modern and declarative way to implement card payment experiences.
-
-For detailed guidance and examples, refer to the documentation below:
-
-- 📄 **[New Card Payment Documentation](https://github.com/network-international/payment-sdk-android/wiki/New-Card-Paypage-(Jetpack-Compose))**  
-  Learn how to implement a new card payment flow using Jetpack Compose.
-
-- 📄 **[Saved Card Payment Documentation](https://github.com/network-international/payment-sdk-android/wiki/Saved-Card-Payment-(Jetpack-Compose))**  
-  Explore how to integrate saved card payment functionality with Jetpack Compose.
+English and Arabic.
 
 ---
 
-### Card API
+## Installation
 
-```kotlin
-PaymentClient.launchCardPayment(request: CardPaymentRequest, requestCode: Int)
+### 1. Configure Gradle
+
+**gradle-wrapper.properties:**
+```properties
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.10.2-bin.zip
 ```
 
-The card payment API internally launches another activity to get card details from the user, and control payment/3D Secure flows between the payment gateway and the merchant app. Once payment flow completes, onActivityResult is called on merchant’s activity (which is passed in constructor) and CardPaymentData type is returned in the data Intent. requestCode is used to filter out activity result requests to find out where activity response comes from. Please see HomeActivity.onActivityResult for more details in the sample merchant app or refer to the following code snippet to learn how to handle card payment response in your merchant app.
+**Root build.gradle:**
+```groovy
+buildscript {
+    ext.kotlin_version = '1.9.22'
 
-```kotlin
-override fun onActivityResult(
-  requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    if (requestCode == CARD_PAYMENT_REQUEST_CODE) {
-      when (resultCode) {
-        Activity.RESULT_OK -> onCardPaymentResponse(CardPaymentData.getFromIntent(data!!))
-        Activity.RESULT_CANCELED -> onCardPaymentCancelled()
-      }
+    repositories {
+        google()
+        mavenCentral()
     }
-  }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.3'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
 }
 ```
 
-You may notice that requestCode parameter is the same value as we already passed on to launchCardPayment method. If the User presses the Back button and cancels the card payment flow, RESULT_CANCELED is returned as an activity resultcode.
+**gradle.properties:**
+```properties
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+org.gradle.parallel=true
+org.gradle.caching=true
+android.useAndroidX=true
+android.nonTransitiveRClass=true
+android.nonFinalResIds=true
+android.enableJetifier=false
+android.defaults.buildfeatures.buildconfig=true
+kotlin.code.style=official
+```
 
-### Result Code in CardPaymentData
+### 2. Add Dependencies
 
-View the following code snippet to see how merchant app handles result code in `CardPaymentData`
+```groovy
+android {
+    compileSdk 34
 
-```kotlin
-override fun onCardPaymentResponse(data: CardPaymentData) {
-  when (data.code) {
-    CardPaymentData.STATUS_PAYMENT_AUTHORIZED,
-    CardPaymentData.STATUS_PAYMENT_CAPTURED -> {
-      view.showOrderSuccessful()
+    defaultConfig {
+        minSdk 21
+        targetSdk 34
     }
-    CardPaymentData.STATUS_PAYMENT_FAILED -> {
-      view.showError("Payment failed")
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    CardPaymentData.STATUS_GENERIC_ERROR -> {
-      view.showError("Generic error(${data.reason})")
+
+    kotlinOptions {
+        jvmTarget = '17'
     }
-    else -> IllegalArgumentException("Unknown payment response (${data.reason})")
-  }
+
+    buildFeatures {
+        compose true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.8'
+    }
+}
+
+dependencies {
+    // Required - Core module
+    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-core:5.0.0'
+
+    // Card payment (includes Jetpack Compose UI)
+    implementation 'com.github.network-international.payment-sdk-android:payment-sdk:5.0.0'
+
+    // Samsung Pay integration (optional)
+    implementation 'com.github.network-international.payment-sdk-android:payment-sdk-samsungpay:5.0.0'
 }
 ```
 
-Result Codes
-Every possible result code is checked, and an appropriate action is taken:
+> Replace `5.0.0` with the latest version from [JitPack](https://jitpack.io/#network-international/payment-sdk-android).
 
-- STATUS_PAYMENT_CAPTURED shows order creation with “SALE” action parameter is successful.
-- STATUS_PAYMENT_AUTHORIZED shows order creation with “AUTH” action parameter is successful.
-- STATUS_PAYMENT_FAILED shows payment is not successful on payment gateway.
-- STATUS_GENERIC_ERROR: shows possible issues on the client side, for instance, network is not accessible or an unexpected error occurs.
+---
 
-## Saved Card Payment
+## Modules
 
-The saved card token serves as a secure means to facilitate payments through the SDK. For comprehensive instructions and illustrative code samples, please consult the detailed guide available [here](https://github.com/network-international/payment-sdk-android/wiki/Saved-Card-Payment).
+| Module | Description |
+|--------|-------------|
+| `payment-sdk-core` | Common interfaces, data models, and API layer. Required by all other modules. |
+| `payment-sdk` | Card payment UI (Jetpack Compose), 3D Secure, Google Pay, Saved Cards, Click to Pay, Visa Installments, Aani Pay, Partial Auth. |
+| `payment-sdk-samsungpay` | Samsung Pay integration. |
 
-## Customizing SDK
+---
 
-#### Customize pay button
+## Quick Start — Card Payment
 
-You can utilize the `shouldShowOrderAmount` method to control the visibility of the amount on the pay button. The default value is set to true.
-
-```kotlin
-SDKConfig.shouldShowOrderAmount(true)
-```
-
-#### Optional Alert dialog
-
-To enhance user experience, you can prompt an alert dialog when users attempt to close the payment page. This feature can be enabled or disabled using the `shouldShowCancelAlert` configuration method.
+The SDK uses the Activity Result API. Initialize `UnifiedPaymentPageLauncher` as a property in your Activity, then launch it with the order URLs from your backend.
 
 ```kotlin
-SDKConfig.shouldShowCancelAlert(true)
-```
+import payment.sdk.android.payments.UnifiedPaymentPageLauncher
+import payment.sdk.android.payments.UnifiedPaymentPageRequest
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 
-#### Customizing Colors in Payment
+class CheckoutActivity : ComponentActivity() {
 
-To customize the colors in the Payment SDK for Android, developers can override specific color resources. please refer to detailed guide [here](https://github.com/network-international/payment-sdk-android/wiki/Customizing-Colors-in-Payment-SDK-for-Android)
+    private val paymentsLauncher = UnifiedPaymentPageLauncher(this) { result ->
+        handleResult(result)
+    }
 
-## Samsung pay integration
+    private fun startPayment(authUrl: String, payPageUrl: String) {
+        paymentsLauncher.launch(
+            UnifiedPaymentPageRequest.builder()
+                .gatewayAuthorizationUrl(authUrl)
+                .payPageUrl(payPageUrl)
+                .build()
+        )
+    }
 
-Integrating Samsung Pay into your app is a straightforward process, similar to card payment integration. Follow these steps to seamlessly implement Samsung Pay:
-
-1. **Refer to the Integration Guide**: To begin, consult our comprehensive [Samsung Pay Integration Guide](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay). This guide provides detailed instructions and examples to help you integrate Samsung Pay effectively into your application.
-
-2. **Troubleshooting and FAQs**: If you encounter any issues during the integration process or have questions about Samsung Pay integration, please check our [Troubleshooting and FAQs section](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay#faq--troubleshooting). Here, you'll find answers to common questions and solutions to common challenges.
-
-## Attempt threeDSTwo on a payment
-
-```kotlin
-paymentClient.executeThreeDS(paymentResponse: PaymentResponse, requestCode: Int)
-
-override fun onActivityResult(
-    requestCode: Int, resultCode: Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    if (requestCode == CARD_PAYMENT_REQUEST_CODE) {
-        when (resultCode) {
-            Activity.RESULT_OK -> onCardPaymentResponse(CardPaymentData.getFromIntent(data!!))
-            Activity.RESULT_CANCELED -> onCardPaymentCancelled()
+    private fun handleResult(result: UnifiedPaymentPageResult) {
+        when (result) {
+            is UnifiedPaymentPageResult.Success -> // SALE or PURCHASE successful
+            is UnifiedPaymentPageResult.Authorised -> // AUTH successful
+            is UnifiedPaymentPageResult.Captured -> // Payment captured
+            is UnifiedPaymentPageResult.PostAuthReview -> // Pending fraud review
+            is UnifiedPaymentPageResult.PartiallyAuthorised -> // Partial auth accepted
+            is UnifiedPaymentPageResult.PartialAuthDeclined -> // Partial auth declined by user
+            is UnifiedPaymentPageResult.PartialAuthDeclineFailed -> // Reversal failed
+            is UnifiedPaymentPageResult.Failed -> // Payment failed: result.error
+            is UnifiedPaymentPageResult.Cancelled -> // User cancelled
+            is UnifiedPaymentPageResult.SamsungPayRequested -> // Handle Samsung Pay
         }
     }
 }
 ```
 
-Use the above method to execute threeDS frictionless or challenge for a paymentResponse.
-Once the threeDS operation is completed, the `onActivityResult` method is called with the requestedCode and a CardPaymentResponse object is passed as the data element in the third argument.
-Use the same flow as handling a card response to assert the state of the payment for the order as shown in the previous section.
+### Jetpack Compose
 
-## Debugging build issues in your app
+Use `rememberUnifiedPaymentPageLauncher` inside a composable:
 
-#### Payment failure after card information is submitted
+```kotlin
+@Composable
+fun CheckoutScreen() {
+    val launcher = rememberUnifiedPaymentPageLauncher { result ->
+        // handle result
+    }
 
-Ensure your merchant account has EMV 3DS 2.0 enabled. Get in touch with our support to enable.
+    Button(onClick = {
+        launcher.launch(
+            UnifiedPaymentPageRequest.builder()
+                .gatewayAuthorizationUrl(authUrl)
+                .payPageUrl(payPageUrl)
+                .build()
+        )
+    }) {
+        Text("Pay Now")
+    }
+}
+```
 
-#### Missing required architecture x86_64 in file...
+---
 
-You need to compile and execute the project on a real device. The SDK is not compatible to be run on a simulator
+## Google Pay
 
-#### Duplicate class issue
+Pass a `GooglePayConfig` when building the request:
 
-If you see the following error
-`Duplicate class com.nimbusds.jose.jwk.KeyOperation found in modules jetified-ni-three-ds-two-android-sdk-1.0-runtime`
-You need to identify another dependency in your app that has the same `com.nimbusds.jose` library and remove the duplicate copy
+```kotlin
+import payment.sdk.android.googlepay.GooglePayConfig
 
-For more details please refer to sample app integration [`SamsungPayPresenter.kt`](https://github.com/network-international/payment-sdk-android/blob/master/app/src/main/java/payment/sdk/android/demo/basket/SamsungPayPresenter.kt#L39)
+val googlePayConfig = GooglePayConfig(
+    environment = GooglePayConfig.Environment.Test,  // .Production for live
+    merchantGatewayId = "your-gateway-id"
+)
+
+paymentsLauncher.launch(
+    UnifiedPaymentPageRequest.builder()
+        .gatewayAuthorizationUrl(authUrl)
+        .payPageUrl(payPageUrl)
+        .setGooglePayConfig(googlePayConfig)
+        .build()
+)
+```
+
+The Google Pay button appears automatically when the config is provided and the device supports it.
+
+---
+
+## Saved Card Payment
+
+Use `SavedCardPaymentLauncher` for returning customers with saved cards:
+
+```kotlin
+import payment.sdk.android.savedCard.SavedCardPaymentLauncher
+import payment.sdk.android.savedCard.SavedCardPaymentRequest
+
+class CheckoutActivity : ComponentActivity() {
+
+    private val savedCardLauncher = SavedCardPaymentLauncher(this) { result ->
+        handleResult(result)  // same UnifiedPaymentPageResult
+    }
+
+    private fun paySavedCard(authUrl: String, payPageUrl: String, cvv: String? = null) {
+        savedCardLauncher.launch(
+            SavedCardPaymentRequest.builder()
+                .gatewayAuthorizationUrl(authUrl)
+                .payPageUrl(payPageUrl)
+                .setCvv(cvv)  // optional
+                .build()
+        )
+    }
+}
+```
+
+Also available as a composable: `rememberSavedCardPaymentLauncher`.
+
+---
+
+## Click to Pay
+
+Click to Pay (Visa SRC) lets returning consumers pay with saved cards without re-entering card details.
+
+### 1. Configure
+
+Obtain DPA credentials from Visa during onboarding:
+
+```kotlin
+import payment.sdk.android.core.interactor.ClickToPayConfig
+
+val clickToPayConfig = ClickToPayConfig(
+    dpaId = "your-dpa-id",
+    dpaClientId = "your-client-id",   // optional, for multi-merchant setups
+    cardBrands = listOf("visa", "mastercard"),
+    dpaName = "Your Merchant Name",
+    isSandbox = true                   // false for production
+)
+```
+
+### 2. Launch (integrated)
+
+Pass the config when building the payment request — the Click to Pay option appears automatically:
+
+```kotlin
+paymentsLauncher.launch(
+    UnifiedPaymentPageRequest.builder()
+        .gatewayAuthorizationUrl(authUrl)
+        .payPageUrl(payPageUrl)
+        .setClickToPayConfig(clickToPayConfig)
+        .build()
+)
+```
+
+### 3. Launch (standalone)
+
+You can also use `ClickToPayLauncher` independently:
+
+```kotlin
+import payment.sdk.android.clicktopay.ClickToPayLauncher
+
+private val clickToPayLauncher = ClickToPayLauncher(this) { result ->
+    when (result) {
+        ClickToPayLauncher.Result.Success -> // Payment succeeded
+        ClickToPayLauncher.Result.Authorised -> // Payment authorised
+        ClickToPayLauncher.Result.Captured -> // Payment captured
+        ClickToPayLauncher.Result.PostAuthReview -> // Pending review
+        is ClickToPayLauncher.Result.Failed -> // result.error
+        ClickToPayLauncher.Result.Canceled -> // User cancelled
+        is ClickToPayLauncher.Result.Requires3DS -> // 3DS required
+    }
+}
+```
+
+---
+
+## Samsung Pay
+
+See our [Samsung Pay Integration Guide](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay) and the [FAQ & Troubleshooting](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay#faq--troubleshooting) section.
+
+---
+
+## Visa Installments
+
+Use `VisaInstallmentsLauncher` to present installment plan selection:
+
+```kotlin
+import payment.sdk.android.visaInstalments.VisaInstallmentsLauncher
+
+private val visaInstallmentsLauncher = VisaInstallmentsLauncher(this) { result ->
+    when (result) {
+        is VisaInstallmentsLauncher.Result.Success -> // result.installmentPlan
+        is VisaInstallmentsLauncher.Result.Cancelled -> // User cancelled
+    }
+}
+```
+
+---
+
+## SDK Configuration
+
+### Show/Hide Order Amount
+
+Control whether the amount is displayed on the pay button (default: `false`):
+
+```kotlin
+SDKConfig.shouldShowOrderAmount(true)
+```
+
+### Cancel Alert Dialog
+
+Prompt an alert when users try to close the payment page:
+
+```kotlin
+SDKConfig.shouldShowCancelAlert(true)
+```
+
+### Merchant Logo
+
+Display your logo at the top of the payment screen:
+
+```kotlin
+SDKConfig.setMerchantLogo(R.drawable.your_logo)
+```
+
+---
+
+## Customizing Colors
+
+The SDK provides two ways to customize colors: **XML resource overrides** (build-time) and **runtime overrides** via `SDKConfig.setColor()`.
+
+### Available Color Resources
+
+| Resource Name | Default | Description |
+|---------------|---------|-------------|
+| `payment_sdk_pay_button_background_color` | `#4885ED` | Pay button background |
+| `payment_sdk_pay_button_text_color` | `#FFFFFF` | Pay button text |
+| `payment_sdk_button_disabled_background_color` | `#D1D1D6` | Disabled button background |
+| `payment_sdk_button_disabled_text_color` | `#8E8E93` | Disabled button text |
+| `payment_sdk_toolbar_color` | `#000000` | Toolbar background |
+| `payment_sdk_toolbar_text_color` | `#FFFFFF` | Toolbar text |
+| `payment_sdk_toolbar_icon_color` | `#FFFFFF` | Toolbar icons (back arrow, close) |
+
+### Option 1: XML Override (build-time)
+
+Add color resources in your app's `res/values/colors.xml`. These override the SDK defaults at build time:
+
+```xml
+<resources>
+    <color name="payment_sdk_pay_button_background_color">#FF5722</color>
+    <color name="payment_sdk_pay_button_text_color">#FFFFFF</color>
+    <color name="payment_sdk_button_disabled_background_color">#BDBDBD</color>
+    <color name="payment_sdk_button_disabled_text_color">#757575</color>
+    <color name="payment_sdk_toolbar_color">#FF5722</color>
+    <color name="payment_sdk_toolbar_text_color">#FFFFFF</color>
+</resources>
+```
+
+### Option 2: Runtime Override
+
+Use `SDKConfig.setColor()` to override colors at runtime. This takes precedence over XML values:
+
+```kotlin
+import payment.sdk.android.SDKConfig
+import payment.sdk.android.sdk.R
+
+// Call before launching any payment flow (e.g., in Application.onCreate or Activity.onCreate)
+SDKConfig
+    .setColor(R.color.payment_sdk_pay_button_background_color, Color.parseColor("#FF5722"))
+    .setColor(R.color.payment_sdk_pay_button_text_color, Color.WHITE)
+    .setColor(R.color.payment_sdk_button_disabled_background_color, Color.parseColor("#BDBDBD"))
+    .setColor(R.color.payment_sdk_button_disabled_text_color, Color.parseColor("#757575"))
+    .setColor(R.color.payment_sdk_toolbar_color, Color.parseColor("#FF5722"))
+    .setColor(R.color.payment_sdk_toolbar_text_color, Color.WHITE)
+```
+
+Runtime overrides apply to all SDK screens including card payment, saved card, Click to Pay WebView buttons, Visa Installments, and Aani Pay.
+
+---
+
+## Legacy API — PaymentClient
+
+For backward compatibility, `PaymentClient` is still available using `onActivityResult`:
+
+```kotlin
+PaymentClient(activity).launchCardPayment(request, REQUEST_CODE)
+
+override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_CODE) {
+        when (resultCode) {
+            Activity.RESULT_OK -> {
+                val paymentData = CardPaymentData.getFromIntent(data!!)
+                when (paymentData.code) {
+                    CardPaymentData.STATUS_PAYMENT_CAPTURED -> // Success (SALE)
+                    CardPaymentData.STATUS_PAYMENT_AUTHORIZED -> // Success (AUTH)
+                    CardPaymentData.STATUS_PAYMENT_FAILED -> // Failed
+                    CardPaymentData.STATUS_GENERIC_ERROR -> // Error
+                }
+            }
+            Activity.RESULT_CANCELED -> // User cancelled
+        }
+    }
+}
+```
+
+---
+
+## 3D Secure
+
+3D Secure (both 1.0 and 2.0) is handled automatically within the card payment flow. No additional integration is required — the SDK manages the challenge and frictionless flows internally.
+
+For manual 3DS execution with the legacy API:
+
+```kotlin
+paymentClient.executeThreeDS(paymentResponse, REQUEST_CODE)
+```
+
+---
+
+## Troubleshooting
+
+### Gradle Version Compatibility
+
+| Gradle | AGP | Java |
+|--------|-----|------|
+| 8.10.2 | 8.7.3 | 17–21 |
+| 8.6 | 8.3.x | 17–21 |
+
+### Kotlin & Compose Compiler
+
+| Kotlin | Compose Compiler |
+|--------|------------------|
+| 1.9.22 | 1.5.8 |
+| 1.9.23 | 1.5.10 |
+| 2.0.0+ | Use Compose Compiler Gradle Plugin |
+
+### jcenter() Deprecation
+
+Remove `jcenter()` from your repositories:
+
+```groovy
+repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+```
+
+### Payment fails after card submission
+
+Ensure your merchant account has EMV 3DS 2.0 enabled. Contact support to enable it.
+
+### Duplicate class error
+
+If you see `Duplicate class com.nimbusds.jose.jwk.KeyOperation`, identify and exclude the conflicting dependency in your app.
+
+---
+
+## Support
+
+For integration support, contact: **ecom-reintegration@network.global**

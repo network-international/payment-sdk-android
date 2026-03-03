@@ -8,9 +8,9 @@ class EnvironmentTest {
     @Test
     fun `getGatewayUrl and getIdentityUrl return correct URLs for all environment types`() {
         val environments = listOf(
-            Environment(EnvironmentType.DEV, name = "Dev Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm"),
-            Environment(EnvironmentType.UAT, name = "UAT Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm"),
-            Environment(EnvironmentType.PROD, name = "Prod Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm")
+            Environment(EnvironmentType.DEV, name = "Dev Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm", region = Region.UAE),
+            Environment(EnvironmentType.UAT, name = "UAT Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm", region = Region.UAE),
+            Environment(EnvironmentType.PROD, name = "Prod Environment", apiKey = "api_key", outletReference = "outlet_ref", realm = "realm", region = Region.UAE)
         )
 
         environments.forEach { environment ->
