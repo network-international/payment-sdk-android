@@ -43,7 +43,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.1'
+        kotlinCompilerExtensionVersion '1.5.8'
     }
 
     sourceSets {
@@ -82,6 +82,7 @@ dependencies {
     implementation "com.google.android.material:material:$android_material"
     implementation "androidx.constraintlayout:constraintlayout:$androidx_constraintlayout"
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.zxing:core:3.5.2'
     implementation 'com.google.android.gms:play-services-wallet:19.4.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1'
 

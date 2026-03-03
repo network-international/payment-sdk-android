@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import payment.sdk.android.payments.theme.SDKTheme
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.cardpayment.widget.PreviewTextView
 import payment.sdk.android.core.CardType
 import payment.sdk.android.sdk.R
@@ -57,9 +58,9 @@ internal fun CreditCardView(
             modifier = Modifier.background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        colorResource(id = R.color.payment_sdk_card_start_color),
-                        colorResource(id = R.color.payment_sdk_card_center_color),
-                        colorResource(id = R.color.payment_sdk_card_end_color),
+                        sdkColor(R.color.payment_sdk_card_start_color),
+                        sdkColor(R.color.payment_sdk_card_center_color),
+                        sdkColor(R.color.payment_sdk_card_end_color),
                     )
                 )
             )

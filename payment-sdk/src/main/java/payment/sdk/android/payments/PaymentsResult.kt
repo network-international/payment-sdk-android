@@ -4,12 +4,12 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 /**
- * `PaymentsResult` is a sealed class representing the possible outcomes of a payment process.
- * Each subclass of `PaymentsResult` describes a specific result state,
+ * `UnifiedPaymentPageResult` is a sealed class representing the possible outcomes of a payment process.
+ * Each subclass of `UnifiedPaymentPageResult` describes a specific result state,
  * mapped to standard payment statuses.
  */
 @Parcelize
-sealed class PaymentsResult : Parcelable {
+sealed class UnifiedPaymentPageResult : Parcelable {
 
     /**
      * Represents a successful authorization of the payment.
@@ -17,7 +17,7 @@ sealed class PaymentsResult : Parcelable {
      * where order creation with the “AUTH” action parameter is successful.
      */
     @Parcelize
-    data object Authorised : PaymentsResult()
+    data object Authorised : UnifiedPaymentPageResult()
 
     /**
      * Represents a successful completion of the payment.
@@ -25,14 +25,14 @@ sealed class PaymentsResult : Parcelable {
      * indicating that the order creation was successful with either a “SALE” or “PURCHASE” action parameter.
      */
     @Parcelize
-    data object Success : PaymentsResult()
+    data object Success : UnifiedPaymentPageResult()
 
     /**
      * Indicates the payment requires a post-authorization fraud review.
      * Corresponds to `STATUS_POST_AUTH_REVIEW`, where further review is needed before finalizing the payment.
      */
     @Parcelize
-    data object PostAuthReview : PaymentsResult()
+    data object PostAuthReview : UnifiedPaymentPageResult()
 
     /**
      * Indicates that a partial authorization was attempted but declined by the customer.
@@ -40,7 +40,7 @@ sealed class PaymentsResult : Parcelable {
      * showing the customer chose not to proceed with the transaction after partial authorization.
      */
     @Parcelize
-    data object PartialAuthDeclined : PaymentsResult()
+    data object PartialAuthDeclined : UnifiedPaymentPageResult()
 
     /**
      * Indicates a partial authorization attempt was declined by the customer,
@@ -49,14 +49,14 @@ sealed class PaymentsResult : Parcelable {
      * indicating downstream system errors prevented successful reversal.
      */
     @Parcelize
-    data object PartialAuthDeclineFailed : PaymentsResult()
+    data object PartialAuthDeclineFailed : UnifiedPaymentPageResult()
 
     /**
      * Indicates that the payment was partially authorized, and the customer accepted the partially authorized transaction.
      * Corresponds to `STATUS_PARTIALLY_AUTHORISED`, showing that the customer chose to proceed with a partially authorized payment.
      */
     @Parcelize
-    data object PartiallyAuthorised : PaymentsResult()
+    data object PartiallyAuthorised : UnifiedPaymentPageResult()
 
     /**
      * Represents a failed payment result with an error message.
@@ -66,12 +66,19 @@ sealed class PaymentsResult : Parcelable {
      * Commonly used for cases where payment is unsuccessful on the gateway or client-side issues occur, such as network problems.
      */
     @Parcelize
-    data class Failed(val error: String) : PaymentsResult()
+    data class Failed(val error: String) : UnifiedPaymentPageResult()
 
     /**
      * Indicates that the payment process was cancelled by the user.
      * This outcome generally represents a user-initiated cancellation, not an error or gateway issue.
      */
     @Parcelize
-    data object Cancelled : PaymentsResult()
+    data object Cancelled : UnifiedPaymentPageResult()
+
+    /**
+     * Indicates the user tapped Samsung Pay.
+     * The host app should handle the Samsung Pay flow using SamsungPayClient.
+     */
+    @Parcelize
+    data object SamsungPayRequested : UnifiedPaymentPageResult()
 }

@@ -96,19 +96,29 @@
     <string name="visa_pay_in_instalment">%1$s الدفع بمقدار</string>
     <string name="visa_pay_in_full">الدفع بالكامل</string>
 
-    <string name="aani">Aani Pay</string>
-    <string name="aani_mobile_number">رقم الجوال</string>
+    <string name="aani">الدفع عبر آني</string>
+    <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>
     <string name="aani_passport_id">رقم جواز السفر</string>
-    <string name="aani_email_id">البريد الإلكتروني</string>
+    <string name="aani_email_id">عنوان البريد الالكتروني</string>
     <string name="aani_alias_type">نوع الاسم المستعار</string>
 
     <string name="aani_paying_amount">جارٍ دفع %1$s</string>
     <string name="aani_tap_notification">اضغط على الإشعار الذي تلقيته في التطبيق لإكمال عملية الدفع.</string>
     <string name="aani_note_do_not_close">ملاحظة: يرجى عدم إغلاق التطبيق أثناء تشغيل المؤقت.</string>
-    <string name="aani_qr_code">رمز QR</string>
+    <string name="aani_qr_code">الدفع عبر رمز الاستجابة</string>
     <string name="aani_generate_qr">إنشاء رمز QR</string>
-    <string name="aani_scan_qr_to_pay">امسح رمز QR لإتمام الدفع</string>
+    <string name="aani_scan_qr_to_pay">امسح رمز الاستجابة - قم بالدفع - تم</string>
+    <string name="aani_generating_qr">جارٍ إنشاء رمز الاستجابة</string>
+    <string name="aani_keep_modal_open">يرجى إبقاء النافذة مفتوحة</string>
+    <string name="aani_qr_expired">انتهت صلاحية رمز الاستجابة</string>
+    <string name="aani_qr_expired_message">تنتهي صلاحية رموز الاستجابة بعد 5 دقائق</string>
+    <string name="aani_generate_new_qr">إنشاء رمز استجابة جديد</string>
+    <string name="aani_qr_failed">فشل إنشاء رمز الاستجابة</string>
+    <string name="aani_qr_failed_message">تعذر الاتصال ببوابة الدفع</string>
+    <string name="aani_try_again">حاول مرة أخرى</string>
+    <string name="aani_payment_timeout">انتهت مهلة الدفع</string>
+    <string name="aani_payment_timeout_message">لم يتم إكمال الدفع في الوقت المحدد</string>
 
     <string name="paypage_title_awaiting_partial_auth_approval">تأكيد العميل</string>
     <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
@@ -131,7 +141,7 @@
     <string name="google_pay_button">Google Pay</string>
     <string name="pay_with_google_pay">الدفع عبر Google Pay</string>
     <string name="pay_with_samsung_pay">الدفع عبر Samsung Pay</string>
-    <string name="pay_with_aani">الدفع عبر AANI</string>
+    <string name="pay_with_aani">طلب دفع</string>
     <string name="or_select_payment_options">أو اختر خيارات الدفع الخاصة بك</string>
     <string name="expiration_date_label">تاريخ الانتهاء</string>
     <string name="security_code_label">رمز الأمان</string>
@@ -146,8 +156,8 @@
     <string name="payment_result_failure_title">حدث خطأ ما</string>
     <string name="payment_result_success_subtitle">شكراً لك! تم استلام دفعتك.</string>
     <string name="payment_result_failure_subtitle">يرجى المحاولة مرة أخرى لاحقاً.</string>
-    <string name="payment_result_transaction_id">رقم المعاملة</string>
+    <string name="payment_result_transaction_id">رقم المرجع</string>
     <string name="payment_result_reference_number">الرقم المرجعي</string>
-    <string name="payment_result_date_time">التاريخ / الوقت</string>
+    <string name="payment_result_date_time">تاريخ المعاملة</string>
     <string name="payment_result_done">تم</string>
 </resources>

@@ -94,7 +94,7 @@ open class NumericMaskedEditText : ConstraintLayout, CardPaymentContract.Statefu
         }
     }
 
-    private fun onEditFocusChanged(view: View?, hasFocus: Boolean) {
+    private fun onEditFocusChanged(@Suppress("UNUSED_PARAMETER") view: View?, hasFocus: Boolean) {
         onFocusChangeListener?.onFocusChange(this, hasFocus)
     }
 

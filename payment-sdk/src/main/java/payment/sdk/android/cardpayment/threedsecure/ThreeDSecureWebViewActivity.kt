@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.MenuItem
@@ -74,6 +75,20 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         webView.postUrl(acsUrl, params.toString().toByteArray())
 
         pushNewWebView(webView)
+
+        // Handle back press using OnBackPressedCallback (replaces deprecated onBackPressed)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when {
+                    threeDSecureWebViews.peek().canGoBack() -> threeDSecureWebViews.peek().goBack()
+                    threeDSecureWebViews.size > 1 -> popCurrentWebView()
+                    else -> {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
     }
 
     private fun finishWithError(message: String) {
@@ -135,12 +150,11 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         finish()
     }
 
+    @Deprecated("Deprecated in Java", ReplaceWith("onBackPressedDispatcher.onBackPressed()"))
     override fun onBackPressed() {
-        when {
-            threeDSecureWebViews.peek().canGoBack() -> threeDSecureWebViews.peek().goBack()
-            threeDSecureWebViews.size > 1 -> popCurrentWebView()
-            else -> super.onBackPressed()
-        }
+        // Handled by OnBackPressedCallback registered in onCreate
+        @Suppress("DEPRECATION")
+        super.onBackPressed()
     }
 
     fun setTitle(title: String, subTitle: String? = null) {

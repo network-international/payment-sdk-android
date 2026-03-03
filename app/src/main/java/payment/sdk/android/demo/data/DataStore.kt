@@ -22,6 +22,8 @@ interface DataStore {
 
     fun deleteEnvironment(environment: Environment)
 
+    fun updateEnvironment(environment: Environment)
+
     fun getMerchantAttributes(): List<MerchantAttribute>
 
     fun saveMerchantAttribute(merchantAttribute: MerchantAttribute)
@@ -57,4 +59,8 @@ interface DataStore {
     fun setLanguage(language: AppLanguage)
 
     fun getLanguage(): AppLanguage
+
+    fun setSDKColor(key: String, hex: String)
+
+    fun getSDKColor(key: String, default: String): String
 }

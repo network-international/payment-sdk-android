@@ -1,6 +1,7 @@
 package payment.sdk.android.savedCard
 
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
@@ -33,7 +35,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWe
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
-import payment.sdk.android.payments.PaymentsResult
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 import payment.sdk.android.savedCard.model.SavedCardPaymentState
 import payment.sdk.android.savedCard.model.SavedCardPaymentsVMEffects
 import payment.sdk.android.savedCard.view.SavedCardPaymentView
@@ -42,6 +44,16 @@ import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 
 class SavedCardPaymentActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = SDKConfig.getLanguage()
+        val locale = java.util.Locale(lang)
+        val config = newBase.resources.configuration.apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     private val viewModel: SavedPaymentViewModel by viewModels { SavedPaymentViewModel.Factory }
 
@@ -55,7 +67,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
         }.getOrElse {
             finishWithData(
                 CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                PaymentsResult.Failed(it.message.orEmpty())
+                UnifiedPaymentPageResult.Failed(it.message.orEmpty())
             )
             return
         }
@@ -70,10 +82,10 @@ class SavedCardPaymentActivity : ComponentActivity() {
                         title = {
                             Text(
                                 text = stringResource(id = R.string.make_payment),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                                color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                             )
                         },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                        backgroundColor = sdkColor(R.color.payment_sdk_toolbar_color),
                         navigationIcon = {
                             IconButton(onClick = {
                                 if (SDKConfig.showCancelAlert) {
@@ -85,7 +97,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                             }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                    tint = sdkColor(R.color.payment_sdk_toolbar_icon_color),
                                     contentDescription = "Back"
                                 )
                             }
@@ -159,12 +171,12 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 when (it) {
                     SavedCardPaymentsVMEffects.Captured -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED),
-                        PaymentsResult.Success
+                        UnifiedPaymentPageResult.Success
                     )
 
                     is SavedCardPaymentsVMEffects.Failed -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                        PaymentsResult.Failed(it.error)
+                        UnifiedPaymentPageResult.Failed(it.error)
                     )
 
                     is SavedCardPaymentsVMEffects.InitiateThreeDS -> {
@@ -206,17 +218,17 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
                     SavedCardPaymentsVMEffects.PaymentAuthorised -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED),
-                        PaymentsResult.PartiallyAuthorised
+                        UnifiedPaymentPageResult.PartiallyAuthorised
                     )
 
                     SavedCardPaymentsVMEffects.PostAuthReview -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW),
-                        PaymentsResult.PostAuthReview
+                        UnifiedPaymentPageResult.PostAuthReview
                     )
 
                     SavedCardPaymentsVMEffects.Purchased -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED),
-                        PaymentsResult.Success
+                        UnifiedPaymentPageResult.Success
                     )
                 }
             }
@@ -238,27 +250,27 @@ class SavedCardPaymentActivity : ComponentActivity() {
                 when (state) {
                     "AUTHORISED" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED),
-                        PaymentsResult.Success
+                        UnifiedPaymentPageResult.Success
                     )
 
                     "PURCHASED" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED),
-                        PaymentsResult.Success
+                        UnifiedPaymentPageResult.Success
                     )
 
                     "CAPTURED" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED),
-                        PaymentsResult.Success
+                        UnifiedPaymentPageResult.Success
                     )
 
                     "FAILED" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                        PaymentsResult.Failed("3DS failed")
+                        UnifiedPaymentPageResult.Failed("3DS failed")
                     )
 
                     "POST_AUTH_REVIEW" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW),
-                        PaymentsResult.PostAuthReview
+                        UnifiedPaymentPageResult.PostAuthReview
                     )
 
                     "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
@@ -271,7 +283,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                         }.getOrElse {
                             finishWithData(
                                 CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                                PaymentsResult.Failed(it.message.orEmpty())
+                                UnifiedPaymentPageResult.Failed(it.message.orEmpty())
                             )
                             return
                         }.let {
@@ -281,13 +293,13 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
                     else -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                        PaymentsResult.Failed("3DS failed")
+                        UnifiedPaymentPageResult.Failed("3DS failed")
                     )
                 }
             } else {
                 finishWithData(
                     CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED),
-                    PaymentsResult.Failed("3DS failed")
+                    UnifiedPaymentPageResult.Failed("3DS failed")
                 )
             }
         }
@@ -295,7 +307,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
     private fun finishWithData(
         cardPaymentData: CardPaymentData,
-        result: PaymentsResult
+        result: UnifiedPaymentPageResult
     ) {
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, cardPaymentData)

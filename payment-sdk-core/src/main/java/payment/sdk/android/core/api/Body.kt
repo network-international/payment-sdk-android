@@ -8,7 +8,7 @@ abstract class Body(protected val parameters: Map<String, Any>) {
 
     abstract fun encode(): String
 
-    fun isNotEmpty(): Boolean = parameters.isNotEmpty()
+    open fun isNotEmpty(): Boolean = parameters.isNotEmpty()
 
     class Json(parameters: Map<String, Any>) : Body(parameters) {
         override fun encode() =
@@ -44,6 +44,7 @@ abstract class Body(protected val parameters: Map<String, Any>) {
 
     class StringBody(val value: String): Body(emptyMap()) {
         override fun encode() = value
+        override fun isNotEmpty() = value.isNotEmpty()
     }
 
     class Empty : Body(emptyMap()) {

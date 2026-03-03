@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.partialAuth.PartialAuthViewModel
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
@@ -133,7 +134,7 @@ fun PartialAuthView(
                     viewModel.submitRequest(args.acceptUrl, args.paymentCookie)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(id = R.color.payment_sdk_pay_button_background_color),
+                    backgroundColor = sdkColor(R.color.payment_sdk_pay_button_background_color),
                     contentColor = Color.White
                 )
             ) {

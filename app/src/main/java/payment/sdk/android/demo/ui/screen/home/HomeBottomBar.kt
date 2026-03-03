@@ -128,10 +128,9 @@ fun HomeBottomBar(
                                 .fillMaxWidth()
                                 .height(42.dp),
                             onClick = onClickSamsungPay,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.samsung_pay_logo),
+                                painter = painterResource(id = payment.sdk.android.sdk.R.drawable.samsung_pay_logo),
                                 contentDescription = ""
                             )
                         }

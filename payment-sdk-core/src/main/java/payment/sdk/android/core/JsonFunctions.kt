@@ -7,22 +7,20 @@ inline fun <reified T> JSONArray.toList() = List(length()) { i -> get(i) as T }
 
 fun JSONArray.at(index: Int): JSONObject = getJSONObject(index)
 
-fun JSONObject.int(key: String?): Int? = getOrNull(key) { getInt(key) }
+fun JSONObject.int(key: String?): Int? = key?.let { getOrNull(it) { getInt(it) } }
 
-fun JSONObject.double(key: String?): Double? = getOrNull(key) { getDouble(key) }
+fun JSONObject.double(key: String?): Double? = key?.let { getOrNull(it) { getDouble(it) } }
 
-fun JSONObject.string(key: String?): String? = getOrNull(key) { getString(key) }
+fun JSONObject.string(key: String?): String? = key?.let { getOrNull(it) { getString(it) } }
 
-fun JSONObject.json(key: String?): JSONObject? = getOrNull(key) { getJSONObject(key) }
+fun JSONObject.json(key: String?): JSONObject? = key?.let { getOrNull(it) { getJSONObject(it) } }
 
-fun JSONObject.array(key: String?): JSONArray? = getOrNull(key) { getJSONArray(key) }
+fun JSONObject.array(key: String?): JSONArray? = key?.let { getOrNull(it) { getJSONArray(it) } }
 
-fun JSONObject.boolean(key: String?): Boolean? = getOrNull(key) { getBoolean(key) }
+fun JSONObject.boolean(key: String?): Boolean? = key?.let { getOrNull(it) { getBoolean(it) } }
 
 private inline fun <T> JSONObject.getOrNull(
-        key: String?,
+        key: String,
         getter: JSONObject.() -> T
-) = if (key == null) null else {
-    if (has(key)) getter(this) else null
-}
+): T? = if (has(key)) getter(this) else null
 

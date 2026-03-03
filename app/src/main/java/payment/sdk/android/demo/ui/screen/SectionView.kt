@@ -20,7 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import payment.sdk.android.R
 
 @Composable
 fun SectionView(
@@ -29,12 +31,21 @@ fun SectionView(
     showDialog: () -> Unit,
     isExpanded: Boolean = false,
     onExpand: (Boolean) -> Unit = {},
+    onScan: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.weight(1f))
+            if (onScan != null) {
+                IconButton(onClick = onScan) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_qr_scan),
+                        contentDescription = "Scan QR code"
+                    )
+                }
+            }
             IconButton(onClick = showDialog) {
                 Icon(imageVector = Icons.Default.AddCircle, contentDescription = "add")
             }
@@ -59,7 +70,6 @@ fun SectionView(
             Column(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
-                    .weight(1f)
             ) {
                 content()
                 Spacer(Modifier.height(8.dp))

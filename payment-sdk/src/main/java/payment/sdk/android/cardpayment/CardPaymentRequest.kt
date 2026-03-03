@@ -2,12 +2,12 @@ package payment.sdk.android.cardpayment
 
 /**
  * `CardPaymentRequest` is deprecated and will be removed in future releases.
- * Use `PaymentsRequest` instead for improved flexibility and feature support.
+ * Use `UnifiedPaymentPageRequest` instead for improved flexibility and feature support.
  *
  * Migration:
  * ```
- * // Replace CardPaymentRequest usage with PaymentsRequest
- * val paymentsRequest = PaymentsRequest.builder()
+ * // Replace CardPaymentRequest usage with UnifiedPaymentPageRequest
+ * val paymentsRequest = UnifiedPaymentPageRequest.builder()
  *     .gatewayAuthorizationUrl(authUrl)
  *     .payPageUrl(payPageUrl)
  *     .setLanguageCode(viewModel.getLanguageCode())
@@ -16,10 +16,10 @@ package payment.sdk.android.cardpayment
  *
  * @property gatewayUrl The URL for gateway authorization.
  * @property code The unique code for the payment request.
- * @see [PaymentsRequest]
- * @deprecated Use `PaymentsRequest` instead, which provides additional configuration options.
+ * @see [UnifiedPaymentPageRequest]
+ * @deprecated Use `UnifiedPaymentPageRequest` instead, which provides additional configuration options.
  */
-@Deprecated("Use PaymentsRequest instead", ReplaceWith("PaymentsRequest"))
+@Deprecated("Use UnifiedPaymentPageRequest instead", ReplaceWith("UnifiedPaymentPageRequest"))
 class CardPaymentRequest private constructor(
     val gatewayUrl: String,
     val code: String
@@ -27,9 +27,9 @@ class CardPaymentRequest private constructor(
 
     /**
      * Builder class for `CardPaymentRequest`.
-     * @deprecated Use `PaymentsRequest.Builder` instead.
+     * @deprecated Use `UnifiedPaymentPageRequest.Builder` instead.
      */
-    @Deprecated("Use PaymentsRequest.Builder instead", ReplaceWith("PaymentsRequest.Builder"))
+    @Deprecated("Use UnifiedPaymentPageRequest.Builder instead", ReplaceWith("UnifiedPaymentPageRequest.Builder"))
     class Builder {
         private var gatewayUrl: String? = null
         private var code: String? = null

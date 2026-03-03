@@ -31,8 +31,16 @@ import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.demo.model.RecurringDetails
-import payment.sdk.android.payments.PaymentsResult
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 
+/**
+ * Manages the demo app's payment lifecycle:
+ *   - **Order creation**: [createOrder] sends order details to the backend and emits a
+ *     [MainViewModelEffect] so the Activity can launch the appropriate payment flow.
+ *   - **Payment results**: [onPaymentResult] maps [UnifiedPaymentPageResult] states to UI states.
+ *   - **Saved cards**: After a successful payment, [saveCardFromOrder] fetches the order to
+ *     extract and persist the saved card for future use.
+ */
 @Keep
 class MainViewModel(
     private val paymentClient: PaymentClient,
@@ -145,10 +153,6 @@ class MainViewModel(
         }
     }
 
-    fun onCardPaymentCancelled() {
-        _uiState.update { it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED) }
-    }
-
     fun closeDialog() {
         _uiState.update { it.copy(state = MainViewModelStateType.INIT) }
     }
@@ -232,47 +236,47 @@ class MainViewModel(
         }
     }
 
-    fun onPaymentResult(result: PaymentsResult) {
+    fun onPaymentResult(result: UnifiedPaymentPageResult) {
         when (result) {
-            PaymentsResult.Cancelled -> _uiState.update {
+            UnifiedPaymentPageResult.Cancelled -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED)
             }
 
-            is PaymentsResult.Failed -> _uiState.update {
+            is UnifiedPaymentPageResult.Failed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_FAILED, message = result.error)
             }
 
-            PaymentsResult.PartialAuthDeclineFailed -> _uiState.update {
+            UnifiedPaymentPageResult.PartialAuthDeclineFailed -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
             }
 
-            PaymentsResult.PartialAuthDeclined -> _uiState.update {
+            UnifiedPaymentPageResult.PartialAuthDeclined -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)
             }
 
-            PaymentsResult.PartiallyAuthorised -> _uiState.update {
+            UnifiedPaymentPageResult.PartiallyAuthorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED)
             }
 
-            PaymentsResult.PostAuthReview -> _uiState.update {
+            UnifiedPaymentPageResult.PostAuthReview -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_POST_AUTH_REVIEW)
             }
 
-            PaymentsResult.Success -> {
+            UnifiedPaymentPageResult.Success -> {
                 saveCardFromOrder(uiState.value.orderReference)
             }
 
-            PaymentsResult.Authorised -> _uiState.update {
+            UnifiedPaymentPageResult.Authorised -> _uiState.update {
                 it.copy(state = MainViewModelStateType.AUTHORIZED)
+            }
+
+            UnifiedPaymentPageResult.SamsungPayRequested -> {
+                // Host app should launch Samsung Pay flow via SamsungPayClient
             }
         }
     }
 
-    fun getLanguageCode() = dataStore.getLanguage().code
-
     companion object {
-
-        const val CARD_PAYMENT_REQUEST_CODE = 123
 
         fun provideFactory(
             activity: Activity,

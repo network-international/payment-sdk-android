@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.sdk.R
 
@@ -44,17 +45,17 @@ class VisaInstallmentsActivity : ComponentActivity() {
                         title = {
                             Text(
                                 text = stringResource(id = R.string.title_activity_visa_instalments),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                                color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                             )
                         },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                        backgroundColor = sdkColor(R.color.payment_sdk_toolbar_color),
                         navigationIcon = {
                             IconButton(onClick = {
                                 finishWithData(VisaInstallmentsLauncher.Result.Cancelled)
                             }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                    tint = sdkColor(R.color.payment_sdk_toolbar_icon_color),
                                     contentDescription = "Back"
                                 )
                             }

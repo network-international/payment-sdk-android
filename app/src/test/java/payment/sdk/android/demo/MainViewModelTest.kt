@@ -27,6 +27,7 @@ import payment.sdk.android.demo.http.CreateOrderApiInteractor
 import payment.sdk.android.demo.http.GetOrderApiInteractor
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
+import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
@@ -51,7 +52,8 @@ class MainViewModelTest {
         name = "test",
         apiKey = "key",
         outletReference = "ref",
-        realm = "name"
+        realm = "name",
+        region = Region.UAE
     )
 
     private val savedCard = SavedCard(

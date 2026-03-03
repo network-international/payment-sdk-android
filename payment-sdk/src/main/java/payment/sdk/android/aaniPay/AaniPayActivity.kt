@@ -1,6 +1,7 @@
 package payment.sdk.android.aaniPay
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -26,11 +27,26 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.views.AaniPayScreen
 import payment.sdk.android.aaniPay.views.AaniPayTimerScreen
+import payment.sdk.android.aaniPay.views.AaniQrDisplayScreen
+import payment.sdk.android.aaniPay.views.AaniQrLoadingScreen
+import payment.sdk.android.aaniPay.views.AaniQrStatusScreen
+import payment.sdk.android.aaniPay.views.QrStatusType
+import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = payment.sdk.android.SDKConfig.getLanguage()
+        val locale = java.util.Locale(lang)
+        val config = newBase.resources.configuration.apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     private val inputArgs: AaniPayLauncher.Config? by lazy {
         AaniPayLauncher.Config.fromIntent(intent = intent)
@@ -53,6 +69,9 @@ class AaniPayActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.state.collect { state ->
                 handleBackPress(state)
+                if (state == AaniPayVMState.Cancelled) {
+                    finishWithData(AaniPayLauncher.Result.Canceled)
+                }
             }
         }
 
@@ -63,16 +82,16 @@ class AaniPayActivity : AppCompatActivity() {
                 TopAppBar(title = {
                     Text(
                         text = stringResource(R.string.aani),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                        color = sdkColor(R.color.payment_sdk_pay_button_text_color)
                     )
                 },
-                    backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                    backgroundColor = sdkColor(R.color.payment_sdk_toolbar_color),
                     navigationIcon = {
-                        if (state !is AaniPayVMState.Pooling) {
+                        if (state !is AaniPayVMState.Pooling && state !is AaniPayVMState.QrDisplay && state !is AaniPayVMState.Loading && state !is AaniPayVMState.QrLoading) {
                             IconButton(onClick = { finishWithData(AaniPayLauncher.Result.Canceled) }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                    tint = sdkColor(R.color.payment_sdk_toolbar_icon_color),
                                     contentDescription = "Back"
                                 )
                             }
@@ -84,7 +103,9 @@ class AaniPayActivity : AppCompatActivity() {
                 ) {
                     when (state) {
                         is AaniPayVMState.Init -> {
-                            AaniPayScreen { alias, value ->
+                            AaniPayScreen(
+                                qrEnabled = args.anniQrPaymentLink.isNotEmpty()
+                            ) { alias, value ->
                                 viewModel.onSubmit(
                                     args = args,
                                     alias = alias,
@@ -116,8 +137,49 @@ class AaniPayActivity : AppCompatActivity() {
                             }
                         }
 
+                        is AaniPayVMState.QrDisplay -> {
+                            AaniQrDisplayScreen(
+                                (state as AaniPayVMState.QrDisplay).amount,
+                                (state as AaniPayVMState.QrDisplay).currencyCode,
+                                (state as AaniPayVMState.QrDisplay).qrContent,
+                                onExpired = { viewModel.onQrExpired() },
+                                onCancel = { viewModel.cancelQr() })
+                        }
+
+                        is AaniPayVMState.QrExpired -> {
+                            AaniQrStatusScreen(
+                                statusType = QrStatusType.EXPIRED,
+                                onAction = { viewModel.retryQr() },
+                                onCancel = { viewModel.cancelQr() }
+                            )
+                        }
+
+                        is AaniPayVMState.QrFailed -> {
+                            AaniQrStatusScreen(
+                                statusType = QrStatusType.FAILED,
+                                onAction = { viewModel.retryQr() },
+                                onCancel = { viewModel.cancelQr() }
+                            )
+                        }
+
+                        is AaniPayVMState.PaymentTimeout -> {
+                            AaniQrStatusScreen(
+                                statusType = QrStatusType.TIMEOUT,
+                                onAction = { viewModel.retryPayment() },
+                                onCancel = { viewModel.cancelQr() }
+                            )
+                        }
+
+                        AaniPayVMState.Cancelled -> {
+                            finishWithData(AaniPayLauncher.Result.Canceled)
+                        }
+
                         is AaniPayVMState.Loading -> {
                             CircularProgressDialog((state as AaniPayVMState.Loading).message)
+                        }
+
+                        AaniPayVMState.QrLoading -> {
+                            AaniQrLoadingScreen()
                         }
 
                         AaniPayVMState.Success -> {
@@ -130,12 +192,16 @@ class AaniPayActivity : AppCompatActivity() {
     }
 
     private fun handleBackPress(state: AaniPayVMState) {
+        val isBlocked = state is AaniPayVMState.Pooling ||
+                state is AaniPayVMState.QrDisplay ||
+                state is AaniPayVMState.Loading ||
+                state is AaniPayVMState.QrLoading
         onBackPressedDispatcher.addCallback(this) {
-            if (state !is AaniPayVMState.Pooling) {
+            if (!isBlocked) {
                 finish()
             }
         }.apply {
-            isEnabled = state is AaniPayVMState.Pooling
+            isEnabled = isBlocked
         }
     }
 

@@ -7,21 +7,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
 /**
- * `PaymentsLauncher` class handles launching the payment page using an `ActivityResultLauncher`.
+ * `UnifiedPaymentPageLauncher` class handles launching the payment page using an `ActivityResultLauncher`.
  * It supports asynchronous result handling through a callback.
  *
  * Usage:
  * ```
  * // Initialize the launcher
- * private val paymentsLauncher = PaymentsLauncher(
+ * private val paymentsLauncher = UnifiedPaymentPageLauncher(
  *     this
  * ) { result ->
- *     // Handle the payment result of type [PaymentsResult]
+ *     // Handle the payment result of type [UnifiedPaymentPageResult]
  * }
  *
  * // Start the payment
  * paymentsLauncher.launch(
- *     PaymentsRequest.builder()
+ *     UnifiedPaymentPageRequest.builder()
  *         .gatewayAuthorizationUrl(authUrl)
  *         .payPageUrl(payPageUrl)
  *         .setLanguageCode(viewModel.getLanguageCode())
@@ -31,59 +31,59 @@ import androidx.compose.runtime.remember
  *
  * @property activityResultLauncher The launcher to start the payment page request.
  */
-class PaymentsLauncher(private val activityResultLauncher: ActivityResultLauncher<PaymentsRequest>) {
+class UnifiedPaymentPageLauncher(private val activityResultLauncher: ActivityResultLauncher<UnifiedPaymentPageRequest>) {
     /**
-     * Secondary constructor for `PaymentsLauncher`.
+     * Secondary constructor for `UnifiedPaymentPageLauncher`.
      *
      * @param activity The `ComponentActivity` from which the payment page is launched.
      * @param resultCallback The callback interface to handle the payment result.
      */
     constructor(
         activity: ComponentActivity,
-        resultCallback: PaymentsResultCallback,
+        resultCallback: UnifiedPaymentPageResultCallback,
     ) : this(
         activityResultLauncher = activity.registerForActivityResult(
-            PaymentsLauncherContract(),
+            UnifiedPaymentPageLauncherContract(),
             resultCallback::onResult
         ),
     )
 
     /**
-     * Launches the payment page using the provided `PaymentsRequest`.
+     * Launches the payment page using the provided `UnifiedPaymentPageRequest`.
      *
      * @param paymentsRequest The request object containing necessary parameters for launching the payment.
      */
-    fun launch(paymentsRequest: PaymentsRequest) {
+    fun launch(paymentsRequest: UnifiedPaymentPageRequest) {
         activityResultLauncher.launch(paymentsRequest)
     }
 }
 
 /**
- * `PaymentsResultCallback` functional interface used to handle the result of the payment page request.
+ * `UnifiedPaymentPageResultCallback` functional interface used to handle the result of the payment page request.
  */
-fun interface PaymentsResultCallback {
+fun interface UnifiedPaymentPageResultCallback {
     /**
-     * Invoked with the `PaymentsResult` after the payment process completes.
+     * Invoked with the `UnifiedPaymentPageResult` after the payment process completes.
      *
-     * @param result The result of the payment, encapsulated in `PaymentsResult`.
+     * @param result The result of the payment, encapsulated in `UnifiedPaymentPageResult`.
      */
-    fun onResult(result: PaymentsResult)
+    fun onResult(result: UnifiedPaymentPageResult)
 }
 
 
 /**
- * A composable function to remember the `PaymentsLauncher` instance across recompositions.
+ * A composable function to remember the `UnifiedPaymentPageLauncher` instance across recompositions.
  *
  * @param resultCallback The callback to handle the payment result.
- * @return An instance of `PaymentsLauncher`.
+ * @return An instance of `UnifiedPaymentPageLauncher`.
  */
 @Composable
-fun rememberPaymentsLauncher(
-    resultCallback: PaymentsResultCallback
-): PaymentsLauncher {
+fun rememberUnifiedPaymentPageLauncher(
+    resultCallback: UnifiedPaymentPageResultCallback
+): UnifiedPaymentPageLauncher {
     val activityResultLauncher = rememberLauncherForActivityResult(
-        PaymentsLauncherContract(),
+        UnifiedPaymentPageLauncherContract(),
         resultCallback::onResult
     )
-    return remember { PaymentsLauncher(activityResultLauncher = activityResultLauncher) }
+    return remember { UnifiedPaymentPageLauncher(activityResultLauncher = activityResultLauncher) }
 }

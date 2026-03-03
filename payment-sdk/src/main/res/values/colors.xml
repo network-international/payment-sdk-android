@@ -15,6 +15,8 @@
 
     <color name="payment_sdk_pay_button_background_color">#4885ED</color>
     <color name="payment_sdk_pay_button_text_color">#FFFFFF</color>
+    <color name="payment_sdk_button_disabled_background_color">#D1D1D6</color>
+    <color name="payment_sdk_button_disabled_text_color">#8E8E93</color>
 
     <color name="payment_sdk_card_center_color">#232527</color>
     <color name="payment_sdk_card_end_color">#020202</color>
@@ -22,4 +24,11 @@
 
     <color name="payment_sdk_floating_hint_color">@color/blue</color>
     <color name="payment_sdk_progress_loader_color">@color/progress_green</color>
+
+    <color name="payment_sdk_radio_selected">#0069B1</color>
+    <color name="payment_sdk_radio_unselected">#DADADA</color>
+    <color name="payment_sdk_pay_button_gold">#FFD882</color>
+    <color name="payment_sdk_pay_button_gold_text">#5C3F00</color>
+    <color name="payment_sdk_separator_line">#DBDBDC</color>
+    <color name="payment_sdk_footer_text">#8F8F8F</color>
 </resources>

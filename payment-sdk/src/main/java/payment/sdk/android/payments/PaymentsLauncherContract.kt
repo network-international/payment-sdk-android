@@ -4,14 +4,14 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
 
-internal class PaymentsLauncherContract :
-    ActivityResultContract<PaymentsRequest, PaymentsResult>() {
-    override fun createIntent(context: Context, input: PaymentsRequest): Intent {
+internal class UnifiedPaymentPageLauncherContract :
+    ActivityResultContract<UnifiedPaymentPageRequest, UnifiedPaymentPageResult>() {
+    override fun createIntent(context: Context, input: UnifiedPaymentPageRequest): Intent {
         return input.toIntent(context)
     }
 
-    override fun parseResult(resultCode: Int, intent: Intent?): PaymentsResult {
-        return intent?.getParcelableExtra(EXTRA_RESULT) ?: PaymentsResult.Failed(
+    override fun parseResult(resultCode: Int, intent: Intent?): UnifiedPaymentPageResult {
+        return intent?.getParcelableExtra(EXTRA_RESULT) ?: UnifiedPaymentPageResult.Failed(
             "Error while processing result."
         )
     }

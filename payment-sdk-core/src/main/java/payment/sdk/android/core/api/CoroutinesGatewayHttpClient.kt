@@ -99,6 +99,18 @@ class CoroutinesGatewayHttpClient : HttpClient {
         }
     }
 
+    override suspend fun delete(
+        url: String,
+        headers: Map<String, String>
+    ): SDKHttpResponse {
+        return try {
+            val response = call("DELETE", url, headers, Body.Empty(), doOutput = false)
+            SDKHttpResponse.Success(response.first, response.second.toString())
+        } catch (e: java.lang.Exception) {
+            SDKHttpResponse.Failed(e)
+        }
+    }
+
     private fun httpMethodCall(
         method: String,
         url: String,
@@ -159,6 +171,10 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     val responseBody = reader.readText()
                     logResponse(responseCode, url, responseBody)
                     return Pair(connection.headerFields, JSONObject(responseBody))
+                }
+                // No Content (common DELETE response)
+                HttpURLConnection.HTTP_NO_CONTENT -> {
+                    return Pair(connection.headerFields, JSONObject("{}"))
                 }
                 // Not Discerned
                 -1 -> throw IllegalStateException("Http response code can't be discerned: -1")

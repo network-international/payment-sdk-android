@@ -5,7 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import payment.sdk.android.payments.PaymentsResultCallback
+import payment.sdk.android.payments.UnifiedPaymentPageResultCallback
 
 /**
  * `SavedCardPaymentLauncher` is a utility class to launch a saved card payment
@@ -13,7 +13,7 @@ import payment.sdk.android.payments.PaymentsResultCallback
  * Usage:
  * ```
  * private val savedCardPaymentLauncher = SavedCardPaymentLauncher(this) { result ->
- *     // Handle the payment result of type PaymentsResult
+ *     // Handle the payment result of type UnifiedPaymentPageResult
  * }
  *
  * savedCardPaymentLauncher.launch(
@@ -35,7 +35,7 @@ class SavedCardPaymentLauncher(private val activityResultLauncher: ActivityResul
 
     constructor(
         activity: ComponentActivity,
-        resultCallback: PaymentsResultCallback,
+        resultCallback: UnifiedPaymentPageResultCallback,
     ) : this(
         activityResultLauncher = activity.registerForActivityResult(
             SavedCardPaymentLauncherContract(),
@@ -61,7 +61,7 @@ class SavedCardPaymentLauncher(private val activityResultLauncher: ActivityResul
  */
 @Composable
 fun rememberSavedCardPaymentLauncher(
-    resultCallback: PaymentsResultCallback
+    resultCallback: UnifiedPaymentPageResultCallback
 ): SavedCardPaymentLauncher {
     val activityResultLauncher = rememberLauncherForActivityResult(
         SavedCardPaymentLauncherContract(),

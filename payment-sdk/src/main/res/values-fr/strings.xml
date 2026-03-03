@@ -1,0 +1,155 @@
+<resources>
+
+    <string name="payments_wallets_title">OU PAYER AVEC</string>
+
+    <!-- Title name in payment page -->
+    <string name="make_payment">Effectuer le paiement</string>
+    <string name="pay_button">Payer</string>
+
+    <!-- Dialog text to notify 3d secure page is opening -->
+    <string name="launching_3d_secure">Lancement de 3D Secure&#8230;</string>
+
+    <!-- Dialog message to notify payment is being submitted -->
+    <string name="submitting_payment">Soumission du paiement&#8230;</string>
+
+    <!-- Button used to cancel the payment process and close(dismiss) the payment view.. -->
+    <string name="cancel_button">Annuler</string>
+
+    <!-- Button used to complete the payment, once all card details have been added to the form. -->
+    <string name="pay_button_title">Payer %1$s</string>
+
+    <!-- The title of the label shown above the card number text field. -->
+    <string name="card_number_label_title">Numéro de carte</string>
+
+    <!-- The title of the label shown above the card expiry date text field. -->
+    <string name="card_expiry_date_label_title">Date d\'expiration</string>
+
+    <!-- The title of the label shown above the card CVV field. -->
+    <string name="card_cvv_label_title">CVV</string>
+
+    <!-- The placeholder for the cardholder name -->
+    <string name="cardholder_field_hint">NOM DU TITULAIRE</string>
+
+    <!-- The placeholder text to show on card -->
+    <string name="cardholder_label_title">NOM DU TITULAIRE</string>
+
+    <!-- The title of the label shown above the cardholder text field. -->
+    <string name="card_cardholder_label_title">Nom du titulaire</string>
+
+    <!-- Error Messages -->
+    <string name="error_message_pan_invalid">Le numéro de carte de crédit n\'est pas valide. Veuillez vérifier le numéro sur la carte</string>
+    <string name="error_message_card_end_date_invalid">La date d\'expiration de la carte n\'est pas valide</string>
+    <string name="error_message_card_cvv_invalid">Le CVV de la carte n\'est pas valide</string>
+    <string name="error_message_cardholder_name_invalid">Le nom du titulaire n\'est pas valide</string>
+    <string name="error_message_default_generic">Le contenu du champ n\'est pas valide</string>
+    <string name="error_message_card_numbers_multiple">Plusieurs détails de carte ne sont pas valides</string>
+    <string name="error_card_not_supported">La carte n\'est pas prise en charge pour cette transaction</string>
+
+    <!-- Progress Messages -->
+    <string name="message_authorizing">Autorisation en cours…</string>
+    <string name="message_loading_order_details">Chargement des détails de la commande…</string>
+
+    <string name="authenticating_three_ds_two">Authentification via 3DS</string>
+
+    <string name="cancel_payment_alert_title">Annuler le paiement</string>
+    <string name="cancel_payment_alert_message">Êtes-vous sûr de vouloir annuler le paiement ?</string>
+    <string name="cancel_alert">Non</string>
+    <string name="confirm_cancel_alert">Oui, annuler</string>
+    <string name="button_yes">Oui</string>
+    <string name="title_activity_visa_instalments">Versements Visa</string>
+
+    <string name="visa_instalment_eligible">Éligible aux versements</string>
+    <string name="visa_monthly_instalment">Versement mensuel : %1$s</string>
+    <string name="visa_bi_monthly_instalment">Versement bimensuel : %1$s</string>
+    <string name="visa_weekly_instalment">Versement hebdomadaire : %1$s</string>
+    <string name="visa_bi_weekly_instalment">Versement bihebdomadaire : %1$s</string>
+
+    <string name="visa_monthly_rate">Taux mensuel : %1$s %%</string>
+    <string name="visa_bi_monthly_rate">Taux bimensuel : %1$s %%</string>
+    <string name="visa_weekly_rate">Taux hebdomadaire : %1$s %%</string>
+    <string name="visa_bi_weekly_rate">Taux bihebdomadaire : %1$s %%</string>
+
+    <string name="visa_processing_fee">Frais de traitement : %1$s</string>
+    <string name="visa_terms_and_conditions">Conditions générales</string>
+    <string name="visa_read_less">Lire moins</string>
+    <string name="visa_read_more">Lire plus</string>
+    <string name="visa_pay_in_instalment">Payer en %1$s</string>
+    <string name="visa_pay_in_full">Payer en totalité</string>
+
+    <string name="paypage_title_awaiting_partial_auth_approval">Confirmation du client</string>
+    <string name="partial_auth_message_with_org">Votre banque émettrice %1$s a approuvé %2$s au lieu du montant total de %3$s.</string>
+    <string name="partial_auth_message">Votre banque émettrice a approuvé %1$s au lieu du montant total de %2$s.</string>
+    <string name="partial_auth_message_question">Souhaitez-vous poursuivre la transaction avec le montant réduit ?</string>
+
+
+    <string name="aani">Payer avec AANI</string>
+    <string name="aani_mobile_number">Numéro de mobile</string>
+    <string name="aani_emirates_id">Emirates ID</string>
+    <string name="aani_passport_id">Numéro de passeport</string>
+    <string name="aani_email_id">Adresse e-mail</string>
+    <string name="aani_alias_type">Type d\'alias</string>
+    <string name="aani_paying_amount">Paiement de %1$s</string>
+    <string name="aani_tap_notification">Appuyez sur la notification reçue dans votre application pour compléter le paiement.</string>
+    <string name="aani_note_do_not_close">Veuillez ne pas fermer l\'application pendant que le minuteur est en cours.</string>
+    <string name="aani_qr_code">Payer avec un QR code</string>
+    <string name="aani_generate_qr">Générer un code QR</string>
+    <string name="aani_scan_qr_to_pay">Scanner le QR → Approuver le paiement → Terminé</string>
+    <string name="aani_generating_qr">Génération du code QR</string>
+    <string name="aani_keep_modal_open">Veuillez garder la fenêtre ouverte</string>
+    <string name="aani_qr_expired">Code QR expiré</string>
+    <string name="aani_qr_expired_message">Les codes QR expirent après 5 minutes</string>
+    <string name="aani_generate_new_qr">Générer un nouveau code QR</string>
+    <string name="aani_qr_failed">Échec de la génération du code QR</string>
+    <string name="aani_qr_failed_message">Impossible de se connecter à la passerelle de paiement</string>
+    <string name="aani_try_again">Réessayer</string>
+    <string name="aani_payment_timeout">Délai de paiement dépassé</string>
+    <string name="aani_payment_timeout_message">Le paiement n\'a pas été effectué à temps</string>
+
+    <!-- Click to Pay -->
+    <string name="click_to_pay_title">Click to Pay</string>
+    <string name="click_to_pay_button">Click to Pay</string>
+    <string name="click_to_pay_initializing">Initialisation de Click to Pay…</string>
+    <string name="click_to_pay_processing">Traitement du paiement…</string>
+    <string name="click_to_pay_select_card">Sélectionner une carte</string>
+    <string name="click_to_pay_verify_identity">Vérifiez votre identité</string>
+    <string name="click_to_pay_enter_otp">Entrez le code envoyé à %1$s</string>
+    <string name="click_to_pay_add_card">Ajouter une nouvelle carte</string>
+    <string name="click_to_pay_pay_with">Payer avec Click to Pay</string>
+
+    <!-- Unified Payment Screen -->
+    <string name="payment_separator_text">Ou sélectionnez vos options de paiement</string>
+    <string name="pay_by_card">Payer par carte</string>
+    <string name="click_to_pay_section_title">Click to Pay</string>
+    <string name="pay_with_click_to_pay">Payer avec Click to Pay</string>
+    <string name="powered_by">Propulsé par</string>
+    <string name="terms_and_conditions">Conditions générales</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="samsung_pay_button">Samsung Pay</string>
+
+    <string name="use_credit_or_debit_card">Utiliser une carte de crédit ou de débit</string>
+    <string name="select_other_payment_options">Sélectionner d\'autres options de paiement</string>
+    <string name="terms_agreement_text">En cliquant sur \"Payer\", vous acceptez les conditions générales et autorisez cette transaction.</string>
+    <string name="google_pay_button">Google Pay</string>
+    <string name="pay_with_google_pay">Payer avec Google Pay</string>
+    <string name="pay_with_samsung_pay">Payer avec Samsung Pay</string>
+    <string name="pay_with_aani">Demande de paiement</string>
+    <string name="or_select_payment_options">Ou sélectionnez vos options de paiement</string>
+    <string name="expiration_date_label">Date d\'expiration</string>
+    <string name="security_code_label">Code de sécurité</string>
+    <string name="name_on_card_label">Nom sur la carte</string>
+    <string name="order_summary">Résumé de la commande</string>
+    <string name="whats_cvv">Qu\'est-ce que le CVV ?</string>
+    <string name="cvv_tooltip">Le code de sécurité se trouve au dos de la carte</string>
+
+    <!-- Payment Result Screen -->
+    <string name="payment_result_success_title">Vous avez payé %1$s</string>
+    <string name="payment_result_success_title_no_amount">Paiement réussi</string>
+    <string name="payment_result_failure_title">Une erreur est survenue</string>
+    <string name="payment_result_success_subtitle">Merci ! Votre paiement a été reçu.</string>
+    <string name="payment_result_failure_subtitle">Veuillez réessayer plus tard.</string>
+    <string name="payment_result_transaction_id">Numéro de référence</string>
+    <string name="payment_result_reference_number">Numéro de référence</string>
+    <string name="payment_result_date_time">Date de transaction</string>
+    <string name="payment_result_done">Terminé</string>
+
+</resources>

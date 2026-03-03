@@ -104,7 +104,7 @@ class SamsungPayClient(
         customSheet.addControl(makeAmountControl(order.amount!!)!!)
 
         val transactionServiceHttpAdapter = TransactionServiceHttpAdapter(context.applicationContext)
-        transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, error: Exception? ->
+        transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, _: Exception? ->
             if (authTokens?.get("payment-token") == null) {
                 samsungPayResponse.onFailure("Could not authorize payment")
             } else {
@@ -114,7 +114,7 @@ class SamsungPayClient(
                     samsungPayResponse,
                     samsungPaylink,
                     paymentToken
-                ) { card: CardInfo?, customSheet: CustomSheet? ->
+                ) { _: CardInfo?, customSheet: CustomSheet? ->
                     val amountBoxControl: AmountBoxControl =
                         customSheet?.getSheetControl(AMOUNT_CONTROL_ID) as AmountBoxControl
                     amountBoxControl.setAmountTotal(
