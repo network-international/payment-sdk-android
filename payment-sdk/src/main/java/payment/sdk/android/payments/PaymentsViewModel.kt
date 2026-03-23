@@ -276,6 +276,7 @@ internal class PaymentsViewModel(
             when (response.paymentResponse.state) {
                 "AUTHORISED" -> _effects.emit(PaymentsVMEffects.PaymentAuthorised)
                 "PURCHASED" -> _effects.emit(PaymentsVMEffects.Purchased)
+                "VERIFIED" -> _effects.emit(PaymentsVMEffects.Purchased)
                 "CAPTURED" -> _effects.emit(PaymentsVMEffects.Captured)
                 "POST_AUTH_REVIEW" -> _effects.emit(PaymentsVMEffects.PostAuthReview)
                 "AWAIT_3DS" -> {

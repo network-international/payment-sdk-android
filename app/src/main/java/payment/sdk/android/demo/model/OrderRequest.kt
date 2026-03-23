@@ -87,7 +87,7 @@ fun OrderRequest.toMap(): MutableMap<String, Any> {
     total?.let {
         bodyMap["total"] = mapOf(
             "currencyCode" to it.currencyCode,
-            "value" to it.value
+            "value" to it.value * 100
         )
     }
 
@@ -112,7 +112,7 @@ fun OrderRequest.toMap(): MutableMap<String, Any> {
     trialOfferAmount?.let {
         bodyMap["trialOfferAmount"] = mapOf(
             "currencyCode" to it.currencyCode,
-            "value" to it.value
+            "value" to it.value * 100
         )
     }
 

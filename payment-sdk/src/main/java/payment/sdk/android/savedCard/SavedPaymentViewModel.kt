@@ -37,6 +37,7 @@ import payment.sdk.android.core.interactor.SavedCardResponse
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.core.interactor.VisaRequest
+import payment.sdk.android.payments.PaymentsVMEffects
 import payment.sdk.android.payments.requireApplication
 import payment.sdk.android.savedCard.model.SavedCardPaymentState
 import payment.sdk.android.savedCard.model.SavedCardPaymentsVMEffects
@@ -276,6 +277,7 @@ internal class SavedPaymentViewModel(
         when (paymentResponse.state) {
             "AUTHORISED" -> _effects.emit(SavedCardPaymentsVMEffects.PaymentAuthorised)
             "PURCHASED" -> _effects.emit(SavedCardPaymentsVMEffects.Purchased)
+            "VERIFIED" -> _effects.emit(SavedCardPaymentsVMEffects.Purchased)
             "CAPTURED" -> _effects.emit(SavedCardPaymentsVMEffects.Captured)
             "POST_AUTH_REVIEW" -> _effects.emit(SavedCardPaymentsVMEffects.PostAuthReview)
             "AWAIT_3DS" -> initiate3DSecure(paymentResponse, orderUrl, paymentCookie)

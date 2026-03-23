@@ -353,6 +353,7 @@ internal class CardPaymentPresenter(
         when (state) {
             STATUS_PAYMENT_AUTHORISED -> interactions.onPaymentAuthorized()
             STATUS_PAYMENT_PURCHASED -> interactions.onPaymentPurchased()
+            STATUS_PAYMENT_VERIFIED -> interactions.onPaymentPurchased()
             STATUS_PAYMENT_CAPTURED -> interactions.onPaymentCaptured()
             STATUS_PAYMENT_AWAIT_3DS -> {
                 response?.let { orderResponse ->
@@ -488,6 +489,8 @@ internal class CardPaymentPresenter(
         internal const val STATUS_PAYMENT_AUTHORISED = "AUTHORISED"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_PURCHASED = "PURCHASED"
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_VERIFIED = "VERIFIED"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_CAPTURED = "CAPTURED"
         @VisibleForTesting
