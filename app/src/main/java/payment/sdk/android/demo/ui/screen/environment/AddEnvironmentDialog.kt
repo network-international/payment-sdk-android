@@ -27,9 +27,11 @@ import payment.sdk.android.demo.model.EnvironmentType
 import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.ui.screen.AppDialog
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEnvironmentDialog(
+    region: Region,
     onCancel: () -> Unit,
     onAddEnvironment: (environment: Environment) -> Unit
 ) {
@@ -38,8 +40,6 @@ fun AddEnvironmentDialog(
     var realm by remember { mutableStateOf("") }
     val entries = EnvironmentType.values()
     var selectedEnvironment by remember { mutableIntStateOf(0) }
-    val regionEntries = Region.values()
-    var selectedRegion by remember { mutableIntStateOf(0) }
 
     AppDialog(title = "Add Environment", onCancel = onCancel) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -53,22 +53,6 @@ fun AddEnvironmentDialog(
                     )
                 ) {
                     Text(text = option.value)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            regionEntries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = selectedRegion == index,
-                    onClick = { selectedRegion = index },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = regionEntries.count()
-                    )
-                ) {
-                    Text(text = option.code)
                 }
             }
         }
@@ -108,7 +92,7 @@ fun AddEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = regionEntries[selectedRegion]
+                            region = region
                         )
                     )
                     onCancel()

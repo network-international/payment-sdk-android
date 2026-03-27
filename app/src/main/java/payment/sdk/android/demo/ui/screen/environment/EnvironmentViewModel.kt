@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.model.OrderAction
+import payment.sdk.android.demo.model.OrderType
+import payment.sdk.android.demo.model.Region
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.sdk.R
 
@@ -37,6 +40,13 @@ class EnvironmentViewModel(
         SDKColorDef("sdk_color_button_disabled_text", R.color.payment_sdk_button_disabled_text_color, "#8E8E93", "Button Disabled Text"),
         SDKColorDef("sdk_color_toolbar", R.color.payment_sdk_toolbar_color, "#0055DE", "Toolbar"),
         SDKColorDef("sdk_color_toolbar_text", R.color.payment_sdk_toolbar_text_color, "#FFFFFF", "Toolbar Text"),
+        SDKColorDef("sdk_color_input_field_bg", R.color.payment_sdk_input_field_background_color, "#FFFFFF", "Input Field BG"),
+        SDKColorDef("sdk_color_auth_view_bg", R.color.payment_sdk_auth_view_background_color, "#F2F2F2", "Auth View BG"),
+        SDKColorDef("sdk_color_auth_view_indicator", R.color.payment_sdk_auth_view_indicator_color, "#3A8377", "Auth Indicator"),
+        SDKColorDef("sdk_color_auth_view_label", R.color.payment_sdk_auth_view_label_color, "#000000", "Auth Label"),
+        SDKColorDef("sdk_color_3ds_view_bg", R.color.payment_sdk_3ds_view_background_color, "#FFFFFF", "3DS View BG"),
+        SDKColorDef("sdk_color_3ds_view_label", R.color.payment_sdk_3ds_view_label_color, "#000000", "3DS Label"),
+        SDKColorDef("sdk_color_3ds_view_indicator", R.color.payment_sdk_3ds_view_indicator_color, "#3A8377", "3DS Indicator"),
     )
 
     // Mutable state for SDK color hex values
@@ -130,14 +140,24 @@ class EnvironmentViewModel(
         _state.update { it.copy(selectedEnvironment = environment) }
     }
 
-    fun onOrderActionSelected(action: String) {
-        dataStore.setOrderAction(action)
-        _state.update { it.copy(orderAction = action) }
+    fun getOrderAction(): OrderAction {
+        val code = dataStore.getOrderAction()
+        return OrderAction.entries.firstOrNull { it.code == code } ?: OrderAction.SALE
     }
 
-    fun onOrderTypeSelected(type: String) {
-        dataStore.setOrderType(type)
-        _state.update { it.copy(orderType = type) }
+    fun setOrderAction(action: OrderAction) {
+        dataStore.setOrderAction(action.code)
+        _state.update { it.copy(orderAction = action.code) }
+    }
+
+    fun getOrderType(): OrderType {
+        val code = dataStore.getOrderType()
+        return OrderType.entries.firstOrNull { it.code == code } ?: OrderType.SINGLE
+    }
+
+    fun setOrderType(type: OrderType) {
+        dataStore.setOrderType(type.code)
+        _state.update { it.copy(orderType = type.code) }
     }
 
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
@@ -155,6 +175,12 @@ class EnvironmentViewModel(
 
     fun setLanguage(language: AppLanguage) {
         dataStore.setLanguage(language)
+    }
+
+    fun getRegion() = dataStore.getRegion()
+
+    fun setRegion(region: Region) {
+        dataStore.setRegion(region)
     }
 
     companion object {

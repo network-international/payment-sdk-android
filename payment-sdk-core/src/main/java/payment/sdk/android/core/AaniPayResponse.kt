@@ -23,7 +23,8 @@ data class Links(
 
 @Keep
 data class Aani(
-    val deepLinkUrl: String?,
+    val deepLinkUrl: String? = null,
+    val emvQrData: String? = null,
     val qrCodeId: String? = null,
     val qrCodeTransactionId: String? = null
 )

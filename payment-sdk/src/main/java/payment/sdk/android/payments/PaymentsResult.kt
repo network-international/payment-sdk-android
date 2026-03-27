@@ -81,4 +81,5 @@ sealed class UnifiedPaymentPageResult : Parcelable {
      */
     @Parcelize
     data object SamsungPayRequested : UnifiedPaymentPageResult()
+
 }

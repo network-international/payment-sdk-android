@@ -62,6 +62,9 @@ class ClickToPayActivity : AppCompatActivity() {
 
     // Flag to prevent multiple SDK initializations
     private var sdkInitialized = false
+    // Track readiness for SDK initialization (both page load and VCTP config needed)
+    private var pageFinishedLoading = false
+    private var vctpConfigReady = false
 
     // The URL we navigate to and intercept to serve local HTML
     private lateinit var interceptUrl: String
@@ -106,7 +109,12 @@ class ClickToPayActivity : AppCompatActivity() {
 
         if (!inputArgs.testOtpMode) {
             // Fetch VCTP config in parallel while loading WebView
-            viewModel.fetchVctpConfig()
+            viewModel.fetchVctpConfig { _ ->
+                runOnUiThread {
+                    vctpConfigReady = true
+                    tryInitializeSdk()
+                }
+            }
         }
 
         // Load HTML directly with proper base URL origin
@@ -207,11 +215,12 @@ class ClickToPayActivity : AppCompatActivity() {
                 Log.d(TAG, "Page finished loading: $url")
 
                 if (!sdkInitialized) {
-                    sdkInitialized = true
                     if (inputArgs.testOtpMode) {
+                        sdkInitialized = true
                         showTestOtpPage()
                     } else {
-                        initializeSdk()
+                        pageFinishedLoading = true
+                        tryInitializeSdk()
                     }
                 }
             }
@@ -491,6 +500,15 @@ class ClickToPayActivity : AppCompatActivity() {
     }
 
     /**
+     * Try to initialize the SDK — only proceeds when both page load and VCTP config are ready.
+     */
+    private fun tryInitializeSdk() {
+        if (sdkInitialized || !pageFinishedLoading || !vctpConfigReady) return
+        sdkInitialized = true
+        initializeSdk()
+    }
+
+    /**
      * Initialize the SDK after HTML is loaded.
      * Injects the lookup GIF, sets nativeWillLookup if email provided,
      * then calls initializeSdk with config JSON.
@@ -521,7 +539,8 @@ class ClickToPayActivity : AppCompatActivity() {
         // Initialize the SDK
         val configJson = viewModel.getInitConfigJson()
         val escapedJson = configJson
-            .replace("\n", "")
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
             .replace("\r", "")
             .replace("'", "\\'")
             .trim()

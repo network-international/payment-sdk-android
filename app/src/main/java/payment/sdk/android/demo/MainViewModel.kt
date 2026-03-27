@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.core.SavedCard
-import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.demo.http.OkHttpClientAdapter
 import payment.sdk.android.demo.data.DataStore
 import payment.sdk.android.demo.data.DataStoreImpl
 import payment.sdk.android.demo.http.ApiServiceAdapter
@@ -291,17 +291,14 @@ class MainViewModel(
                     handle: SavedStateHandle
                 ): T {
                     val client = PaymentClient(activity, "6b50b00a4a324030a0c671")
+                    val httpClient = OkHttpClientAdapter(activity.applicationContext)
                     return MainViewModel(
                         paymentClient = client,
                         createOrderApiInteractor = CreateOrderApiInteractor(
-                            ApiServiceAdapter(
-                                CoroutinesGatewayHttpClient()
-                            )
+                            ApiServiceAdapter(httpClient)
                         ),
                         getOrderApiInteractor = GetOrderApiInteractor(
-                            ApiServiceAdapter(
-                                CoroutinesGatewayHttpClient()
-                            )
+                            ApiServiceAdapter(httpClient)
                         ),
                         dataStore = DataStoreImpl(activity)
                     ) as T

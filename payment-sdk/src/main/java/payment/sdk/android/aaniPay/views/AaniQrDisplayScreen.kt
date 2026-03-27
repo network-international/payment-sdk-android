@@ -3,7 +3,7 @@ package payment.sdk.android.aaniPay.views
 import android.graphics.Bitmap
 import android.view.View
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -37,9 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.TextUtilsCompat
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.delay
-import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.sdk.R
 import java.util.Locale
@@ -58,10 +61,9 @@ internal fun AaniQrDisplayScreen(
     val isLtr =
         TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
     val formattedAmount = OrderAmount(amount, currencyCode).formattedCurrencyString2Decimal(isLtr)
-    val goldColor = sdkColor(R.color.payment_sdk_pay_button_gold)
 
     val qrBitmap = remember(qrContent) {
-        generateQrBitmap(qrContent, 512)
+        generateAaniQrBitmap(qrContent, 512)
     }
 
     LaunchedEffect(Unit) {
@@ -92,22 +94,36 @@ internal fun AaniQrDisplayScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Golden bordered QR container
+        // QR container with white exclusion zone
         Box(
             modifier = Modifier
-                .border(
-                    width = 3.dp,
-                    color = goldColor,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(24.dp),
+                .size(240.dp)
+                .background(Color.White, RoundedCornerShape(4.dp)),
             contentAlignment = Alignment.Center
         ) {
             qrBitmap?.let {
                 Image(
                     bitmap = it.asImageBitmap(),
                     contentDescription = "QR Code",
-                    modifier = Modifier.size(200.dp)
+                    filterQuality = FilterQuality.None,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .padding(16.dp) // exclusion zone (2x border width)
+                )
+            }
+
+            // Aani logo overlay in center
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(Color.White)
+                    .padding(2.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.aani_qr_logo),
+                    contentDescription = "Aani",
+                    modifier = Modifier.size(48.dp)
                 )
             }
         }
@@ -192,17 +208,32 @@ internal fun AaniQrDisplayScreen(
     }
 }
 
-private fun generateQrBitmap(content: String, size: Int): Bitmap? {
+/**
+ * Generates a QR bitmap with "H" error correction level to support the center logo overlay.
+ * Creates a 1:1 pixel-per-module bitmap then scales up with nearest-neighbor
+ * to ensure uniform module widths (matching iOS CIFilter behavior).
+ */
+private fun generateAaniQrBitmap(content: String, size: Int): Bitmap? {
     return try {
         val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+        val hints = mapOf(
+            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
+            EncodeHintType.MARGIN to 0
+        )
+        // Generate at native QR size (1 pixel per module)
+        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, 1, 1, hints)
+        val qrSize = bitMatrix.width
+        val bitmap = Bitmap.createBitmap(qrSize, qrSize, Bitmap.Config.ARGB_8888)
+        for (x in 0 until qrSize) {
+            for (y in 0 until qrSize) {
+                bitmap.setPixel(
+                    x, y,
+                    if (bitMatrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+                )
             }
         }
-        bitmap
+        // Scale up with nearest-neighbor (no filtering) for uniform module widths
+        Bitmap.createScaledBitmap(bitmap, size, size, false)
     } catch (e: Exception) {
         null
     }

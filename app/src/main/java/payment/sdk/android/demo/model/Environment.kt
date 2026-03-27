@@ -53,12 +53,12 @@ data class Environment(
         if (region == Region.UAE) {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/$outletReference/orders"
-                EnvironmentType.UAT -> "https://api-gateway-uat.ngenius-payments.com/transactions/outlets/$outletReference/orders"
+                EnvironmentType.UAT -> "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/$outletReference/orders"
                 EnvironmentType.PROD -> "https://api-gateway.ngenius-payments.com/transactions/outlets/$outletReference/orders"
             }
         } else {
             return when (type) {
-                EnvironmentType.DEV -> "https://api-gateway.infradev.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
+                EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
                 EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
             }
@@ -69,12 +69,12 @@ data class Environment(
         if (region == Region.UAE) {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway-dev.ngenius-payments.com/identity/auth/access-token"
-                EnvironmentType.UAT -> "https://api-gateway-uat.ngenius-payments.com/identity/auth/access-token"
+                EnvironmentType.UAT -> "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.PROD -> "https://api-gateway.ngenius-payments.com/identity/auth/access-token"
             }
         } else {
             return when (type) {
-                EnvironmentType.DEV -> "https://api-gateway.infradev.ksa.ngenius-payments.com/identity/auth/access-token"
+                EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/identity/auth/access-token"
             }

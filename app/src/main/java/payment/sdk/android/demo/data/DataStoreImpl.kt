@@ -1,6 +1,7 @@
 package payment.sdk.android.demo.data
 
 import android.content.Context
+import androidx.core.content.edit
 import payment.sdk.android.demo.getPreferences
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.MerchantAttribute
@@ -9,6 +10,7 @@ import com.google.gson.Gson
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.model.Region
 
 class DataStoreImpl(private val context: Context) : DataStore {
     override fun saveEnvironment(environment: Environment) {
@@ -58,14 +60,14 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     override fun setOrderAction(action: String) {
-        context.getPreferences().edit().putString(KEY_ORDER_ACTION, action).apply()
+        context.getPreferences().edit { putString(KEY_ORDER_ACTION, action) }
     }
 
     override fun getOrderAction() =
         context.getPreferences().getString(KEY_ORDER_ACTION, "SALE") ?: "SALE"
 
     override fun setOrderType(action: String) {
-        context.getPreferences().edit().putString(KEY_ORDER_TYPE, action).apply()
+        context.getPreferences().edit { putString(KEY_ORDER_TYPE, action) }
     }
 
     override fun getOrderType() =
@@ -95,16 +97,14 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     override fun setSavedCard(savedCard: SavedCard) {
-        context.getPreferences()
-            .edit().putString(KEY_SAVED_CARD, Gson().toJson(savedCard)).apply()
+        context.getPreferences().edit { putString(KEY_SAVED_CARD, Gson().toJson(savedCard)) }
     }
 
     override fun deleteSavedCard(savedCard: SavedCard) {
         val savedCards = getSavedCards().toMutableList()
         if (savedCards.contains(savedCard)) {
             savedCards.remove(savedCard)
-            context.getPreferences()
-                .edit().putString(KEY_SAVED_CARDS, Gson().toJson(savedCards)).apply()
+            context.getPreferences().edit { putString(KEY_SAVED_CARDS, Gson().toJson(savedCards)) }
         }
     }
 
@@ -123,11 +123,11 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     override fun setCurrency(currency: AppCurrency) {
-        context.getPreferences().edit().putString(KEY_CURRENCY, currency.code).apply()
+        context.getPreferences().edit { putString(KEY_CURRENCY, currency.code) }
     }
 
     override fun setLanguage(language: AppLanguage) {
-        context.getPreferences().edit().putString(KEY_LANGUAGE, language.code).apply()
+        context.getPreferences().edit { putString(KEY_LANGUAGE, language.code) }
     }
 
     override fun getLanguage(): AppLanguage {
@@ -139,13 +139,21 @@ class DataStoreImpl(private val context: Context) : DataStore {
         val savedCards = getSavedCards().toMutableList()
         if (savedCards.firstOrNull { it.cardToken == savedCard.cardToken } == null) {
             savedCards.add(savedCard)
-            context.getPreferences()
-                .edit().putString(KEY_SAVED_CARDS, Gson().toJson(savedCards)).apply()
+            context.getPreferences().edit { putString(KEY_SAVED_CARDS, Gson().toJson(savedCards)) }
         }
     }
 
+    override fun setRegion(region: Region) {
+        context.getPreferences().edit { putString(KEY_REGION, region.code) }
+    }
+
+    override fun getRegion(): Region {
+        val code = context.getPreferences().getString(KEY_REGION, "")
+        return Region.entries.firstOrNull { it.code == code } ?: Region.UAE
+    }
+
     override fun setSDKColor(key: String, hex: String) {
-        context.getPreferences().edit().putString(key, hex).apply()
+        context.getPreferences().edit { putString(key, hex) }
     }
 
     override fun getSDKColor(key: String, default: String): String {
@@ -158,6 +166,7 @@ class DataStoreImpl(private val context: Context) : DataStore {
         const val KEY_SAVED_CARDS = "saved_cards"
         const val KEY_SAVED_CARD = "saved_card"
         const val KEY_ORDER_ACTION = "order_action"
+        const val KEY_REGION = "region"
         const val KEY_ORDER_TYPE = "order_type"
 
         private val products = listOf(

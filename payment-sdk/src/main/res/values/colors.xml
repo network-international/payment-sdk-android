@@ -31,4 +31,12 @@
     <color name="payment_sdk_pay_button_gold_text">#5C3F00</color>
     <color name="payment_sdk_separator_line">#DBDBDC</color>
     <color name="payment_sdk_footer_text">#8F8F8F</color>
+
+    <color name="payment_sdk_input_field_background_color">#FFFFFF</color>
+    <color name="payment_sdk_auth_view_background_color">#F2F2F2</color>
+    <color name="payment_sdk_auth_view_indicator_color">@color/progress_green</color>
+    <color name="payment_sdk_auth_view_label_color">#000000</color>
+    <color name="payment_sdk_3ds_view_background_color">#FFFFFF</color>
+    <color name="payment_sdk_3ds_view_label_color">#000000</color>
+    <color name="payment_sdk_3ds_view_indicator_color">@color/progress_green</color>
 </resources>

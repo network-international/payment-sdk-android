@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import payment.sdk.android.SDKConfig
+import payment.sdk.android.sdk.R
 
 /**
  * Resolves a color resource, checking SDKConfig for runtime overrides first.
@@ -20,7 +21,7 @@ internal fun SDKTextFieldColors(
     cursorColor: Color = Color.Black,
     textColor: Color = Color.Black,
     placeholderColor: Color = Color.Gray,
-    backgroundColor: Color = Color.White,
+    backgroundColor: Color = sdkColor(R.color.payment_sdk_input_field_background_color),
     unfocusedIndicatorColor: Color = Color(0xFFF1F1F1),
     focusedIndicatorColor: Color = Color(0xFFF1F1F1),
     focusedLabelColor: Color = Color.Gray,
@@ -41,7 +42,7 @@ internal fun SDKOutlinedTextFieldColors(
     cursorColor: Color = Color.Black,
     textColor: Color = Color.Black,
     placeholderColor: Color = Color.Gray,
-    backgroundColor: Color = Color.White,
+    backgroundColor: Color = sdkColor(R.color.payment_sdk_input_field_background_color),
     unfocusedBorderColor: Color = Color(0xFFDADADA),
     focusedBorderColor: Color = Color(0xFF333333),
     focusedLabelColor: Color = Color(0xFF333333),

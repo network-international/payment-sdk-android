@@ -6,6 +6,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,7 +42,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -309,13 +317,40 @@ fun CardPaymentSection(
                 // Terms agreement text
                 Spacer(Modifier.height(10.dp))
 
-                Text(
-                    text = stringResource(R.string.terms_agreement_text),
+                val termsContext = LocalContext.current
+                val fullTermsText = stringResource(R.string.terms_agreement_text)
+                val termsLinkText = stringResource(R.string.terms_and_conditions)
+                val annotatedTerms = remember(fullTermsText, termsLinkText) {
+                    buildAnnotatedString {
+                        val start = fullTermsText.indexOf(termsLinkText, ignoreCase = true)
+                        if (start >= 0) {
+                            append(fullTermsText.substring(0, start))
+                            pushStringAnnotation(tag = "URL", annotation = "https://www.network.ae/en/terms-and-conditions")
+                            withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                append(fullTermsText.substring(start, start + termsLinkText.length))
+                            }
+                            pop()
+                            append(fullTermsText.substring(start + termsLinkText.length))
+                        } else {
+                            append(fullTermsText)
+                        }
+                    }
+                }
+                ClickableText(
+                    text = annotatedTerms,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start,
-                    color = Color(0xFF8F8F8F),
-                    fontSize = 11.sp,
-                    lineHeight = 16.sp
+                    style = androidx.compose.ui.text.TextStyle(
+                        textAlign = TextAlign.Start,
+                        color = Color(0xFF8F8F8F),
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    ),
+                    onClick = { offset ->
+                        annotatedTerms.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                            .firstOrNull()?.let { annotation ->
+                                termsContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item)))
+                            }
+                    }
                 )
 
                 Spacer(Modifier.height(8.dp))

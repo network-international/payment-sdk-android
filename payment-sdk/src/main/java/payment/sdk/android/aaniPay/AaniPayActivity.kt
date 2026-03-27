@@ -29,6 +29,8 @@ import payment.sdk.android.aaniPay.views.AaniPayScreen
 import payment.sdk.android.aaniPay.views.AaniPayTimerScreen
 import payment.sdk.android.aaniPay.views.AaniQrDisplayScreen
 import payment.sdk.android.aaniPay.views.AaniQrLoadingScreen
+import payment.sdk.android.aaniPay.views.AaniQrExpiredScreen
+import payment.sdk.android.aaniPay.views.AaniQrFailedScreen
 import payment.sdk.android.aaniPay.views.AaniQrStatusScreen
 import payment.sdk.android.aaniPay.views.QrStatusType
 import payment.sdk.android.cardpayment.theme.sdkColor
@@ -147,19 +149,11 @@ class AaniPayActivity : AppCompatActivity() {
                         }
 
                         is AaniPayVMState.QrExpired -> {
-                            AaniQrStatusScreen(
-                                statusType = QrStatusType.EXPIRED,
-                                onAction = { viewModel.retryQr() },
-                                onCancel = { viewModel.cancelQr() }
-                            )
+                            AaniQrExpiredScreen()
                         }
 
                         is AaniPayVMState.QrFailed -> {
-                            AaniQrStatusScreen(
-                                statusType = QrStatusType.FAILED,
-                                onAction = { viewModel.retryQr() },
-                                onCancel = { viewModel.cancelQr() }
-                            )
+                            AaniQrFailedScreen()
                         }
 
                         is AaniPayVMState.PaymentTimeout -> {
