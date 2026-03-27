@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "payment.sdk.android.demo"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "113")
         versionName System.getenv("VERSION_NAME") ?: "4.0.9-rc2"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
