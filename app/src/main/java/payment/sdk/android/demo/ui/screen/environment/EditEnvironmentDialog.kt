@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
-import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.ui.screen.AppDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,8 +38,6 @@ fun EditEnvironmentDialog(
     var realm by remember { mutableStateOf(environment.realm) }
     val entries = EnvironmentType.values()
     var selectedEnvironment by remember { mutableIntStateOf(entries.indexOf(environment.type)) }
-    val regionEntries = Region.values()
-    var selectedRegion by remember { mutableIntStateOf(regionEntries.indexOf(environment.region)) }
 
     AppDialog(title = "Edit Environment", onCancel = onCancel) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -54,22 +51,6 @@ fun EditEnvironmentDialog(
                     )
                 ) {
                     Text(text = option.value)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            regionEntries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = selectedRegion == index,
-                    onClick = { selectedRegion = index },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = regionEntries.count()
-                    )
-                ) {
-                    Text(text = option.code)
                 }
             }
         }
@@ -109,7 +90,7 @@ fun EditEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = regionEntries[selectedRegion]
+                            region = environment.region
                         )
                     )
                     onCancel()

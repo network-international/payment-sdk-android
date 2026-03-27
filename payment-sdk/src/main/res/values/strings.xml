@@ -120,7 +120,7 @@
     <string name="aani_paying_amount">Paying %1$s</string>
     <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
     <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
-    <string name="aani_qr_code">Pay with QR</string>
+    <string name="aani_qr_code">QR Code</string>
     <string name="aani_generate_qr">Generate QR Code</string>
     <string name="aani_scan_qr_to_pay">Scan QR → Approve Payment → Done</string>
     <string name="aani_generating_qr">Generating QR Code</string>
@@ -155,6 +155,7 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="samsung_pay_button">Samsung Pay</string>
 
+    <string name="add_card_manually">Add card manually</string>
     <string name="use_credit_or_debit_card">Use Credit Or Debit Card</string>
     <string name="select_other_payment_options">Select Other Payment Options</string>
     <string name="terms_agreement_text">By clicking \"Pay\", you agree to the terms and conditions and authorize this transaction.</string>

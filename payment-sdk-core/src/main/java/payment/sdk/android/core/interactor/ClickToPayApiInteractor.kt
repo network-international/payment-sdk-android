@@ -275,9 +275,9 @@ class ClickToPayApiInteractor(
                 else "https://api-gateway.sandbox.ngenius-payments.com"
             environmentHintUrl.contains("-uat", ignoreCase = true) ->
                 if (isKsa) "https://api-gateway.sandbox.ksa.ngenius-payments.com"
-                else "https://api-gateway-uat.ngenius-payments.com"
+                else "https://api-gateway.sandbox.ngenius-payments.com"
             environmentHintUrl.contains("-dev", ignoreCase = true) ->
-                if (isKsa) "https://api-gateway.infradev.ksa.ngenius-payments.com"
+                if (isKsa) "https://api-gateway.dev.ksa.ngenius-payments.com"
                 else "https://api-gateway-dev.ngenius-payments.com"
             else ->
                 if (isKsa) "https://api-gateway.ksa.ngenius-payments.com"

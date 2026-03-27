@@ -16,13 +16,13 @@ class EnvironmentTest {
         environments.forEach { environment ->
             val gatewayUrl = when (environment.type) {
                 EnvironmentType.DEV -> "https://api-gateway-dev.ngenius-payments.com/transactions/outlets/outlet_ref/orders"
-                EnvironmentType.UAT -> "https://api-gateway-uat.ngenius-payments.com/transactions/outlets/outlet_ref/orders"
+                EnvironmentType.UAT -> "https://api-gateway.sandbox.ngenius-payments.com/transactions/outlets/outlet_ref/orders"
                 EnvironmentType.PROD -> "https://api-gateway.ngenius-payments.com/transactions/outlets/outlet_ref/orders"
             }
 
             val identityUrl = when (environment.type) {
                 EnvironmentType.DEV -> "https://api-gateway-dev.ngenius-payments.com/identity/auth/access-token"
-                EnvironmentType.UAT -> "https://api-gateway-uat.ngenius-payments.com/identity/auth/access-token"
+                EnvironmentType.UAT -> "https://api-gateway.sandbox.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.PROD -> "https://api-gateway.ngenius-payments.com/identity/auth/access-token"
             }
 

@@ -6,6 +6,7 @@ import payment.sdk.android.demo.model.Product
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.model.Region
 
 interface DataStore {
     fun saveEnvironment(environment: Environment)
@@ -59,6 +60,10 @@ interface DataStore {
     fun setLanguage(language: AppLanguage)
 
     fun getLanguage(): AppLanguage
+
+    fun setRegion(region: Region)
+
+    fun getRegion(): Region
 
     fun setSDKColor(key: String, hex: String)
 

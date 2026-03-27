@@ -104,6 +104,8 @@ internal class AaniPayViewModel(
                     _state.update {
                         AaniPayVMState.QrFailed(amount = amount, currencyCode = currency)
                     }
+                    delay(2000)
+                    _state.update { AaniPayVMState.Cancelled }
                 }
 
                 is AaniQrCreateResponse.Success -> {
@@ -113,11 +115,13 @@ internal class AaniPayViewModel(
                     qrAccessToken = accessToken
                     lastQrAmount = response.aaniPayResponse.amount.value ?: 0.0
                     lastQrCurrencyCode = response.aaniPayResponse.amount.currencyCode ?: "AED"
+                    val emvData = response.aaniPayResponse.aani?.emvQrData ?: ""
+                    android.util.Log.d("AaniQR", "emvQrData: $emvData")
                     _state.update {
                         AaniPayVMState.QrDisplay(
                                 amount = response.aaniPayResponse.amount.value ?: 0.0,
                                 currencyCode = response.aaniPayResponse.amount.currencyCode ?: "AED",
-                                qrContent = response.aaniPayResponse.aani?.deepLinkUrl ?: ""
+                                qrContent = emvData
                         )
                     }
                     pollingJob = viewModelScope.launch(dispatcher) {
@@ -153,6 +157,18 @@ internal class AaniPayViewModel(
         _state.update {
             AaniPayVMState.QrExpired(amount = lastQrAmount, currencyCode = lastQrCurrencyCode)
         }
+        // Cancel QR on the backend
+        val url = qrUrl
+        val codeId = qrCodeId
+        val transId = qrTransactionId
+        val token = qrAccessToken
+        viewModelScope.launch(dispatcher) {
+            if (url != null && codeId != null && transId != null && token != null) {
+                aaniQrApiInteractor.cancelQr(url, token, codeId, transId)
+            }
+            delay(2000)
+            _state.update { AaniPayVMState.Cancelled }
+        }
     }
 
     fun retryQr() {
@@ -175,9 +191,10 @@ internal class AaniPayViewModel(
         do {
             delay(5000)
             val state = aaniQrApiInteractor.pollQrStatus(url, accessToken, qrCodeId, qrTransactionId)
-            // Guard: if cancelQr() was called while the HTTP call was in-flight, stop here
-            // without applying the result to the state.
+            // Guard: if cancelQr()/onQrExpired() was called while the HTTP call was
+            // in-flight, stop here without applying the result to the state.
             currentCoroutineContext().ensureActive()
+            if (_state.value !is AaniPayVMState.QrDisplay) return
             when (state) {
                 "CAPTURED", "PURCHASED" -> {
                     _state.update { AaniPayVMState.Success }

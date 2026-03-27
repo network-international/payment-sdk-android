@@ -1,5 +1,7 @@
 package payment.sdk.android.payments.view
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,9 +35,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -132,16 +140,26 @@ fun UnifiedPaymentPageScreen(
 
                 // Total amount
                 if (SDKConfig.showOrderAmount) {
-                    Text(
-                        text = formattedAmount,
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.End,
-                        color = Color(0xFF1A1A1A)
-                    )
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.order_summary),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W400,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = formattedAmount,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
                     Spacer(Modifier.height(12.dp))
                 }
 
@@ -163,15 +181,11 @@ fun UnifiedPaymentPageScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     // Terms text below banner
-                    Text(
-                        text = stringResource(R.string.terms_agreement_text),
+                    TermsAgreementText(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF8F8F8F),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp
+                        textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(16.dp))
                 } else if (primaryWallet == PaymentOption.SAMSUNG_PAY) {
@@ -201,15 +215,11 @@ fun UnifiedPaymentPageScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     // Terms text below banner
-                    Text(
-                        text = stringResource(R.string.terms_agreement_text),
+                    TermsAgreementText(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF8F8F8F),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp
+                        textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(16.dp))
                 }
@@ -295,4 +305,46 @@ fun UnifiedPaymentPageScreenPreview() {
             onClose = {}
         )
     }
+}
+
+@Composable
+private fun TermsAgreementText(
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Start
+) {
+    val context = LocalContext.current
+    val fullText = stringResource(R.string.terms_agreement_text)
+    val termsLinkText = stringResource(R.string.terms_and_conditions)
+    val annotated = remember(fullText, termsLinkText) {
+        buildAnnotatedString {
+            val start = fullText.indexOf(termsLinkText, ignoreCase = true)
+            if (start >= 0) {
+                append(fullText.substring(0, start))
+                pushStringAnnotation(tag = "URL", annotation = "https://www.network.ae/en/terms-and-conditions")
+                withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                    append(fullText.substring(start, start + termsLinkText.length))
+                }
+                pop()
+                append(fullText.substring(start + termsLinkText.length))
+            } else {
+                append(fullText)
+            }
+        }
+    }
+    ClickableText(
+        text = annotated,
+        modifier = modifier,
+        style = androidx.compose.ui.text.TextStyle(
+            textAlign = textAlign,
+            color = Color(0xFF8F8F8F),
+            fontSize = 11.sp,
+            lineHeight = 16.sp
+        ),
+        onClick = { offset ->
+            annotated.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item)))
+                }
+        }
+    )
 }

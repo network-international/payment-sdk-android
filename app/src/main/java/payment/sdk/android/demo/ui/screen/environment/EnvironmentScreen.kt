@@ -4,17 +4,20 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -23,10 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -34,26 +37,30 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Canvas
 import androidx.compose.material3.OutlinedTextField
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.journeyapps.barcodescanner.ScanContract
@@ -64,6 +71,9 @@ import payment.sdk.android.demo.MainActivity
 import payment.sdk.android.demo.isTablet
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.demo.model.OrderAction
+import payment.sdk.android.demo.model.OrderType
+import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.ui.screen.SectionView
 import payment.sdk.android.sdk.R as SdkR
@@ -129,15 +139,6 @@ fun EnvironmentScreen(
             )
         },
         content = { contentPadding ->
-            val orderAction = remember { listOf("AUTH", "SALE", "PURCHASE") }
-            val orderType = remember { listOf("SINGLE", "RECURRING", "UNSCHEDULED", "INSTALLMENT") }
-            var actionIndex by remember {
-                mutableIntStateOf(orderAction.indexOf(state.orderAction))
-            }
-            var typeIndex by remember {
-                mutableIntStateOf(orderType.indexOf(state.orderType))
-            }
-
             Column(
                 modifier = Modifier
                     .padding(contentPadding)
@@ -162,6 +163,7 @@ fun EnvironmentScreen(
                 }
                 if (showAddEnvironmentDialog) {
                     AddEnvironmentDialog(
+                        region = viewModel.getRegion(),
                         onCancel = { showAddEnvironmentDialog = false }
                     ) { environment ->
                         viewModel.saveEnvironment(environment)
@@ -173,6 +175,7 @@ fun EnvironmentScreen(
                         realm = qrRealm,
                         outletReference = qrOutletReference,
                         apiKey = qrApiKey,
+                        region = viewModel.getRegion(),
                         onCancel = { showQrConfirmDialog = false }
                     ) { environment ->
                         viewModel.saveEnvironment(environment)
@@ -191,61 +194,26 @@ fun EnvironmentScreen(
                 }
 
                 HorizontalDivider()
-                Text(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    text = "Order Action",
-                    style = MaterialTheme.typography.titleMedium
-                )
 
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                PickerView(
+                    title = "Order Action",
+                    items = OrderAction.entries,
+                    selectedItem = viewModel.getOrderAction()
                 ) {
-                    orderAction.forEachIndexed { index, option ->
-                        SegmentedButton(
-                            selected = actionIndex == index,
-                            onClick = {
-                                actionIndex = index
-                                viewModel.onOrderActionSelected(orderAction[index])
-                            },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = orderAction.count()
-                            )
-                        ) {
-                            Text(text = option)
-                        }
-                    }
+                    @Suppress("UNCHECKED_CAST")
+                    viewModel.setOrderAction(it as OrderAction)
                 }
 
                 HorizontalDivider()
-                Text(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    text = "Order type",
-                    style = MaterialTheme.typography.titleMedium
-                )
 
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                PickerView(
+                    title = "Order Type",
+                    items = OrderType.entries,
+                    selectedItem = viewModel.getOrderType()
                 ) {
-                    items(orderType.size) { index ->
-                        AssistChip(
-                            onClick = {
-                                typeIndex = index
-                                viewModel.onOrderTypeSelected(orderType[index])
-                            },
-                            label = { Text(orderType[index]) },
-                            leadingIcon = if (typeIndex == index) {
-                                { Icon(Icons.Default.Check, contentDescription = null) }
-                            } else null
-                        )
-                    }
+                    @Suppress("UNCHECKED_CAST")
+                    viewModel.setOrderType(it as OrderType)
                 }
-
 
                 HorizontalDivider()
 
@@ -269,6 +237,17 @@ fun EnvironmentScreen(
                 ) {
                     @Suppress("UNCHECKED_CAST")
                     viewModel.setCurrency(it as AppCurrency)
+                }
+
+                HorizontalDivider()
+
+                PickerView(
+                    title = "Region",
+                    items = Region.entries,
+                    selectedItem = viewModel.getRegion()
+                ) {
+                    @Suppress("UNCHECKED_CAST")
+                    viewModel.setRegion(it as Region)
                 }
 
                 HorizontalDivider()
@@ -387,6 +366,8 @@ private fun SDKColorsSection(viewModel: EnvironmentViewModel) {
 
 @Composable
 private fun SDKColorRow(label: String, hex: String, onHexChanged: (String) -> Unit) {
+    var showPicker by remember { mutableStateOf(false) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -398,21 +379,233 @@ private fun SDKColorRow(label: String, hex: String, onHexChanged: (String) -> Un
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f)
         )
-        OutlinedTextField(
-            value = hex,
-            onValueChange = { newValue ->
-                onHexChanged(newValue.uppercase())
-            },
-            modifier = Modifier.width(120.dp),
-            textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-            singleLine = true
+        Text(
+            text = hex,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.width(8.dp))
         Box(
             modifier = Modifier
-                .size(24.dp)
-                .background(parseHexToColor(hex), RoundedCornerShape(4.dp))
-                .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                .size(32.dp)
+                .background(parseHexToColor(hex), RoundedCornerShape(6.dp))
+                .border(1.5.dp, Color.Gray, RoundedCornerShape(6.dp))
+                .clickable { showPicker = true }
+        )
+    }
+
+    if (showPicker) {
+        ColorPickerDialog(
+            initialColor = parseHexToColor(hex),
+            onColorSelected = { color ->
+                val r = (color.red * 255).toInt()
+                val g = (color.green * 255).toInt()
+                val b = (color.blue * 255).toInt()
+                onHexChanged("#%02X%02X%02X".format(r, g, b))
+                showPicker = false
+            },
+            onDismiss = { showPicker = false }
+        )
+    }
+}
+
+@Composable
+private fun ColorPickerDialog(
+    initialColor: Color,
+    onColorSelected: (Color) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val initialHsv = remember {
+        val hsv = FloatArray(3)
+        android.graphics.Color.colorToHSV(
+            android.graphics.Color.argb(
+                255,
+                (initialColor.red * 255).toInt(),
+                (initialColor.green * 255).toInt(),
+                (initialColor.blue * 255).toInt()
+            ),
+            hsv
+        )
+        hsv
+    }
+
+    var hue by remember { mutableStateOf(initialHsv[0]) }
+    var saturation by remember { mutableStateOf(initialHsv[1]) }
+    var brightness by remember { mutableStateOf(initialHsv[2]) }
+
+    val currentColor = Color.hsv(hue, saturation, brightness)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Pick a color") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Saturation-Brightness panel
+                SatBrightnessPanel(
+                    hue = hue,
+                    saturation = saturation,
+                    brightness = brightness,
+                    onSatBrightnessChanged = { s, v ->
+                        saturation = s
+                        brightness = v
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Hue slider
+                HueBar(
+                    hue = hue,
+                    onHueChanged = { hue = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(28.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Preview
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(initialColor, RoundedCornerShape(8.dp))
+                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("→", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(currentColor, RoundedCornerShape(8.dp))
+                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    val r = (currentColor.red * 255).toInt()
+                    val g = (currentColor.green * 255).toInt()
+                    val b = (currentColor.blue * 255).toInt()
+                    Text(
+                        text = "#%02X%02X%02X".format(r, g, b),
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onColorSelected(currentColor) }) {
+                Text("Select")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun SatBrightnessPanel(
+    hue: Float,
+    saturation: Float,
+    brightness: Float,
+    onSatBrightnessChanged: (Float, Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    Canvas(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val s = (offset.x / size.width).coerceIn(0f, 1f)
+                    val v = 1f - (offset.y / size.height).coerceIn(0f, 1f)
+                    onSatBrightnessChanged(s, v)
+                }
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    val s = (change.position.x / size.width).coerceIn(0f, 1f)
+                    val v = 1f - (change.position.y / size.height).coerceIn(0f, 1f)
+                    onSatBrightnessChanged(s, v)
+                }
+            }
+    ) {
+        val pureHueColor = Color.hsv(hue, 1f, 1f)
+
+        // White to hue (horizontal saturation gradient)
+        drawRect(
+            brush = Brush.horizontalGradient(listOf(Color.White, pureHueColor))
+        )
+        // Transparent to black (vertical brightness gradient)
+        drawRect(
+            brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black))
+        )
+
+        // Draw selector circle
+        val cx = saturation * size.width
+        val cy = (1f - brightness) * size.height
+        drawCircle(
+            color = Color.White,
+            radius = with(density) { 8.dp.toPx() },
+            center = Offset(cx, cy),
+            style = Stroke(width = with(density) { 2.dp.toPx() })
+        )
+        drawCircle(
+            color = Color.Black,
+            radius = with(density) { 6.dp.toPx() },
+            center = Offset(cx, cy),
+            style = Stroke(width = with(density) { 1.dp.toPx() })
+        )
+    }
+}
+
+@Composable
+private fun HueBar(
+    hue: Float,
+    onHueChanged: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    val hueColors = remember {
+        (0..360 step 1).map { Color.hsv(it.toFloat(), 1f, 1f) }
+    }
+
+    Canvas(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    onHueChanged((offset.x / size.width).coerceIn(0f, 1f) * 360f)
+                }
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    onHueChanged((change.position.x / size.width).coerceIn(0f, 1f) * 360f)
+                }
+            }
+    ) {
+        drawRect(brush = Brush.horizontalGradient(hueColors))
+
+        // Draw selector
+        val cx = (hue / 360f) * size.width
+        drawCircle(
+            color = Color.White,
+            radius = size.height / 2f,
+            center = Offset(cx, size.height / 2f),
+            style = Stroke(width = with(density) { 2.dp.toPx() })
+        )
+        drawCircle(
+            color = Color.Black,
+            radius = size.height / 2f - with(density) { 1.dp.toPx() },
+            center = Offset(cx, size.height / 2f),
+            style = Stroke(width = with(density) { 1.dp.toPx() })
         )
     }
 }

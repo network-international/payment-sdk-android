@@ -1,6 +1,9 @@
 package payment.sdk.android.payments.view
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -61,13 +65,17 @@ fun PaymentFooterView(
         Spacer(Modifier.height(6.dp))
 
         // Terms and Conditions | Privacy Policy
+        val context = LocalContext.current
         Row(
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
                 text = stringResource(R.string.terms_and_conditions),
                 color = Color(0xFF8F8F8F),
-                fontSize = 11.sp
+                fontSize = 11.sp,
+                modifier = Modifier.clickable {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/terms-and-conditions")))
+                }
             )
             Text(
                 text = "  |  ",
@@ -77,7 +85,10 @@ fun PaymentFooterView(
             Text(
                 text = stringResource(R.string.privacy_policy),
                 color = Color(0xFF8F8F8F),
-                fontSize = 11.sp
+                fontSize = 11.sp,
+                modifier = Modifier.clickable {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/privacy-notice")))
+                }
             )
         }
 
