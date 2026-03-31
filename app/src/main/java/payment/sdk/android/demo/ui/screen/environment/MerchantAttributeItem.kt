@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.MerchantAttribute
@@ -43,9 +44,9 @@ fun MerchantAttributeItem(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Checkbox(checked = merchantAttribute.isActive, onCheckedChange = onChecked)
+            Checkbox(checked = merchantAttribute.isActive, onCheckedChange = onChecked, modifier = Modifier.testTag("merchantattr_checkbox_${merchantAttribute.key}"))
 
-            IconButton(onClick = deleteMerchantAttribute) {
+            IconButton(onClick = deleteMerchantAttribute, modifier = Modifier.testTag("merchantattr_button_delete_${merchantAttribute.key}")) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = "delete")
             }
         }

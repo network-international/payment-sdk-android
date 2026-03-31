@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,7 @@ fun ProductItem(
             .clickable {
                 onClick()
             }
+            .testTag("product_item_${product.name}")
     ) {
         Box {
             Column(
@@ -65,17 +67,19 @@ fun ProductItem(
                     text = product.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.testTag("product_text_name_${product.name}")
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "$currency ${product.amount.formatCurrency()}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.testTag("product_text_amount_${product.name}")
                 )
             }
             if (product.isLocal && !isSelected) {
-                IconButton(modifier = Modifier.align(Alignment.TopEnd), onClick = {
+                IconButton(modifier = Modifier.align(Alignment.TopEnd).testTag("product_button_delete_${product.name}"), onClick = {
                     onDeleteProduct(product)
                 }) {
                     Icon(imageVector = Icons.Default.Delete, contentDescription = "")

@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -96,7 +97,8 @@ fun HomeBottomBar(
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
-                    .clickable { expandSavedCards = !expandSavedCards }) {
+                    .clickable { expandSavedCards = !expandSavedCards }
+                    .testTag("home_button_showMoreCards")) {
                     Text(
                         modifier = Modifier.align(Alignment.Center),
                         text = "Show more cards",
@@ -115,7 +117,8 @@ fun HomeBottomBar(
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(42.dp),
+                            .height(42.dp)
+                            .testTag("home_button_pay"),
                         onClick = onClickPayByCard
                     ) {
                         Text(text = "Pay $currency ${"%.2f".format(Locale.ENGLISH, total)}")
@@ -126,7 +129,8 @@ fun HomeBottomBar(
                         Button(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(42.dp),
+                                .height(42.dp)
+                                .testTag("home_button_samsungPay"),
                             onClick = onClickSamsungPay,
                         ) {
                             Image(

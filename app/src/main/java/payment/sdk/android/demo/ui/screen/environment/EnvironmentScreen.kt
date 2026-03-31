@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -128,7 +129,7 @@ fun EnvironmentScreen(
             CenterAlignedTopAppBar(
                 title = { Text(text = "Configuration") },
                 navigationIcon = {
-                    IconButton(onClick = onNavUp) {
+                    IconButton(onClick = onNavUp, modifier = Modifier.testTag("environment_button_back")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -149,7 +150,8 @@ fun EnvironmentScreen(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 6.dp)
+                        .testTag("environment_text_version"),
                     text = "Build: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - SDK: v${SDKConfig.getSDKVersion()}",
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center
