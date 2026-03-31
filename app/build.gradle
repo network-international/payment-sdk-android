@@ -9,7 +9,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 36
         versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "113")
-        versionName System.getenv("VERSION_NAME") ?: "4.0.9-rc2"
+        versionName System.getenv("VERSION_NAME") ?: "7.0.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
@@ -27,14 +27,14 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
         release {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
