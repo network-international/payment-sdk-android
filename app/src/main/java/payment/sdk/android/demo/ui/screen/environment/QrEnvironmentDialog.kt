@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
@@ -117,6 +118,7 @@ fun QrEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("qrenv_button_add")
             ) {
                 Text("Add")
             }
@@ -125,6 +127,7 @@ fun QrEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("qrenv_button_cancel")
             ) {
                 Text("Cancel")
             }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
@@ -62,21 +63,21 @@ fun AddEnvironmentDialog(
             value = realm,
             onValueChange = { realm = it },
             label = { Text("Realm") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("addenv_field_realm")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = apiKey,
             onValueChange = { apiKey = it },
             label = { Text("API Key") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("addenv_field_apiKey")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = outletReference,
             onValueChange = { outletReference = it },
             label = { Text("Outlet Reference") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("addenv_field_outletReference")
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -103,6 +104,7 @@ fun AddEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("addenv_button_add")
             ) {
                 Text("Add")
             }
@@ -111,6 +113,7 @@ fun AddEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("addenv_button_cancel")
             ) {
                 Text("Cancel")
             }

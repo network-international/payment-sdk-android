@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -44,9 +45,9 @@ fun CircularProgressDialog(message: String) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(modifier = Modifier.width(16.dp))
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.testTag("progress_indicator"))
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = message)
+                Text(text = message, modifier = Modifier.testTag("progress_text"))
             }
         }
     }

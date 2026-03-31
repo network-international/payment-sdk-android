@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.ui.screen.AppDialog
@@ -33,14 +34,14 @@ fun AddMerchantAttributeDialog(
             value = key,
             onValueChange = { key = it },
             label = { Text("Key") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("addmerchantattr_field_key")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = value,
             onValueChange = { value = it },
             label = { Text("Value") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("addmerchantattr_field_value")
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -61,6 +62,7 @@ fun AddMerchantAttributeDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("addmerchantattr_button_add")
             ) {
                 Text("Add")
             }
@@ -69,6 +71,7 @@ fun AddMerchantAttributeDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("addmerchantattr_button_cancel")
             ) {
                 Text("Cancel")
             }

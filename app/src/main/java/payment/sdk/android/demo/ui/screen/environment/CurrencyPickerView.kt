@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.PickerItem
@@ -31,7 +32,7 @@ fun CurrencyPickerView(setCurrency: AppCurrency, onCurrencySelected: (AppCurrenc
 
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth().testTag("picker_currency")) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
@@ -82,11 +83,12 @@ fun PickerView(
     var expanded by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf(selectedItem) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth().testTag("picker_${title.lowercase().replace(" ", "_")}")) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }
-                .height(48.dp),
+                .height(48.dp)
+                .testTag("picker_row_${title.lowercase().replace(" ", "_")}"),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(

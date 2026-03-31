@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
@@ -60,21 +61,21 @@ fun EditEnvironmentDialog(
             value = realm,
             onValueChange = { realm = it },
             label = { Text("Realm") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("editenv_field_realm")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = apiKey,
             onValueChange = { apiKey = it },
             label = { Text("API Key") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("editenv_field_apiKey")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = outletReference,
             onValueChange = { outletReference = it },
             label = { Text("Outlet Reference") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("editenv_field_outletReference")
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -101,6 +102,7 @@ fun EditEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("editenv_button_save")
             ) {
                 Text("Save")
             }
@@ -109,6 +111,7 @@ fun EditEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
+                    .testTag("editenv_button_cancel")
             ) {
                 Text("Cancel")
             }
