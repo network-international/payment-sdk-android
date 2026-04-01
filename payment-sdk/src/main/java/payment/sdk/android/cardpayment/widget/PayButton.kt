@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.sdk.R
@@ -23,7 +24,8 @@ fun PayButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .testTag("sdk_widget_button_pay"),
         colors = ButtonDefaults.textButtonColors(
             backgroundColor = if (isValid) {
                 sdkColor(R.color.payment_sdk_pay_button_background_color)

@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -96,7 +97,7 @@ fun UnifiedPaymentPageScreen(
         R.drawable.network_international_logo
     }
 
-    Column(modifier.background(Color.White)) {
+    Column(modifier.background(Color.White).testTag("sdk_paymentpage_container_main")) {
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -111,7 +112,7 @@ fun UnifiedPaymentPageScreen(
                 ) {
                     IconButton(
                         onClick = onClose,
-                        modifier = Modifier.align(Alignment.TopEnd)
+                        modifier = Modifier.align(Alignment.TopEnd).testTag("sdk_paymentpage_button_close")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -132,7 +133,7 @@ fun UnifiedPaymentPageScreen(
                     Image(
                         painter = painterResource(id = logoResId),
                         contentDescription = "Logo",
-                        modifier = Modifier.height(40.dp),
+                        modifier = Modifier.height(40.dp).testTag("sdk_paymentpage_image_logo"),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -157,7 +158,8 @@ fun UnifiedPaymentPageScreen(
                             text = formattedAmount,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A)
+                            color = Color(0xFF1A1A1A),
+                            modifier = Modifier.testTag("sdk_paymentpage_label_amount")
                         )
                     }
                     Spacer(Modifier.height(12.dp))
@@ -178,6 +180,7 @@ fun UnifiedPaymentPageScreen(
                             .fillMaxWidth()
                             .height(48.dp)
                             .padding(horizontal = 16.dp)
+                            .testTag("sdk_paymentpage_button_googlePay")
                     )
                     Spacer(Modifier.height(8.dp))
                     // Terms text below banner
@@ -193,7 +196,8 @@ fun UnifiedPaymentPageScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .testTag("sdk_paymentpage_button_samsungPay"),
                         onClick = {
                             if (!isProcessing) {
                                 onSamsungPay()

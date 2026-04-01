@@ -31,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.model.AaniIDType
 import payment.sdk.android.cardpayment.widget.PayButton
@@ -53,7 +54,8 @@ internal fun AaniPayScreen(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White),
+            .background(Color.White)
+            .testTag("sdk_aani_container_main"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -99,7 +101,8 @@ internal fun AaniPayScreen(
                     modifier = Modifier
                         .weight(1f)
                         .focusRequester(focusRequester)
-                        .background(Color.White),
+                        .background(Color.White)
+                        .testTag("sdk_aani_field_input"),
                     onValueChange = { text ->
                         if (selectedInputType.length >= text.length) {
                             inputValue =

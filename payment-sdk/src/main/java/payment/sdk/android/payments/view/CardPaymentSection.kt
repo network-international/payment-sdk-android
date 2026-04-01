@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -196,7 +197,8 @@ fun CardPaymentSection(
                         value = cvv,
                         modifier = Modifier
                             .weight(1f)
-                            .focusRequester(cvvFocus),
+                            .focusRequester(cvvFocus)
+                            .testTag("sdk_card_field_cvv"),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                         ),
@@ -273,7 +275,8 @@ fun CardPaymentSection(
                     value = cardholderName,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .focusRequester(cardHolderFocus),
+                        .focusRequester(cardHolderFocus)
+                        .testTag("sdk_card_field_cardholderName"),
                     onValueChange = { text ->
                         cardholderName = text
                     },
@@ -287,6 +290,7 @@ fun CardPaymentSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
+                        .testTag("sdk_card_button_pay")
                         .background(
                             color = if (isFormValid) sdkColor(R.color.payment_sdk_pay_button_background_color) else sdkColor(R.color.payment_sdk_button_disabled_background_color),
                             shape = RoundedCornerShape(8.dp)

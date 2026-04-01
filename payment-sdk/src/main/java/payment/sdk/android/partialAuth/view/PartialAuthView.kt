@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -129,7 +130,7 @@ fun PartialAuthView(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                modifier = Modifier.weight(1f), onClick = {
+                modifier = Modifier.weight(1f).testTag("sdk_partialauth_button_accept"), onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.acceptUrl, args.paymentCookie)
                 },
@@ -143,7 +144,7 @@ fun PartialAuthView(
 
             Spacer(Modifier.width(8.dp))
             OutlinedButton(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("sdk_partialauth_button_decline"),
                 onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.declineUrl, args.paymentCookie)

@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.aaniPay.AaniPayLauncher
@@ -185,7 +186,8 @@ private fun PaymentOptionItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onSelect() }
-                .padding(start = 8.dp, top = 14.dp, bottom = 14.dp),
+                .padding(start = 8.dp, top = 14.dp, bottom = 14.dp)
+                .testTag("sdk_paymentpage_option_${label.replace(" ", "")}"),
             verticalAlignment = Alignment.CenterVertically
         ) {
             PaymentRadioButton(selected = selected)
@@ -211,7 +213,8 @@ private fun PaymentOptionItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 36.dp, bottom = 12.dp)
-                    .height(48.dp),
+                    .height(48.dp)
+                    .testTag("sdk_paymentpage_button_${label.replace(" ", "")}"),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.5.dp, Color(0xFF8F8F8F)),
                 colors = ButtonDefaults.outlinedButtonColors(

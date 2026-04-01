@@ -23,6 +23,7 @@
 
     <TextView
         android:id="@+id/top_error_message"
+        android:contentDescription="sdk_cardpayment_label_topError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/dark_red"
@@ -49,6 +50,7 @@
 
     <TextView
         android:id="@+id/bottom_error_message"
+        android:contentDescription="sdk_cardpayment_label_bottomError"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/dark_red"
@@ -62,6 +64,7 @@
 
     <Button
         android:id="@+id/pay_button"
+        android:contentDescription="sdk_cardpayment_button_pay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"

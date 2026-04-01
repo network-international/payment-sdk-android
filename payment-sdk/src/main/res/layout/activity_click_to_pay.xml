@@ -7,10 +7,12 @@
     <WebView
         android:id="@+id/webView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:contentDescription="sdk_clicktopay_webview_main" />
 
     <ProgressBar
         android:id="@+id/progressBar"
+        android:contentDescription="sdk_clicktopay_progress_loading"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="4dp"
@@ -21,6 +23,7 @@
     <!-- Container for Mastercard DCF popup WebView -->
     <FrameLayout
         android:id="@+id/popupContainer"
+        android:contentDescription="sdk_clicktopay_container_popup"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"

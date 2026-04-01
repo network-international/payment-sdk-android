@@ -52,6 +52,7 @@
 
     <payment.sdk.android.cardpayment.widget.PreviewTextView
         android:id="@+id/card_number"
+        android:contentDescription="sdk_cardpreview_label_cardNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="32dp"
@@ -70,6 +71,7 @@
 
     <payment.sdk.android.cardpayment.widget.PreviewTextView
         android:id="@+id/card_expire_date"
+        android:contentDescription="sdk_cardpreview_label_expiry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
@@ -86,6 +88,7 @@
 
     <payment.sdk.android.cardpayment.widget.PreviewTextView
         android:id="@+id/card_holder_name"
+        android:contentDescription="sdk_cardpreview_label_cardholderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"

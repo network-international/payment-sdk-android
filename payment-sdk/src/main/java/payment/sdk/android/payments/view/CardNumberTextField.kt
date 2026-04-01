@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.payments.CreditCardVisualTransformation
 import payment.sdk.android.cardpayment.card.CardDetector
@@ -47,7 +48,7 @@ fun CardNumberTextField(
                 label = { Text(stringResource(R.string.card_number_label_title)) },
                 value = pan,
                 isError = pan.length > 5 && Luhn.isValidPan(pan) && paymentCard == null,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("sdk_card_field_cardNumber"),
                 onValueChange = onValueChanged,
                 visualTransformation = CreditCardVisualTransformation(
                     paymentCard?.binRange?.length?.pattern ?: SpacingPatterns.Default

@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import payment.sdk.android.cardpayment.theme.SDKOutlinedTextFieldColors
 import payment.sdk.android.cardpayment.widget.ExpireDateEditText
+import androidx.compose.ui.platform.testTag
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -48,7 +49,7 @@ fun ExpiryDateTextField(
                 }
             }
         },
-        modifier = modifier,
+        modifier = modifier.testTag("sdk_card_field_expiry"),
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         label = { Text(stringResource(R.string.expiration_date_label)) },
         placeholder = { Text(stringResource(R.string.placeholder_expire_date)) },
