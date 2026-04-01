@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.util.extractUrlsAndText
@@ -64,6 +65,7 @@ fun VisaPlanTermsView(
                 if (termsExpanded || isTermsAccepted) {
                     Checkbox(
                         checked = isTermsAccepted,
+                        modifier = Modifier.testTag("sdk_visa_checkbox_terms"),
                         onCheckedChange = {
                             onTermsAccepted(it)
                         },
@@ -88,9 +90,12 @@ fun VisaPlanTermsView(
                     text = stringResource(id = R.string.visa_terms_and_conditions)
                 )
 
-                TextButton(onClick = {
-                    onTermsExpanded(!termsExpanded)
-                }) {
+                TextButton(
+                    onClick = {
+                        onTermsExpanded(!termsExpanded)
+                    },
+                    modifier = Modifier.testTag("sdk_visa_button_readMore")
+                ) {
                     Text(
                         text = if (termsExpanded) stringResource(id = R.string.visa_read_less) else stringResource(
                             id = R.string.visa_read_more

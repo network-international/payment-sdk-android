@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.core.CardType
@@ -73,9 +74,11 @@ fun PaymentFooterView(
                 text = stringResource(R.string.terms_and_conditions),
                 color = Color(0xFF8F8F8F),
                 fontSize = 11.sp,
-                modifier = Modifier.clickable {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/terms-and-conditions")))
-                }
+                modifier = Modifier
+                    .testTag("sdk_footer_link_terms")
+                    .clickable {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/terms-and-conditions")))
+                    }
             )
             Text(
                 text = "  |  ",
@@ -86,9 +89,11 @@ fun PaymentFooterView(
                 text = stringResource(R.string.privacy_policy),
                 color = Color(0xFF8F8F8F),
                 fontSize = 11.sp,
-                modifier = Modifier.clickable {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/privacy-notice")))
-                }
+                modifier = Modifier
+                    .testTag("sdk_footer_link_privacy")
+                    .clickable {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.network.ae/en/privacy-notice")))
+                    }
             )
         }
 

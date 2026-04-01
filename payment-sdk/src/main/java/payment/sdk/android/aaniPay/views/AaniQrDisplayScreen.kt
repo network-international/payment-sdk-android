@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.TextUtilsCompat
@@ -108,7 +109,8 @@ internal fun AaniQrDisplayScreen(
                     filterQuality = FilterQuality.None,
                     modifier = Modifier
                         .matchParentSize()
-                        .padding(16.dp) // exclusion zone (2x border width)
+                        .padding(16.dp)
+                        .testTag("sdk_aani_image_qrCode")
                 )
             }
 
@@ -144,7 +146,8 @@ internal fun AaniQrDisplayScreen(
                 style = TextStyle(
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                modifier = Modifier.testTag("sdk_aani_label_timer")
             )
         }
 
@@ -194,7 +197,7 @@ internal fun AaniQrDisplayScreen(
             ),
             shape = RoundedCornerShape(12.dp),
             elevation = ButtonDefaults.elevation(0.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("sdk_aani_button_cancel")
         ) {
             Text(
                 text = stringResource(R.string.cancel_button),

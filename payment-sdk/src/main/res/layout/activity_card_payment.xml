@@ -3,7 +3,8 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:contentDescription="sdk_cardpayment_container_main">
 
     <include
         layout="@layout/view_bottom_sheet"

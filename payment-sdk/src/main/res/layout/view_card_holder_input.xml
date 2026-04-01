@@ -12,6 +12,7 @@
 
     <EditText
         android:id="@+id/edit_card_holder"
+        android:contentDescription="sdk_cardinput_field_cardholderName"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_gravity="center_vertical"

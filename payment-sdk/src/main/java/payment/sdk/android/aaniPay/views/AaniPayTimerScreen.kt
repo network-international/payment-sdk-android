@@ -27,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.TextUtilsCompat
@@ -91,7 +92,8 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
             style = TextStyle(
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold
-            )
+            ),
+            modifier = Modifier.testTag("sdk_aanitimer_label_timer")
         )
 
         Spacer(modifier = Modifier.height(16.dp))

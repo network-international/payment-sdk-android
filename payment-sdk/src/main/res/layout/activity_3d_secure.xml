@@ -26,10 +26,12 @@
         <FrameLayout
             android:id="@+id/content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:contentDescription="sdk_3dsecure_container_content" />
 
         <ProgressBar
             android:id="@+id/progress"
+            android:contentDescription="sdk_3dsecure_progress_loading"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="4dp"

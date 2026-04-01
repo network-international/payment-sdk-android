@@ -30,6 +30,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -49,7 +50,8 @@ internal fun CreditCardView(
 ) {
     Surface(
         modifier = modifier
-            .aspectRatio(16 / 9f),
+            .aspectRatio(16 / 9f)
+            .testTag("sdk_savedcard_container_card"),
         shape = RoundedCornerShape(8.dp),
         elevation = 8.dp,
         color = Color.Transparent

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.model.PlanFrequency
@@ -40,7 +41,7 @@ fun VisaInstalmentsView(
         ) {
             items(instalmentPlans) { plan ->
                 InstalmentPlanView(
-                    modifier = Modifier.clickable {
+                    modifier = Modifier.testTag("sdk_visa_option_plan_${plan.id}").clickable {
                         selectedPlan = plan
                         isValid =
                             selectedPlan?.frequency == PlanFrequency.PayInFull || selectedPlan?.termsAccepted ?: false

@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import payment.sdk.android.core.CardMapping
@@ -71,6 +72,7 @@ internal fun SavedCardPaymentView(
         Column {
             TextField(
                 modifier = Modifier
+                    .testTag("sdk_savedcard_field_cvv")
                     .onFocusEvent {
                         if (it.isFocused) {
                             coroutineScope.launch {

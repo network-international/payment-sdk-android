@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.payments.model.PaymentResultArgs
@@ -49,7 +50,7 @@ fun PaymentResultScreen(
                 id = if (args.isSuccess) R.drawable.ic_payment_success else R.drawable.ic_payment_failure
             ),
             contentDescription = null,
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(80.dp).testTag("sdk_result_image_status"),
             tint = Color.Unspecified
         )
 
@@ -69,7 +70,8 @@ fun PaymentResultScreen(
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            color = if (args.isSuccess) SuccessGreen else FailureRed
+            color = if (args.isSuccess) SuccessGreen else FailureRed,
+            modifier = Modifier.testTag("sdk_result_label_title")
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -125,7 +127,8 @@ fun PaymentResultScreen(
             onClick = onDone,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(48.dp)
+                .testTag("sdk_result_button_done"),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = if (args.isSuccess) SuccessGreen else FailureRed,
                 contentColor = Color.White

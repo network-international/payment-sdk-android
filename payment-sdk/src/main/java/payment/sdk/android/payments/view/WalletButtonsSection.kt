@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.googlepay.GooglePayButton
@@ -50,6 +51,7 @@ fun WalletButtonsSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
+                    .testTag("sdk_paymentpage_button_googlePay")
             )
             Spacer(Modifier.height(8.dp))
         }
@@ -58,7 +60,8 @@ fun WalletButtonsSection(
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(48.dp)
+                    .testTag("sdk_paymentpage_button_samsungPay"),
                 onClick = onSamsungPay,
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = Color.Black,
@@ -80,7 +83,8 @@ fun WalletButtonsSection(
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(48.dp)
+                    .testTag("sdk_paymentpage_button_aaniPay"),
                 onClick = { onClickAaniPay(config) },
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.White,

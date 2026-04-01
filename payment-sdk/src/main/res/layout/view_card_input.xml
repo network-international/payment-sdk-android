@@ -14,6 +14,7 @@
         android:layout_height="match_parent"
         android:layout_marginStart="12dp"
         android:textDirection="ltr"
+        android:contentDescription="sdk_cardinput_field_cardNumber"
         app:layout_constraintStart_toStartOf="parent"
         app:mask="@string/mask_card_number">
 
@@ -27,6 +28,7 @@
         android:layout_height="match_parent"
         android:layout_marginEnd="8dp"
         android:textDirection="ltr"
+        android:contentDescription="sdk_cardinput_field_expiry"
         android:visibility="invisible"
         app:layout_constraintEnd_toStartOf="@+id/edit_cvv"
         app:layout_constraintStart_toEndOf="@+id/edit_card_number"
@@ -43,6 +45,7 @@
         android:layout_height="match_parent"
         android:layout_marginEnd="12dp"
         android:textDirection="ltr"
+        android:contentDescription="sdk_cardinput_field_cvv"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:mask="@string/mask_cvv">
