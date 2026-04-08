@@ -1,0 +1,8 @@
+title = "Gitleaks config"
+
+[allowlist]
+  description = "Allowlisted test fixture values"
+  regexes = [
+    # Placeholder cardToken used in unit test fixtures — not a real credential
+    "dGVzdC1jYXJkLXRva2VuLXBsYWNlaG9sZGVy",
+  ]
