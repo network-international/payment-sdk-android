@@ -18,10 +18,11 @@ import payment.sdk.android.sdk.R
 fun PayButton(
     text: String,
     isValid: Boolean = true,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     TextButton(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .padding(vertical = 8.dp)

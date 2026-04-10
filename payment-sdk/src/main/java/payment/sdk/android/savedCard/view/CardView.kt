@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -81,7 +83,8 @@ internal fun CreditCardView(
                     Image(
                         painter = getCardImage(type = cardScheme),
                         contentDescription = "",
-                        contentScale = ContentScale.FillHeight
+                        contentScale = ContentScale.FillHeight,
+                        modifier = Modifier.semantics { testTag = "sdk_cardpreview_image_logo" }
                     )
                 }
 
@@ -102,7 +105,9 @@ internal fun CreditCardView(
                 val cardNumberText = cardNumber.replace("....".toRegex(), "$0 ").ifBlank {
                     stringResource(R.string.placeholder_card_number)
                 }
-                AndroidView(factory = { context ->
+                AndroidView(
+                    modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_pan" },
+                    factory = { context ->
                     PreviewTextView(context).apply {
                         text = cardNumberText
                         layoutDirection = View.LAYOUT_DIRECTION_LTR
@@ -121,7 +126,9 @@ internal fun CreditCardView(
                     val expiryText = expiry.ifBlank {
                         stringResource(R.string.placeholder_expire_date)
                     }
-                    AndroidView(factory = { context ->
+                    AndroidView(
+                        modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_expiry" },
+                        factory = { context ->
                         PreviewTextView(context).apply {
                             text = expiryText
                             layoutDirection = View.LAYOUT_DIRECTION_LTR
@@ -137,7 +144,9 @@ internal fun CreditCardView(
                     stringResource(R.string.cardholder_field_hint)
                 }
                 Log.d("CardNumberTextField", "cardholderNameText: $cardholderNameText")
-                AndroidView(factory = { context ->
+                AndroidView(
+                    modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_name" },
+                    factory = { context ->
                     PreviewTextView(context).apply {
                         text = cardholderNameText
                         layoutDirection = View.LAYOUT_DIRECTION_LTR

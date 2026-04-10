@@ -17,11 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
@@ -50,9 +50,9 @@ fun VisaInstalmentBottomBar(
                     .fillMaxWidth()
                     .height(56.dp)
                     .padding(8.dp)
-                    .testTag("sdk_visa_button_accept"),
+                    .semantics { testTag = "sdk_visa_button_accept" },
                 colors = ButtonDefaults.textButtonColors(
-                    backgroundColor = if (isValid) sdkColor(R.color.payment_sdk_pay_button_background_color) else sdkColor(R.color.payment_sdk_button_disabled_background_color),
+                    backgroundColor = if (isValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
                 ),
                 onClick = {
                     if (isValid) {
@@ -64,7 +64,7 @@ fun VisaInstalmentBottomBar(
             ) {
                 Text(
                     text = stringResource(id = R.string.make_payment),
-                    color = if (isValid) sdkColor(R.color.payment_sdk_pay_button_text_color) else sdkColor(R.color.payment_sdk_button_disabled_text_color)
+                    color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
                 )
             }
 
