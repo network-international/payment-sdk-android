@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/payment_sdk_3ds_view_background_color">
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -25,13 +24,13 @@
 
         <FrameLayout
             android:id="@+id/content"
+            android:tag="sdk_3ds_webview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="sdk_3dsecure_container_content" />
+            android:layout_height="match_parent" />
 
         <ProgressBar
             android:id="@+id/progress"
-            android:contentDescription="sdk_3dsecure_progress_loading"
+            android:tag="sdk_3ds_spinner_loading"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
             android:layout_height="4dp"

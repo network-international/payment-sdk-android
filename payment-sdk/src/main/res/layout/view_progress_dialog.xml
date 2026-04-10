@@ -5,21 +5,22 @@
     android:layout_height="wrap_content"
     android:minWidth="36dp"
     android:orientation="horizontal"
-    android:background="@color/payment_sdk_auth_view_background_color"
+    android:background="@color/light_grey"
     android:padding="16dp">
 
     <ProgressBar
         android:id="@+id/progress"
-        android:indeterminateTint="@color/payment_sdk_auth_view_indicator_color"
+        android:tag="sdk_3ds2_spinner_loading"
+        android:indeterminateTint="@color/payment_sdk_progress_loader_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/text"
+        android:tag="sdk_3ds2_label_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
-        android:textColor="@color/payment_sdk_auth_view_label_color"
         tools:text="Loading..." />
 </LinearLayout>

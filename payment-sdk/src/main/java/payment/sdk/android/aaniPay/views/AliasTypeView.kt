@@ -22,7 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.model.AaniIDType
 
@@ -42,7 +43,9 @@ internal fun AliasTypeView(
         OutlinedTextField(
             value = stringResource(type.resourceId),
             enabled = false,
-            modifier = Modifier.fillMaxSize().testTag("sdk_aani_selector_idType"),
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics { testTag = "sdk_aani_picker_idType" },
             colors = TextFieldDefaults.textFieldColors(
                 disabledTextColor = Color.Black,
                 disabledLabelColor = Color.Black,

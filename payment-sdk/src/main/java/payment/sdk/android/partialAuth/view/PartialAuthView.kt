@@ -30,14 +30,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.cardpayment.CardPaymentData
-import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.partialAuth.PartialAuthViewModel
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
@@ -130,12 +130,15 @@ fun PartialAuthView(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                modifier = Modifier.weight(1f).testTag("sdk_partialauth_button_accept"), onClick = {
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { testTag = "sdk_partialauth_button_accept" },
+                onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.acceptUrl, args.paymentCookie)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = sdkColor(R.color.payment_sdk_pay_button_background_color),
+                    backgroundColor = colorResource(id = R.color.payment_sdk_pay_button_background_color),
                     contentColor = Color.White
                 )
             ) {
@@ -144,7 +147,9 @@ fun PartialAuthView(
 
             Spacer(Modifier.width(8.dp))
             OutlinedButton(
-                modifier = Modifier.weight(1f).testTag("sdk_partialauth_button_decline"),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { testTag = "sdk_partialauth_button_decline" },
                 onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.declineUrl, args.paymentCookie)

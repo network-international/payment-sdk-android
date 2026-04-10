@@ -29,9 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.model.AaniIDType
 import payment.sdk.android.cardpayment.widget.PayButton
@@ -39,14 +40,13 @@ import payment.sdk.android.sdk.R
 
 @Composable
 internal fun AaniPayScreen(
-    qrEnabled: Boolean = true,
     onSubmit: (alias: AaniIDType, value: String) -> Unit
 ) {
     var selectedInputType by remember { mutableStateOf(AaniIDType.MOBILE_NUMBER) }
     var inputValue by remember { mutableStateOf("") }
     var isInputValid by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val inputTypes = if (qrEnabled) AaniIDType.entries else AaniIDType.entries.filter { it != AaniIDType.QR_CODE }
+    val inputTypes = AaniIDType.entries
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -54,8 +54,7 @@ internal fun AaniPayScreen(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White)
-            .testTag("sdk_aani_container_main"),
+            .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -83,56 +82,52 @@ internal fun AaniPayScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (selectedInputType.requiresInput) {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier
-                    .background(Color.White)
-                    .fillMaxWidth(),
-            ) {
-                if (selectedInputType == AaniIDType.MOBILE_NUMBER) {
-                    CountryCodeView()
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier
+                .background(Color.White)
+                .fillMaxWidth(),
+        ) {
+            if (selectedInputType == AaniIDType.MOBILE_NUMBER) {
+                CountryCodeView()
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
-                OutlinedTextField(
-                    label = { Text(stringResource(selectedInputType.resourceId)) },
-                    value = inputValue,
-                    modifier = Modifier
-                        .weight(1f)
-                        .focusRequester(focusRequester)
-                        .background(Color.White)
-                        .testTag("sdk_aani_field_input"),
-                    onValueChange = { text ->
-                        if (selectedInputType.length >= text.length) {
-                            inputValue =
-                                if (selectedInputType.isDigitOnly) text.filter { it.isDigit() } else text
-                            isInputValid = selectedInputType.validate(
-                                selectedInputType.inputFormatter.filter(AnnotatedString(text)).text.text
-                            )
-                        }
-                    },
-                    visualTransformation = selectedInputType.inputFormatter,
-                    textStyle = MaterialTheme.typography.subtitle1,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = selectedInputType.keyboardType,
-                    ),
-                    placeholder = { Text(selectedInputType.sample) },
-                )
-            }
-            LaunchedEffect(Unit) {
-                focusRequester.requestFocus()
-            }
+            OutlinedTextField(
+                label = { Text(stringResource(selectedInputType.resourceId)) },
+                value = inputValue,
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(focusRequester)
+                    .background(Color.White)
+                    .semantics { testTag = "sdk_aani_field_input" },
+                onValueChange = { text ->
+                    if (selectedInputType.length >= text.length) {
+                        inputValue =
+                            if (selectedInputType.isDigitOnly) text.filter { it.isDigit() } else text
+                        isInputValid = selectedInputType.validate(
+                            selectedInputType.inputFormatter.filter(AnnotatedString(text)).text.text
+                        )
+                    }
+                },
+                visualTransformation = selectedInputType.inputFormatter,
+                textStyle = MaterialTheme.typography.subtitle1,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = selectedInputType.keyboardType,
+                ),
+                placeholder = { Text(selectedInputType.sample) },
+            )
+        }
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         PayButton(
-            text = stringResource(
-                if (selectedInputType == AaniIDType.QR_CODE) R.string.aani_generate_qr
-                else R.string.make_payment
-            ),
-            isValid = if (selectedInputType.requiresInput) isInputValid else true
+            text = stringResource(R.string.make_payment),
+            isValid = isInputValid,
+            modifier = Modifier.semantics { testTag = "sdk_aani_button_submit" }
         ) {
             onSubmit(selectedInputType, inputValue)
         }
