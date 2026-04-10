@@ -68,7 +68,6 @@ fun VisaPlanTermsView(
                     Checkbox(
                         modifier = Modifier.semantics { testTag = "sdk_visa_toggle_terms" },
                         checked = isTermsAccepted,
-                        modifier = Modifier.testTag("sdk_visa_checkbox_terms"),
                         onCheckedChange = {
                             onTermsAccepted(it)
                         },
