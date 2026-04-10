@@ -1,8 +1,7 @@
 package payment.sdk.android.payments.view
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,360 +9,283 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.TabRowDefaults.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
-import payment.sdk.android.cardpayment.card.CardDetector
-import payment.sdk.android.cardpayment.card.CardValidator
-import payment.sdk.android.cardpayment.card.PaymentCard
-import payment.sdk.android.savedCard.view.CreditCardBack
-import payment.sdk.android.savedCard.view.CreditCardView
-import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
+import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.core.CardType
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.sdk.R
 
 @Composable
-fun PaymentsScreen(
+fun UnifiedPaymentPageScreen(
     modifier: Modifier = Modifier,
     supportedCards: Set<CardType>,
     showWallets: Boolean,
     googlePayUiConfig: GooglePayUiConfig?,
+    isSamsungPayAvailable: Boolean,
     formattedAmount: String,
     aaniConfig: AaniPayLauncher.Config?,
+    clickToPayConfig: ClickToPayLauncher.Config?,
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit,
     isProcessing: Boolean,
     onGooglePay: () -> Unit,
-    onClickAaniPay: (AaniPayLauncher.Config) -> Unit
+    onSamsungPay: () -> Unit,
+    onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
+    onClickToPay: (ClickToPayLauncher.Config) -> Unit,
+    onClose: () -> Unit
 ) {
-    val cardDetector = remember { CardDetector(supportedCards) }
-    var pan by remember { mutableStateOf("") }
-    var cvv by remember { mutableStateOf("") }
-    var expiry by remember { mutableStateOf(TextFieldValue("")) }
+    var selectedOption by remember { mutableStateOf<PaymentOption?>(null) }
 
-    val expiryFocus = remember { FocusRequester() }
-    val cvvFocus = remember { FocusRequester() }
-    val cardHolderFocus = remember { FocusRequester() }
-
-    var cardholderName by remember { mutableStateOf("") }
-    var paymentCard by remember { mutableStateOf<PaymentCard?>(null) }
-
-    var isFormValid by remember { mutableStateOf(false) }
-
-    var isCvvFocused by remember { mutableStateOf(false) } // Track the focus state of CVV
-    val rotationAngle by animateFloatAsState(targetValue = if (isCvvFocused) 180f else 0f) // Animate between 0 and 180 degrees
-
-
-    LaunchedEffect(pan, cvv, expiry.text, cardholderName) {
-        isFormValid = CardValidator.isValid(
-            paymentCard = paymentCard,
-            pan = pan,
-            cvv = cvv,
-            expiry = expiry.text,
-            cardholderName = cardholderName
-        )
+    // Determine which wallet gets the top banner: Google Pay priority > Samsung Pay
+    val primaryWallet: PaymentOption? = when {
+        showWallets && googlePayUiConfig != null -> PaymentOption.GOOGLE_PAY
+        showWallets && isSamsungPayAvailable -> PaymentOption.SAMSUNG_PAY
+        else -> null
     }
 
-    Column(modifier.background(Color(0xFFF1F1F1))) {
+    // Other options exclude the primary wallet
+    val showGooglePayInOtherOptions = showWallets && googlePayUiConfig != null && primaryWallet != PaymentOption.GOOGLE_PAY
+    val showSamsungPayInOtherOptions = showWallets && isSamsungPayAvailable && primaryWallet != PaymentOption.SAMSUNG_PAY
+    val showAaniInOtherOptions = showWallets && aaniConfig != null
+
+    val hasOtherOptions = showGooglePayInOtherOptions || showSamsungPayInOtherOptions || showAaniInOtherOptions || clickToPayConfig != null
+
+    val logoResId = if (SDKConfig.merchantLogoResId != 0) {
+        SDKConfig.merchantLogoResId
+    } else {
+        R.drawable.network_international_logo
+    }
+
+    Column(modifier.background(Color.White).testTag("sdk_paymentpage_container_main")) {
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .aspectRatio(16 / 9f),
-                contentAlignment = Alignment.Center
-            ) {
-                if (isCvvFocused) {
-                    CreditCardBack(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                rotationY = rotationAngle
-                                cameraDistance = 12f * density
-                            }
-                    )
-
-                } else {
-                    CreditCardView(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                rotationY = rotationAngle
-                                cameraDistance = 12f * density
-                            },
-                        cardNumber = pan,
-                        cardholderName = cardholderName,
-                        expiry = expiry.text,
-                        cardScheme = paymentCard?.type
-                    )
-                }
-            }
-
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-
-                Surface(
+            CompositionLocalProvider(LocalLayoutDirection provides if (SDKConfig.getLanguage() == "ar") LayoutDirection.Rtl else LayoutDirection.Ltr) {
+                // X close button at top right
+                Box(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = 8.dp,
-                    color = Color.White
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, end = 4.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                    IconButton(
+                        onClick = onClose,
+                        modifier = Modifier.align(Alignment.TopEnd).testTag("sdk_paymentpage_button_close")
                     ) {
-                        CardNumberTextField(
-                            pan = pan,
-                            paymentCard = paymentCard,
-                            supportedCards = supportedCards,
-                        ) { text ->
-                            val maxLength = paymentCard?.binRange?.length?.value ?: 16
-                            if (text.length <= maxLength) {
-                                pan = text.filter { it.isDigit() }
-                                if (pan.length == maxLength) {
-                                    expiryFocus.requestFocus()
-                                }
-                                paymentCard = takeIf { pan.isNotEmpty() }?.let {
-                                    cardDetector.detect(pan)
-                                }
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ExpiryDateTextField(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .focusRequester(expiryFocus),
-                                text = expiry,
-                                onValueChange = { newValue ->
-                                    expiry = newValue
-                                },
-                                focusCvv = {
-                                    cvvFocus.requestFocus()
-                                }
-                            )
-
-                            TextField(
-                                label = { Text(stringResource(R.string.card_cvv_label_title)) },
-                                value = cvv,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .focusRequester(cvvFocus)
-                                    .onFocusChanged {
-                                        isCvvFocused = it.isFocused
-                                    }
-                                    .semantics { testTag = "sdk_cardinput_field_cvv" },
-                                keyboardOptions = KeyboardOptions.Default.copy(
-                                    keyboardType = KeyboardType.Number,
-                                ),
-                                visualTransformation = PasswordVisualTransformation(),
-                                onValueChange = { text ->
-                                    val maxLength = paymentCard?.cvv?.length ?: 3
-                                    if (text.length <= maxLength) {
-                                        cvv = text
-                                        if (text.length == maxLength) {
-                                            cardHolderFocus.requestFocus()
-                                        }
-                                    }
-                                },
-                                colors = SDKTextFieldColors(),
-                            )
-                        }
-
-                        TextField(
-                            label = { Text(stringResource(R.string.card_cardholder_label_title)) },
-                            value = cardholderName,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(cardHolderFocus)
-                                .semantics { testTag = "sdk_cardinput_field_name" },
-                            onValueChange = { text ->
-                                cardholderName = text
-                            },
-                            colors = SDKTextFieldColors(),
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = Color(0xFF333333),
+                            modifier = Modifier.size(24.dp)
                         )
-
-                        val animated = animateColorAsState(
-                            if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
-                            label = ""
-                        )
-                        TextButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .height(46.dp)
-                                .semantics { testTag = "sdk_cardpayment_button_pay" }
-                                .background(
-                                    color = animated.value,
-                                    shape = RoundedCornerShape(percent = 15)
-                                ),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = Color.White,
-                            ),
-                            onClick = {
-                                onMakePayment(
-                                    pan,
-                                    expiry.text.filter { it.isDigit() },
-                                    cvv,
-                                    cardholderName
-                                )
-                            },
-                            enabled = isFormValid,
-                            shape = RoundedCornerShape(percent = 15),
-                        ) {
-                            val title = if (SDKConfig.showOrderAmount) stringResource(
-                                R.string.pay_button_title,
-                                formattedAmount
-                            ) else stringResource(R.string.make_payment)
-                            Text(
-                                text = title,
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                            )
-                        }
                     }
                 }
-            }
 
-            if (showWallets) {
-                Spacer(Modifier.height(16.dp))
-                Surface(
+                // Logo (merchant logo or default NI logo)
+                Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    elevation = 8.dp,
-                    color = Color.White
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    Column {
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            text = stringResource(R.string.payments_wallets_title),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.subtitle2
-                        )
-
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                        googlePayUiConfig?.let {
-                            GooglePayButton(
-                                enabled = !isProcessing,
-                                onClick =  {
-                                    if (!isProcessing) {
-                                        onGooglePay()
-                                    }
-                                },
-                                radius = 8.dp,
-                                allowedPaymentMethods = it.allowedPaymentMethods,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp)
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-
-                        if (isProcessing) {
-                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp).semantics { testTag = "sdk_cardpayment_spinner_loading" })
-                            }
-                        }
-
-                        aaniConfig?.let { config ->
-                            Button(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp)
-                                    .height(46.dp),
-                                onClick = { onClickAaniPay(config) },
-                                colors = ButtonDefaults.textButtonColors(
-                                    contentColor = Color.White,
-                                ),
-                                border = BorderStroke(width = 1.dp, Color.Gray),
-                                elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
-                                shape = RoundedCornerShape(percent = 15),
-                            ) {
-                                Image(painter = painterResource(R.drawable.aani_logo), "")
-                            }
-                            Spacer(Modifier.height(8.dp))
-                        }
-                    }
+                    Image(
+                        painter = painterResource(id = logoResId),
+                        contentDescription = "Logo",
+                        modifier = Modifier.height(40.dp).testTag("sdk_paymentpage_image_logo"),
+                        contentScale = ContentScale.Fit
+                    )
                 }
+                Spacer(Modifier.height(16.dp))
+
+                // Total amount
+                if (SDKConfig.showOrderAmount) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.order_summary),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W400,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = formattedAmount,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1A1A),
+                            modifier = Modifier.testTag("sdk_paymentpage_label_amount")
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+
+                // Primary wallet banner
+                if (primaryWallet == PaymentOption.GOOGLE_PAY && googlePayUiConfig != null) {
+                    GooglePayButton(
+                        enabled = !isProcessing,
+                        onClick = {
+                            if (!isProcessing) {
+                                onGooglePay()
+                            }
+                        },
+                        radius = 8.dp,
+                        allowedPaymentMethods = googlePayUiConfig.allowedPaymentMethods,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .padding(horizontal = 16.dp)
+                            .testTag("sdk_paymentpage_button_googlePay")
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // Terms text below banner
+                    TermsAgreementText(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(16.dp))
+                } else if (primaryWallet == PaymentOption.SAMSUNG_PAY) {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .padding(horizontal = 16.dp)
+                            .testTag("sdk_paymentpage_button_samsungPay"),
+                        onClick = {
+                            if (!isProcessing) {
+                                onSamsungPay()
+                            }
+                        },
+                        enabled = !isProcessing,
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color.Black,
+                            contentColor = Color.White,
+                        ),
+                        elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.samsung_pay_logo),
+                            contentDescription = stringResource(R.string.samsung_pay_button),
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    // Terms text below banner
+                    TermsAgreementText(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                // "Or select your payment options" separator
+                if (primaryWallet != null) {
+                    Text(
+                        text = stringResource(R.string.or_select_payment_options),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        textAlign = TextAlign.Center,
+                        color = Color(0xFF8F8F8F),
+                        fontSize = 13.sp
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                // Card payment section (collapsible)
+                CardPaymentSection(
+                    supportedCards = supportedCards,
+                    formattedAmount = formattedAmount,
+                    isExpanded = selectedOption == PaymentOption.CARD,
+                    onToggle = {
+                        selectedOption = if (selectedOption == PaymentOption.CARD) null else PaymentOption.CARD
+                    },
+                    onMakePayment = onMakePayment
+                )
+
+                // Other payment options (excluding primary wallet)
+                if (hasOtherOptions) {
+                    Spacer(Modifier.height(24.dp))
+
+                    OtherPaymentOptionsSection(
+                        selectedOption = selectedOption,
+                        googlePayUiConfig = if (showGooglePayInOtherOptions) googlePayUiConfig else null,
+                        isSamsungPayAvailable = showSamsungPayInOtherOptions,
+                        aaniConfig = if (showAaniInOtherOptions) aaniConfig else null,
+                        clickToPayConfig = clickToPayConfig,
+                        onGooglePay = onGooglePay,
+                        onSamsungPay = onSamsungPay,
+                        onClickAaniPay = onClickAaniPay,
+                        onClickToPay = onClickToPay,
+                        onOptionSelected = { option ->
+                            selectedOption = option
+                        }
+                    )
+                }
+
+                Spacer(Modifier.height(24.dp))
+
+                PaymentFooterView(supportedCards = supportedCards)
             }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(36.dp)
-                .padding(bottom = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth(0.5f),
-                painter = painterResource(id = R.drawable.network_international_logo),
-                contentDescription = ""
-            )
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
-fun Preview() {
+fun UnifiedPaymentPageScreenPreview() {
     Box {
-        PaymentsScreen(
+        UnifiedPaymentPageScreen(
             supportedCards = setOf(
                 CardType.Visa,
                 CardType.MasterCard,
@@ -375,11 +297,58 @@ fun Preview() {
             showWallets = false,
             formattedAmount = "100 AED",
             googlePayUiConfig = null,
+            isSamsungPayAvailable = false,
             onMakePayment = { _, _, _, _ -> },
             onGooglePay = {},
+            onSamsungPay = {},
             aaniConfig = null,
+            clickToPayConfig = null,
             isProcessing = false,
-            onClickAaniPay = {}
+            onClickAaniPay = {},
+            onClickToPay = {},
+            onClose = {}
         )
     }
+}
+
+@Composable
+private fun TermsAgreementText(
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Start
+) {
+    val context = LocalContext.current
+    val fullText = stringResource(R.string.terms_agreement_text)
+    val termsLinkText = stringResource(R.string.terms_and_conditions)
+    val annotated = remember(fullText, termsLinkText) {
+        buildAnnotatedString {
+            val start = fullText.indexOf(termsLinkText, ignoreCase = true)
+            if (start >= 0) {
+                append(fullText.substring(0, start))
+                pushStringAnnotation(tag = "URL", annotation = "https://www.network.ae/en/terms-and-conditions")
+                withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                    append(fullText.substring(start, start + termsLinkText.length))
+                }
+                pop()
+                append(fullText.substring(start + termsLinkText.length))
+            } else {
+                append(fullText)
+            }
+        }
+    }
+    ClickableText(
+        text = annotated,
+        modifier = modifier,
+        style = androidx.compose.ui.text.TextStyle(
+            textAlign = textAlign,
+            color = Color(0xFF8F8F8F),
+            fontSize = 11.sp,
+            lineHeight = 16.sp
+        ),
+        onClick = { offset ->
+            annotated.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item)))
+                }
+        }
+    )
 }
