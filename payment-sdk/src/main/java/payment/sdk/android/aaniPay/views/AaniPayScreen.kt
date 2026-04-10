@@ -40,13 +40,14 @@ import payment.sdk.android.sdk.R
 
 @Composable
 internal fun AaniPayScreen(
+    qrEnabled: Boolean = false,
     onSubmit: (alias: AaniIDType, value: String) -> Unit
 ) {
     var selectedInputType by remember { mutableStateOf(AaniIDType.MOBILE_NUMBER) }
     var inputValue by remember { mutableStateOf("") }
     var isInputValid by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val inputTypes = AaniIDType.entries
+    val inputTypes = if (qrEnabled) AaniIDType.entries else AaniIDType.entries.filter { it != AaniIDType.QR_CODE }
 
     var expanded by remember { mutableStateOf(false) }
 
