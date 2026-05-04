@@ -15,11 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
@@ -38,7 +39,9 @@ fun InstalmentPlanView(
     val isTermsAccepted = selectedPlan?.termsAccepted ?: false
     val isTermsExpanded = selectedPlan?.termsExpanded ?: false
     Card(
-        modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag("sdk_visa_container_plan_${plan.id}"),
+        modifier = modifier
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .semantics { testTag = "sdk_visa_button_plan_${plan.id}" },
         border = BorderStroke(1.dp, if (isSelected) Color(0xFF1D33C3) else Color(0xFF808080)),
         shape = RoundedCornerShape(8.dp)
     ) {

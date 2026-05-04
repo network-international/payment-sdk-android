@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -64,8 +66,8 @@ fun VisaPlanTermsView(
             ) {
                 if (termsExpanded || isTermsAccepted) {
                     Checkbox(
+                        modifier = Modifier.semantics { testTag = "sdk_visa_toggle_terms" },
                         checked = isTermsAccepted,
-                        modifier = Modifier.testTag("sdk_visa_checkbox_terms"),
                         onCheckedChange = {
                             onTermsAccepted(it)
                         },
