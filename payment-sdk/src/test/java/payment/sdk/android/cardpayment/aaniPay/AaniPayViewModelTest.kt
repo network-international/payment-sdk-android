@@ -169,7 +169,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE updates state to Loading and then QrDisplay on success`() = runTest {
+    fun `onSubmit with QrCode updates state to Loading and then QrDisplay on success`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
@@ -199,7 +199,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE QrDisplay state contains correct amount and currencyCode`() = runTest {
+    fun `onSubmit with QrCode QrDisplay state contains correct amount and currencyCode`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
@@ -230,7 +230,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE updates state to Loading and then Error on failure`() = runTest {
+    fun `onSubmit with QrCode updates state to Loading and then Error on failure`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
 
         backgroundScope.launch(testDispatcher) {
@@ -255,7 +255,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling transitions to Error on FAILED`() = runTest {
+    fun `onSubmit with QrCode polling transitions to Error on FAILED`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(
             ClassLoader.getSystemResource("aaniPaymentResponse.json").readText(),
@@ -288,7 +288,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling transitions to Success on CAPTURED`() = runTest {
+    fun `onSubmit with QrCode polling transitions to Success on CAPTURED`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(
             ClassLoader.getSystemResource("aaniPaymentResponse.json").readText(),
@@ -321,7 +321,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling transitions to Success on PURCHASED`() = runTest {
+    fun `onSubmit with QrCode polling transitions to Success on PURCHASED`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(
             ClassLoader.getSystemResource("aaniPaymentResponse.json").readText(),
@@ -354,7 +354,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling retries on PENDING then transitions to Success`() = runTest {
+    fun `onSubmit with QrCode polling retries on PENDING then transitions to Success`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(
             ClassLoader.getSystemResource("aaniPaymentResponse.json").readText(),
@@ -387,7 +387,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling transitions to Error when network request fails`() = runTest {
+    fun `onSubmit with QrCode polling transitions to Error when network request fails`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
@@ -418,7 +418,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `alias polling internal timeout does not override Success when CAPTURED returned before timeout`() =
+    fun `polling with alias type - internal timeout does not override Success when CAPTURED returned before timeout`() =
         runTest {
             val states: MutableList<AaniPayVMState> = mutableListOf()
             val aaniResponse = Gson().fromJson(
@@ -667,7 +667,7 @@ class AaniPayViewModelTest {
     // region QR flow - additional coverage
 
     @Test
-    fun `onSubmit with QR_CODE calls createQr with correct URL from args`() = runTest {
+    fun `onSubmit with QrCode calls createQr with correct URL from args`() = runTest {
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
         coEvery {
@@ -692,7 +692,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polls with correct qrCodeId and qrTransactionId from create response`() = runTest {
+    fun `onSubmit with QrCode polls with correct qrCodeId and qrTransactionId from create response`() = runTest {
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
         coEvery {
@@ -724,7 +724,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE state remains QrDisplay while polling returns PENDING`() = runTest {
+    fun `onSubmit with QrCode state remains QrDisplay while polling returns PENDING`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 
@@ -755,7 +755,7 @@ class AaniPayViewModelTest {
     }
 
     @Test
-    fun `onSubmit with QR_CODE polling retries on PENDING then transitions to Success on PURCHASED`() = runTest {
+    fun `onSubmit with QrCode polling retries on PENDING then transitions to Success on PURCHASED`() = runTest {
         val states: MutableList<AaniPayVMState> = mutableListOf()
         val aaniResponse = Gson().fromJson(qrResponseJson, AaniPayResponse::class.java)
 

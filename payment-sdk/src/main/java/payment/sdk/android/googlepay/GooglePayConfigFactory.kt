@@ -5,6 +5,7 @@ import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.PaymentsClient
 import kotlinx.coroutines.tasks.await
 import payment.sdk.android.payments.GooglePayUiConfig
+
 import payment.sdk.android.core.GooglePayConfigResponse
 import payment.sdk.android.core.interactor.GooglePayConfigInteractor
 
@@ -63,7 +64,8 @@ internal class GooglePayConfigFactory(
                     )
                 ),
                 allowedPaymentMethods = allowedPaymentMethods.toString(),
-                task = paymentsClient.loadPaymentData(request),
+                paymentsClient = paymentsClient,
+                paymentDataRequest = request,
                 googlePayAcceptUrl = googlePayAcceptUrl
             )
         } catch (e: Exception) {

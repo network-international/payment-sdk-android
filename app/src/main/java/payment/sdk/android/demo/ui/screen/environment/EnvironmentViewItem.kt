@@ -19,11 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.core.testId
 
 @Composable
 fun EnvironmentViewItem(
@@ -54,7 +54,7 @@ fun EnvironmentViewItem(
                     onClick()
                 }
             }
-            .testTag("environment_item_${environment.name}")
+            .testId("environment_item_${environment.name}")
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -66,7 +66,7 @@ fun EnvironmentViewItem(
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = environment.name,
+                    text = environment.nickname.orEmpty().ifEmpty { environment.realm },
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -95,7 +95,7 @@ fun EnvironmentViewItem(
                 modifier = Modifier
                     .padding(4.dp)
                     .size(24.dp)
-                    .testTag("environment_button_edit_${environment.name}"),
+                    .testId("environment_button_edit_${environment.name}"),
                 onClick = onEdit
             ) {
                 Icon(Icons.Filled.Edit, "Edit environment")
@@ -105,7 +105,7 @@ fun EnvironmentViewItem(
                 modifier = Modifier
                     .padding(4.dp)
                     .size(24.dp)
-                    .testTag("environment_button_delete_${environment.name}"),
+                    .testId("environment_button_delete_${environment.name}"),
                 onClick = onDelete
             ) {
                 Icon(Icons.Filled.Delete, "Delete environment")

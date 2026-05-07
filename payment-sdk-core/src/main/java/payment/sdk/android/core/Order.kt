@@ -101,6 +101,12 @@ class Order {
         /** Visa Click to Pay link - from wallet array containing VISA_CLICK_TO_PAY */
         @SerializedName(value = "payment:visa_click_to_pay")
         var visaClickToPayLink: Href? = null
+
+        @SerializedName(value = "payment:slice-eligibility-check")
+        var sliceEligibilityCheck: Href? = null
+
+        @SerializedName(value = "payment:vis-eligibility-check")
+        var visEligibilityCheck: Href? = null
     }
 
     @Keep
@@ -161,3 +167,7 @@ fun Order.isVisaClickToPayEnabled() = paymentMethods?.wallet?.contains("VISA_CLI
 fun Order.getPaymentReference() = embedded?.payment?.firstOrNull()?.reference
 
 fun Order.getOrderId() = embedded?.payment?.firstOrNull()?.reference?.substringBefore(":")?.trim()
+
+fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
+
+fun Order.getVisEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.visEligibilityCheck?.href

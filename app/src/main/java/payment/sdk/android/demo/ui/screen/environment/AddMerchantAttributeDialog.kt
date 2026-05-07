@@ -1,6 +1,7 @@
 package payment.sdk.android.demo.ui.screen.environment
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,10 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.ui.screen.AppDialog
+import payment.sdk.android.core.testId
 
 @Composable
 fun AddMerchantAttributeDialog(
@@ -30,19 +31,23 @@ fun AddMerchantAttributeDialog(
     var value by remember { mutableStateOf("") }
 
     AppDialog(title = "Add Merchant Attribute", onCancel = onCancel) {
-        TextField(
-            value = key,
-            onValueChange = { key = it },
-            label = { Text("Key") },
-            modifier = Modifier.fillMaxWidth().testTag("addmerchantattr_field_key")
-        )
+        Box(modifier = Modifier.fillMaxWidth().testId("merchantattr_field_key")) {
+            TextField(
+                value = key,
+                onValueChange = { key = it },
+                label = { Text("Key") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = value,
-            onValueChange = { value = it },
-            label = { Text("Value") },
-            modifier = Modifier.fillMaxWidth().testTag("addmerchantattr_field_value")
-        )
+        Box(modifier = Modifier.fillMaxWidth().testId("merchantattr_field_value")) {
+            TextField(
+                value = value,
+                onValueChange = { value = it },
+                label = { Text("Value") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -62,7 +67,7 @@ fun AddMerchantAttributeDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("addmerchantattr_button_add")
+                    .testId("merchantattr_button_save")
             ) {
                 Text("Add")
             }
@@ -71,7 +76,7 @@ fun AddMerchantAttributeDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("addmerchantattr_button_cancel")
+                    .testId("merchantattr_button_cancel")
             ) {
                 Text("Cancel")
             }

@@ -17,8 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -26,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import payment.sdk.android.core.testId
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -61,13 +60,13 @@ fun CircularProgressDialog(message: LoadingMessage) {
                 Spacer(modifier = Modifier.width(16.dp))
                 CircularProgressIndicator(
                     color = colorResource(id = R.color.payment_sdk_progress_loader_color),
-                    modifier = Modifier.semantics { testTag = "sdk_auth_spinner_loading" }
+                    modifier = Modifier.testId("sdk_auth_spinner_loading")
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = messageText,
                     color = Color.Gray,
-                    modifier = Modifier.semantics { testTag = "sdk_auth_label_status" }
+                    modifier = Modifier.testId("sdk_auth_label_status")
                 )
             }
         }

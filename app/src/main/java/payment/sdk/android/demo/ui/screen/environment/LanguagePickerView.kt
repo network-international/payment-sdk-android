@@ -20,9 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.AppLanguage
+import payment.sdk.android.core.testId
 
 @Composable
 fun LanguagePickerView(setLanguage: AppLanguage, onLanguageSelected: (AppLanguage) -> Unit) {
@@ -31,7 +31,7 @@ fun LanguagePickerView(setLanguage: AppLanguage, onLanguageSelected: (AppLanguag
 
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth().testTag("picker_language")) {
+    Box(modifier = Modifier.fillMaxWidth().testId("environment_picker_language")) {
         Row(
             modifier = Modifier
                 .clickable { expanded = true }

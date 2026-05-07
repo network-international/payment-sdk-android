@@ -20,10 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +50,7 @@ fun TopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = onAddProduct, modifier = Modifier.testTag("topbar_button_addProduct")) {
+            IconButton(onClick = onAddProduct, modifier = Modifier.testId("topbar_button_addProduct")) {
                 Icon(
                     imageVector = Icons.Filled.AddCircle,
                     contentDescription = "",
@@ -59,7 +59,7 @@ fun TopBar(
             }
         },
         actions = {
-            IconButton(onClick = onInfoClicked, modifier = Modifier.testTag("topbar_button_info")) {
+            IconButton(onClick = onInfoClicked, modifier = Modifier.testId("storefront_button_info")) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = "What You Need",
@@ -67,7 +67,7 @@ fun TopBar(
                 )
             }
             Spacer(modifier = Modifier.width(20.dp))
-            IconButton(onClick = onSettingClicked, modifier = Modifier.testTag("topbar_button_settings")) {
+            IconButton(onClick = onSettingClicked, modifier = Modifier.testId("storefront_button_settings")) {
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "back",

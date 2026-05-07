@@ -28,11 +28,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 fun ClickToPaySection(
@@ -84,7 +84,7 @@ fun ClickToPaySection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
-                            .testTag("sdk_paymentpage_button_clickToPay"),
+                            .testId("sdk_paymentpage_button_clickToPay"),
                         onClick = { onClickToPay(clickToPayConfig) },
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color.White,

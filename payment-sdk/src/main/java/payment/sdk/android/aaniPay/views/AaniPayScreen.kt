@@ -29,13 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.model.AaniIDType
 import payment.sdk.android.cardpayment.widget.PayButton
+import payment.sdk.android.core.testId
 import payment.sdk.android.sdk.R
 
 @Composable
@@ -83,52 +82,58 @@ internal fun AaniPayScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier
-                .background(Color.White)
-                .fillMaxWidth(),
-        ) {
-            if (selectedInputType == AaniIDType.MOBILE_NUMBER) {
-                CountryCodeView()
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-
-            OutlinedTextField(
-                label = { Text(stringResource(selectedInputType.resourceId)) },
-                value = inputValue,
+        if (selectedInputType.requiresInput) {
+            Row(
+                verticalAlignment = Alignment.Bottom,
                 modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester)
                     .background(Color.White)
-                    .semantics { testTag = "sdk_aani_field_input" },
-                onValueChange = { text ->
-                    if (selectedInputType.length >= text.length) {
-                        inputValue =
-                            if (selectedInputType.isDigitOnly) text.filter { it.isDigit() } else text
-                        isInputValid = selectedInputType.validate(
-                            selectedInputType.inputFormatter.filter(AnnotatedString(text)).text.text
-                        )
-                    }
-                },
-                visualTransformation = selectedInputType.inputFormatter,
-                textStyle = MaterialTheme.typography.subtitle1,
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = selectedInputType.keyboardType,
-                ),
-                placeholder = { Text(selectedInputType.sample) },
-            )
-        }
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
+                    .fillMaxWidth(),
+            ) {
+                if (selectedInputType == AaniIDType.MOBILE_NUMBER) {
+                    CountryCodeView()
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                Box(modifier = Modifier.weight(1f).testId("sdk_aani_field_input")) {
+                OutlinedTextField(
+                    label = { Text(stringResource(selectedInputType.resourceId)) },
+                    value = inputValue,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .background(Color.White),
+                    onValueChange = { text ->
+                        if (selectedInputType.length >= text.length) {
+                            inputValue =
+                                if (selectedInputType.isDigitOnly) text.filter { it.isDigit() } else text
+                            isInputValid = selectedInputType.validate(
+                                selectedInputType.inputFormatter.filter(AnnotatedString(text)).text.text
+                            )
+                        }
+                    },
+                    visualTransformation = selectedInputType.inputFormatter,
+                    textStyle = MaterialTheme.typography.subtitle1,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = selectedInputType.keyboardType,
+                    ),
+                    placeholder = { Text(selectedInputType.sample) },
+                )
+                } // Box
+            }
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         PayButton(
-            text = stringResource(R.string.make_payment),
-            isValid = isInputValid,
-            modifier = Modifier.semantics { testTag = "sdk_aani_button_submit" }
+            text = stringResource(
+                if (selectedInputType == AaniIDType.QR_CODE) R.string.aani_generate_qr
+                else R.string.make_payment
+            ),
+            isValid = if (selectedInputType.requiresInput) isInputValid else true,
+            modifier = Modifier.testId("sdk_aani_button_submit")
         ) {
             onSubmit(selectedInputType, inputValue)
         }

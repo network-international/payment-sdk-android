@@ -5,8 +5,10 @@ import android.content.Intent
 import android.os.Parcelable
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
+import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.googlepay.GooglePayConfig
+import payment.sdk.android.payments.model.OrderItem
 
 /**
  * `UnifiedPaymentPageRequest` class represents the request for launching the payment page.
@@ -31,7 +33,10 @@ class UnifiedPaymentPageRequest private constructor(
     val authorizationUrl: String,
     val paymentUrl: String,
     val googlePayConfig: GooglePayConfig?,
-    val clickToPayConfig: ClickToPayConfig?
+    val clickToPayConfig: ClickToPayConfig?,
+    val samsungPayConfig: SamsungPayConfig?,
+    val savedCards: List<SavedCard> = emptyList(),
+    val orderItems: List<OrderItem> = emptyList()
 ) : Parcelable {
 
     /**
@@ -42,6 +47,9 @@ class UnifiedPaymentPageRequest private constructor(
         private lateinit var _paymentUrl: String
         private var _googlePayConfig: GooglePayConfig? = null
         private var _clickToPayConfig: ClickToPayConfig? = null
+        private var _samsungPayConfig: SamsungPayConfig? = null
+        private var _savedCards: List<SavedCard> = emptyList()
+        private var _orderItems: List<OrderItem> = emptyList()
 
         /**
          * Sets the authorization URL for gateway authentication.
@@ -84,6 +92,25 @@ class UnifiedPaymentPageRequest private constructor(
         }
 
         /**
+         * Sets the Samsung Pay configuration for the payment request.
+         * When provided, Samsung Pay is handled entirely within the payment page.
+         *
+         * @param samsungPayConfig The Samsung Pay configuration.
+         * @return The builder instance.
+         */
+        fun setSamsungPayConfig(samsungPayConfig: SamsungPayConfig) = apply {
+            this._samsungPayConfig = samsungPayConfig
+        }
+
+        fun setSavedCards(savedCards: List<SavedCard>) = apply {
+            this._savedCards = savedCards
+        }
+
+        fun setOrderItems(orderItems: List<OrderItem>) = apply {
+            this._orderItems = orderItems
+        }
+
+        /**
          * Builds the `UnifiedPaymentPageRequest` instance.
          *
          * @return An instance of `UnifiedPaymentPageRequest`.
@@ -96,7 +123,10 @@ class UnifiedPaymentPageRequest private constructor(
                 authorizationUrl = _authorizationUrl,
                 paymentUrl = _paymentUrl,
                 googlePayConfig = _googlePayConfig,
-                clickToPayConfig = _clickToPayConfig
+                clickToPayConfig = _clickToPayConfig,
+                samsungPayConfig = _samsungPayConfig,
+                savedCards = _savedCards,
+                orderItems = _orderItems
             )
         }
     }

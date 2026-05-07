@@ -20,10 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.R
+import payment.sdk.android.core.testId
 
 @Composable
 fun SectionView(
@@ -33,6 +33,9 @@ fun SectionView(
     isExpanded: Boolean = false,
     onExpand: (Boolean) -> Unit = {},
     onScan: (() -> Unit)? = null,
+    addButtonId: String = "section_button_add_${title.lowercase().replace(" ", "_")}",
+    scanButtonId: String = "section_button_scan_${title.lowercase().replace(" ", "_")}",
+    toggleButtonId: String = "section_button_toggle_${title.lowercase().replace(" ", "_")}",
     content: @Composable () -> Unit
 ) {
     Column {
@@ -40,20 +43,20 @@ fun SectionView(
             Text(text = title, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.weight(1f))
             if (onScan != null) {
-                IconButton(onClick = onScan, modifier = Modifier.testTag("section_button_scan_${title.lowercase().replace(" ", "_")}")) {
+                IconButton(onClick = onScan, modifier = Modifier.testId(scanButtonId)) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_qr_scan),
                         contentDescription = "Scan QR code"
                     )
                 }
             }
-            IconButton(onClick = showDialog, modifier = Modifier.testTag("section_button_add_${title.lowercase().replace(" ", "_")}")) {
+            IconButton(onClick = showDialog, modifier = Modifier.testId(addButtonId)) {
                 Icon(imageVector = Icons.Default.AddCircle, contentDescription = "add")
             }
             if (count != 0) {
                 IconButton(onClick = {
                     onExpand(!isExpanded)
-                }, modifier = Modifier.testTag("section_button_toggle_${title.lowercase().replace(" ", "_")}")) {
+                }, modifier = Modifier.testId(toggleButtonId)) {
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = "add"

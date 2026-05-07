@@ -1,182 +1,264 @@
 package payment.sdk.android.payments.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import payment.sdk.android.SDKConfig
+import payment.sdk.android.core.testId
 import payment.sdk.android.payments.model.PaymentResultArgs
+import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.sdk.R
 
 private val SuccessGreen = Color(0xFF2EB852)
 private val FailureRed = Color(0xFFE63835)
+private val MutedGrey = Color(0xFF8F8F8F)
+private val PrimaryText = Color(0xFF1A1A1A)
 
 @Composable
 fun PaymentResultScreen(
     args: PaymentResultArgs,
     onDone: () -> Unit
 ) {
+    val accent = if (args.isSuccess) SuccessGreen else FailureRed
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .navigationBarsPadding()
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Icon
-        Icon(
-            painter = painterResource(
-                id = if (args.isSuccess) R.drawable.ic_payment_success else R.drawable.ic_payment_failure
-            ),
-            contentDescription = null,
-            modifier = Modifier
-                .size(64.dp)
-                .semantics { testTag = "sdk_result_image_status" },
-            tint = Color.Unspecified
+        // ── Merchant header (shop logo + order summary) — same style as the unified payment page
+        MerchantHeader(
+            formattedAmount = args.formattedAmount,
+            orderItems = args.orderItems
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Title
-        Text(
-            text = if (args.isSuccess) {
-                if (args.formattedAmount != null) {
-                    stringResource(R.string.payment_result_success_title, args.formattedAmount)
-                } else {
-                    stringResource(R.string.payment_result_success_title_no_amount)
-                }
-            } else {
-                stringResource(R.string.payment_result_failure_title)
-            },
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            color = Color(0xFF1A1A1A),
-            modifier = Modifier.semantics { testTag = "sdk_result_label_title" }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Subtitle
-        Text(
-            text = if (args.isSuccess) {
-                stringResource(R.string.payment_result_success_subtitle)
-            } else {
-                stringResource(R.string.payment_result_failure_subtitle)
-            },
-            fontSize = 14.sp,
-            color = Color(0xFF8F8F8F),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Details card
+        // ── Centered status block ───────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = Color(0xFFF5F5F5),
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(16.dp)
+                .weight(1f)
+                .padding(horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (args.isSuccess) {
-                        stringResource(R.string.payment_result_transaction_id)
-                    } else {
-                        stringResource(R.string.payment_result_reference_number)
-                    },
-                    fontSize = 14.sp,
-                    color = Color(0xFF8F8F8F)
-                )
-                Text(
-                    text = args.transactionId,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF1A1A1A)
-                )
-            }
-
-            Divider(
-                modifier = Modifier.padding(vertical = 12.dp),
-                color = Color(0xFFE0E0E0)
+            Icon(
+                painter = painterResource(
+                    id = if (args.isSuccess) R.drawable.ic_payment_success else R.drawable.ic_payment_failure
+                ),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(80.dp)
+                    .testId("sdk_result_image_status"),
+                tint = Color.Unspecified
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.payment_result_date_time),
-                    fontSize = 14.sp,
-                    color = Color(0xFF8F8F8F)
-                )
-                Text(
-                    text = args.dateTime,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF1A1A1A)
-                )
-            }
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = if (args.isSuccess) {
+                    if (args.formattedAmount != null) {
+                        stringResource(R.string.payment_result_success_title, args.formattedAmount)
+                    } else {
+                        stringResource(R.string.payment_result_success_title_no_amount)
+                    }
+                } else {
+                    stringResource(R.string.payment_result_failure_title)
+                },
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = accent,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.testId("sdk_result_label_title")
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = if (args.isSuccess) {
+                    stringResource(R.string.payment_result_success_subtitle)
+                } else {
+                    stringResource(R.string.payment_result_failure_subtitle)
+                },
+                fontSize = 14.sp,
+                color = PrimaryText,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            DetailLine(
+                label = if (args.isSuccess)
+                    stringResource(R.string.payment_result_transaction_id)
+                else
+                    stringResource(R.string.payment_result_reference_number),
+                value = args.transactionId
+            )
+            Spacer(Modifier.height(8.dp))
+            DetailLine(
+                label = stringResource(R.string.payment_result_date_time),
+                value = args.dateTime
+            )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Footer
-        PaymentFooterView(
-            supportedCards = args.supportedCards
-        )
-
-        // Done button
-        Button(
-            onClick = onDone,
+        // ── Footer + done button ────────────────────────────────────────────────
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .semantics { testTag = "sdk_result_button_done" },
-            colors = ButtonDefaults.buttonColors(
-                backgroundColor = Color(0xFF2E6FF2),
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(8.dp)
+                .padding(horizontal = 12.dp)
         ) {
-            Text(
-                text = stringResource(R.string.payment_result_done),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+            PaymentFooterView(supportedCards = args.supportedCards)
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = onDone,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .testId("sdk_result_button_done"),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = accent,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.payment_result_done),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$label: ",
+            fontSize = 13.sp,
+            color = PrimaryText
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            color = PrimaryText
+        )
+    }
+}
+
+@Composable
+private fun MerchantHeader(
+    formattedAmount: String?,
+    orderItems: List<payment.sdk.android.payments.model.OrderItem>
+) {
+    val logoResId = if (SDKConfig.merchantLogoResId != 0) SDKConfig.merchantLogoResId
+    else R.drawable.network_international_logo
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PgColors.surfaceRow)
+            .statusBarsPadding()
+    ) {
+        // Merchant logo row
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Image(
+                painter = painterResource(id = logoResId),
+                contentDescription = "Logo",
+                modifier = Modifier.height(32.dp),
+                contentScale = ContentScale.Fit
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // Order summary block
+        if (formattedAmount != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.order_summary),
+                    fontSize = 13.sp,
+                    color = MutedGrey
+                )
+                Text(
+                    text = formattedAmount,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PrimaryText
+                )
+            }
+        }
+
+        // Optional itemised breakdown
+        if (orderItems.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Item(s)", fontSize = 12.sp, color = MutedGrey)
+                    Text(text = "Amount", fontSize = 12.sp, color = MutedGrey)
+                }
+                orderItems.forEach { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(text = item.name, fontSize = 13.sp, color = PrimaryText)
+                        Text(text = item.amount, fontSize = 13.sp, color = PrimaryText, fontWeight = FontWeight.Medium)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
     }
 }

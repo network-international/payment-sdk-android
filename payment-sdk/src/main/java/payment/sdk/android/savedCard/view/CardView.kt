@@ -23,8 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -32,7 +30,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -41,6 +38,7 @@ import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.cardpayment.widget.PreviewTextView
 import payment.sdk.android.core.CardType
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 internal fun CreditCardView(
@@ -53,7 +51,7 @@ internal fun CreditCardView(
     Surface(
         modifier = modifier
             .aspectRatio(16 / 9f)
-            .testTag("sdk_savedcard_container_card"),
+            .testId("sdk_savedcard_container_card"),
         shape = RoundedCornerShape(8.dp),
         elevation = 8.dp,
         color = Color.Transparent
@@ -84,7 +82,7 @@ internal fun CreditCardView(
                         painter = getCardImage(type = cardScheme),
                         contentDescription = "",
                         contentScale = ContentScale.FillHeight,
-                        modifier = Modifier.semantics { testTag = "sdk_cardpreview_image_logo" }
+                        modifier = Modifier.testId("sdk_cardpreview_image_logo")
                     )
                 }
 
@@ -106,7 +104,7 @@ internal fun CreditCardView(
                     stringResource(R.string.placeholder_card_number)
                 }
                 AndroidView(
-                    modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_pan" },
+                    modifier = Modifier.testId("sdk_cardpreview_label_pan"),
                     factory = { context ->
                     PreviewTextView(context).apply {
                         text = cardNumberText
@@ -127,7 +125,7 @@ internal fun CreditCardView(
                         stringResource(R.string.placeholder_expire_date)
                     }
                     AndroidView(
-                        modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_expiry" },
+                        modifier = Modifier.testId("sdk_cardpreview_label_expiry"),
                         factory = { context ->
                         PreviewTextView(context).apply {
                             text = expiryText
@@ -145,7 +143,7 @@ internal fun CreditCardView(
                 }
                 Log.d("CardNumberTextField", "cardholderNameText: $cardholderNameText")
                 AndroidView(
-                    modifier = Modifier.semantics { testTag = "sdk_cardpreview_label_name" },
+                    modifier = Modifier.testId("sdk_cardpreview_label_name"),
                     factory = { context ->
                     PreviewTextView(context).apply {
                         text = cardholderNameText

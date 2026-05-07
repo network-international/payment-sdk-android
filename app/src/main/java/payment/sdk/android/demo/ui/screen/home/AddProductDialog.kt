@@ -17,11 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.demo.ui.screen.AppDialog
+import payment.sdk.android.core.testId
 
 @Composable
 fun AddProductDialog(
@@ -35,7 +35,7 @@ fun AddProductDialog(
             value = name,
             onValueChange = { name = it },
             label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth().testTag("addproduct_field_name")
+            modifier = Modifier.fillMaxWidth().testId("addproduct_field_name")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
@@ -47,7 +47,7 @@ fun AddProductDialog(
             },
             label = { Text("Amount") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth().testTag("addproduct_field_amount")
+            modifier = Modifier.fillMaxWidth().testId("addproduct_field_amount")
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -65,7 +65,7 @@ fun AddProductDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("addproduct_button_add")
+                    .testId("addproduct_button_add")
             ) {
                 Text("Add")
             }
@@ -74,7 +74,7 @@ fun AddProductDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("addproduct_button_cancel")
+                    .testId("addproduct_button_cancel")
             ) {
                 Text("Cancel")
             }

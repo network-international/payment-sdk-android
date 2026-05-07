@@ -6,10 +6,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,18 +20,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import payment.sdk.android.core.SliceOffer
+import payment.sdk.android.payments.SliceCheckState
+import payment.sdk.android.payments.VisCheckState
+import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,87 +45,93 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.foundation.text.ClickableText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.card.CardDetector
-import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
-import payment.sdk.android.cardpayment.theme.SDKOutlinedTextFieldColors
 import payment.sdk.android.core.CardType
-import payment.sdk.android.cardpayment.theme.sdkColor
+import payment.sdk.android.payments.theme.PgColors
+import payment.sdk.android.payments.theme.PgSize
+import payment.sdk.android.payments.theme.PgType
+import payment.sdk.android.payments.theme.Radius
+import payment.sdk.android.payments.theme.Spacing
 import payment.sdk.android.savedCard.view.getCardImage
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
+import payment.sdk.android.core.SavedCard
 
+// Figma: Card payment section — bordered section card with expand/collapse form
 @Composable
 fun CardPaymentSection(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     supportedCards: Set<CardType>,
-    formattedAmount: String,
+    savedCards: List<SavedCard> = emptyList(),
+    selectedSavedCard: SavedCard? = null,
+    savedCardCvv: String = "",
+    onSavedCardSelected: (SavedCard) -> Unit = {},
+    onSavedCardCvvChanged: (String) -> Unit = {},
+    pan: String,
+    cvv: String,
+    expiry: TextFieldValue,
+    cardholderName: String,
+    paymentCard: PaymentCard?,
+    selectedSliceOffer: SliceOffer?,
+    sliceCheckState: SliceCheckState = SliceCheckState.Idle,
+    visCheckState: VisCheckState = VisCheckState.Idle,
+    visSelectedPlan: InstallmentPlan? = null,
+    visTermsAccepted: Boolean = false,
+    visOrderValue: Double = 0.0,
+    visCurrencyCode: String = "",
+    onVisPlanSelected: (InstallmentPlan?) -> Unit = {},
+    onVisTermsToggled: (Boolean) -> Unit = {},
     onToggle: () -> Unit,
-    onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String) -> Unit
+    onPanChanged: (pan: String, card: PaymentCard?) -> Unit,
+    onCvvChanged: (String) -> Unit,
+    onExpiryChanged: (TextFieldValue) -> Unit,
+    onCardholderNameChanged: (String) -> Unit,
+    onSliceOfferSelected: (SliceOffer?) -> Unit,
+    onCheckSliceEligibility: (pan: String, expiryRaw: String) -> Unit = { _, _ -> },
+    onResetSliceCheck: () -> Unit = {}
 ) {
-    val cardDetector = remember { CardDetector(supportedCards) }
-    var pan by remember { mutableStateOf("") }
-    var cvv by remember { mutableStateOf("") }
-    var expiry by remember { mutableStateOf(TextFieldValue("")) }
-    var cardholderName by remember { mutableStateOf("") }
-    var paymentCard by remember { mutableStateOf<PaymentCard?>(null) }
-    var isFormValid by remember { mutableStateOf(false) }
+    val cardDetector = remember(supportedCards) { CardDetector(supportedCards) }
 
     val expiryFocus = remember { FocusRequester() }
     val cvvFocus = remember { FocusRequester() }
     val cardHolderFocus = remember { FocusRequester() }
 
-    LaunchedEffect(pan, cvv, expiry.text, cardholderName) {
-        isFormValid = CardValidator.isValid(
-            paymentCard = paymentCard,
-            pan = pan,
-            cvv = cvv,
-            expiry = expiry.text,
-            cardholderName = cardholderName
-        )
-    }
-
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 16.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
-        // Title: "Use Credit Or Debit Card"
+        // Section heading
         Text(
             text = stringResource(R.string.use_credit_or_debit_card),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF070707),
-            modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)
+            style = PgType.headingSection,
+            color = PgColors.textPrimary,
+            modifier = Modifier.padding(
+                start = Spacing.pageH, end = Spacing.pageH,
+                top = Spacing.rowPaddingV, bottom = Spacing.rowPaddingV
+            )
         )
 
-        // Card brand logos row
+        // Accepted card brand strip
         Row(
-            modifier = Modifier.padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(
+                start = Spacing.pageH, end = Spacing.pageH,
+                bottom = Spacing.rowGap
+            ),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             supportedCards.forEach { card ->
                 Image(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .height(18.dp)
+                        .widthIn(max = 32.dp),
                     painter = getCardImage(card, isWhiteBackground = true),
                     contentDescription = card.name,
                     contentScale = ContentScale.Fit
@@ -129,100 +139,109 @@ fun CardPaymentSection(
             }
         }
 
-        // Radio button: "Pay by card"
+        // Saved cards — between brand icons and "Pay by card" toggle (no horizontal padding so
+        // the selection background goes edge-to-edge within the card section)
+        if (savedCards.isNotEmpty()) {
+            savedCards.forEach { card ->
+                SavedCardRow(
+                    card = card,
+                    isSelected = selectedSavedCard?.cardToken == card.cardToken,
+                    savedCardCvv = if (selectedSavedCard?.cardToken == card.cardToken) savedCardCvv else "",
+                    onSelect = { onSavedCardSelected(card) },
+                    onCvvChanged = onSavedCardCvvChanged
+                )
+            }
+        }
+
+        // Radio toggle row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onToggle() }
-                .padding(start = 8.dp, top = 12.dp, bottom = 12.dp),
+                .padding(horizontal = Spacing.pageH, vertical = Spacing.rowPaddingV),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Spacer(Modifier.width(Spacing.rowPaddingH))
             PaymentRadioButton(selected = isExpanded)
             Spacer(Modifier.width(12.dp))
             Text(
                 text = stringResource(R.string.pay_by_card),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF070707)
+                style = PgType.bodyRowTitle,
+                color = PgColors.textPrimary
             )
         }
 
-        // Collapsible card form
         AnimatedVisibility(
             visible = isExpanded,
             enter = fadeIn(animationSpec = tween(250)) + expandVertically(animationSpec = tween(250)),
             exit = fadeOut(animationSpec = tween(250)) + shrinkVertically(animationSpec = tween(250))
         ) {
-            Column(modifier = Modifier.clip(RectangleShape)) {
-                // Card number
+            Column(modifier = Modifier
+                .clip(RectangleShape)
+                .padding(
+                    start = Spacing.pageH + PgSize.radioOuter + 12.dp,
+                    end = Spacing.pageH
+                )) {
                 CardNumberTextField(
                     pan = pan,
                     paymentCard = paymentCard,
-                    supportedCards = supportedCards,
-                ) { text ->
-                    val maxLength = paymentCard?.binRange?.length?.value ?: 16
-                    if (text.length <= maxLength) {
-                        pan = text.filter { it.isDigit() }
-                        if (pan.length == maxLength) {
-                            expiryFocus.requestFocus()
-                        }
-                        paymentCard = takeIf { pan.isNotEmpty() }?.let {
-                            cardDetector.detect(pan)
+                    sliceCheckState = sliceCheckState,
+                    onValueChanged = { text ->
+                        val maxLength = paymentCard?.binRange?.length?.value ?: 16
+                        if (text.length <= maxLength) {
+                            val newPan = text.filter { it.isDigit() }
+                            val newCard = if (newPan.isNotEmpty()) cardDetector.detect(newPan) else null
+                            onPanChanged(newPan, newCard)
+                            if (newPan.length == maxLength) {
+                                expiryFocus.requestFocus()
+                            }
                         }
                     }
-                }
+                )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Spacing.fieldsStackGap))
 
-                // Expiration date + Security code
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.fieldRowGap)
                 ) {
                     ExpiryDateTextField(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(expiryFocus),
                         text = expiry,
-                        onValueChange = { newValue ->
-                            expiry = newValue
-                        },
-                        focusCvv = {
-                            cvvFocus.requestFocus()
-                        }
+                        onValueChange = { onExpiryChanged(it) },
+                        focusCvv = { cvvFocus.requestFocus() }
                     )
 
-                    OutlinedTextField(
-                        label = { Text(stringResource(R.string.security_code_label)) },
-                        value = cvv,
+                    PgTextField(
                         modifier = Modifier
                             .weight(1f)
-                            .focusRequester(cvvFocus)
-                            .testTag("sdk_card_field_cvv"),
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Number,
-                        ),
-                        visualTransformation = PasswordVisualTransformation(),
+                            .focusRequester(cvvFocus),
+                        value = cvv,
                         onValueChange = { text ->
                             val maxLength = paymentCard?.cvv?.length ?: 3
                             if (text.length <= maxLength) {
-                                cvv = text
+                                onCvvChanged(text)
                                 if (text.length == maxLength) {
                                     cardHolderFocus.requestFocus()
                                 }
                             }
                         },
-                        colors = SDKOutlinedTextFieldColors(),
+                        label = stringResource(R.string.security_code_label),
+                        placeholder = "CVV",
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        visualTransformation = PasswordVisualTransformation(),
+                        testTag = "sdk_card_field_cvv"
                     )
                 }
 
-                // "What's CVV?" + tooltip
                 var showCvvTooltip by remember { mutableStateOf(false) }
 
                 Text(
                     text = stringResource(R.string.whats_cvv),
-                    fontSize = 12.sp,
-                    color = Color(0xFF8F8F8F),
+                    style = PgType.bodyRowSubtitle,
+                    color = PgColors.textMuted,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showCvvTooltip = !showCvvTooltip }
@@ -235,7 +254,6 @@ fun CardPaymentSection(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.End
                     ) {
-                        // Arrow pointing at "What's CVV?"
                         Box(
                             modifier = Modifier
                                 .padding(end = 24.dp)
@@ -250,114 +268,69 @@ fun CardPaymentSection(
                                 )
                                 .background(Color(0xFF333333))
                         )
-                        // Bubble
                         Text(
                             text = stringResource(R.string.cvv_tooltip),
-                            fontSize = 13.sp,
+                            style = PgType.bodyRowSubtitle,
                             color = Color.White,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
                                     color = Color(0xFF333333),
-                                    shape = RoundedCornerShape(8.dp)
+                                    shape = RoundedCornerShape(Radius.row)
                                 )
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                                .padding(horizontal = Spacing.rowPaddingH, vertical = Spacing.rowPaddingV)
                         )
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Spacing.rowGap))
 
-                // Name on card
-                OutlinedTextField(
-                    label = { Text(stringResource(R.string.name_on_card_label)) },
+                PgTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(cardHolderFocus),
                     value = cardholderName,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(cardHolderFocus)
-                        .testTag("sdk_card_field_cardholderName"),
-                    onValueChange = { text ->
-                        cardholderName = text
-                    },
-                    colors = SDKOutlinedTextFieldColors(),
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                // Pay button
-                TextButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .testTag("sdk_card_button_pay")
-                        .background(
-                            color = if (isFormValid) sdkColor(R.color.payment_sdk_pay_button_background_color) else sdkColor(R.color.payment_sdk_button_disabled_background_color),
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    onClick = {
-                        onMakePayment(
-                            pan,
-                            expiry.text.filter { it.isDigit() },
-                            cvv,
-                            cardholderName
+                    onValueChange = onCardholderNameChanged,
+                    label = stringResource(R.string.name_on_card_label),
+                    placeholder = stringResource(R.string.name_on_card_placeholder),
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = PgColors.textMuted
                         )
                     },
-                    enabled = isFormValid,
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                    val title = if (SDKConfig.showOrderAmount) stringResource(
-                        R.string.pay_button_title,
-                        formattedAmount
-                    ) else stringResource(R.string.pay_button)
-                    Text(
-                        text = title,
-                        color = if (isFormValid) sdkColor(R.color.payment_sdk_pay_button_text_color) else sdkColor(R.color.payment_sdk_button_disabled_text_color),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                    testTag = "sdk_card_field_cardholderName"
+                )
+
+                if (sliceCheckState is SliceCheckState.Available) {
+                    SliceInstallmentSection(
+                        offers = sliceCheckState.offers,
+                        onOfferSelected = { onSliceOfferSelected(it) }
                     )
                 }
 
-                // Terms agreement text
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(Spacing.sectionGap))
+            }
+        }
 
-                val termsContext = LocalContext.current
-                val fullTermsText = stringResource(R.string.terms_agreement_text)
-                val termsLinkText = stringResource(R.string.terms_and_conditions)
-                val annotatedTerms = remember(fullTermsText, termsLinkText) {
-                    buildAnnotatedString {
-                        val start = fullTermsText.indexOf(termsLinkText, ignoreCase = true)
-                        if (start >= 0) {
-                            append(fullTermsText.substring(0, start))
-                            pushStringAnnotation(tag = "URL", annotation = "https://www.network.ae/en/terms-and-conditions")
-                            withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-                                append(fullTermsText.substring(start, start + termsLinkText.length))
-                            }
-                            pop()
-                            append(fullTermsText.substring(start + termsLinkText.length))
-                        } else {
-                            append(fullTermsText)
-                        }
-                    }
-                }
-                ClickableText(
-                    text = annotatedTerms,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = androidx.compose.ui.text.TextStyle(
-                        textAlign = TextAlign.Start,
-                        color = Color(0xFF8F8F8F),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp
-                    ),
-                    onClick = { offset ->
-                        annotatedTerms.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                            .firstOrNull()?.let { annotation ->
-                                termsContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item)))
-                            }
-                    }
+        // Visa installment section is rendered at section level (outside the manual-form
+        // AnimatedVisibility) so it appears for both manual entry AND saved-card selection.
+        if (visCheckState is VisCheckState.Available) {
+            Column(
+                modifier = Modifier.padding(horizontal = Spacing.pageH)
+            ) {
+                VisaInstallmentSection(
+                    plans = visCheckState.plans,
+                    orderAmount = payment.sdk.android.core.OrderAmount(visOrderValue, visCurrencyCode),
+                    selectedPlan = visSelectedPlan,
+                    termsAccepted = visTermsAccepted,
+                    onPlanSelected = onVisPlanSelected,
+                    onTermsToggled = onVisTermsToggled
                 )
-
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(Spacing.sectionGap))
             }
         }
     }

@@ -19,3 +19,17 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep all SDK Parcelable classes and their fields — required because @Parcelize
+# generates code that references class/field names by reflection at runtime.
+# R8 obfuscation breaks enum ordinal() lookups and field access inside Parcel
+# read/write methods when these classes are renamed.
+-keep class payment.sdk.android.** implements android.os.Parcelable { *; }
+-keepclassmembers class payment.sdk.android.** implements android.os.Parcelable { *; }
+
+# Keep Kotlin enums inside the SDK (enum ordinal()/name() used by Parcelize)
+-keepclassmembers enum payment.sdk.android.** {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    *;
+}

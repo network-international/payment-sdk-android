@@ -2,6 +2,7 @@ package payment.sdk.android.samsungpay
 
 import android.content.Context
 import android.os.Bundle
+import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.PaymentManager
@@ -20,7 +21,11 @@ class SamsungPayTransactionListener(
     }
 
     override fun onFailure(code: Int, bundle: Bundle?) {
-        samsungPayResponse.onFailure("Samsung Pay authorization failed with code $code")
+        if (code == SpaySdk.ERROR_USER_CANCELED) {
+            samsungPayResponse.onCancelled()
+        } else {
+            samsungPayResponse.onFailure("Samsung Pay authorization failed with code $code")
+        }
     }
 
     override fun onSuccess(customSheetPaymentInfo: CustomSheetPaymentInfo?, encryptedObject: String?, bundle: Bundle?) {

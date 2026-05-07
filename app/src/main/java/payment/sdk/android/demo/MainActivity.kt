@@ -11,6 +11,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
@@ -28,9 +32,14 @@ import payment.sdk.android.demo.ui.screen.whatyouneed.WhatYouNeedScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.googlepay.GooglePayConfig
+import payment.sdk.android.payments.SamsungPayConfig
 import payment.sdk.android.payments.UnifiedPaymentPageLauncher
+import payment.sdk.android.demo.model.Product
 import payment.sdk.android.payments.UnifiedPaymentPageRequest
+import payment.sdk.android.payments.model.OrderItem
+import java.util.Locale
 import payment.sdk.android.samsungpay.SamsungPayResponse
+import payment.sdk.android.core.SavedCard
 import payment.sdk.android.savedCard.SavedCardPaymentLauncher
 import payment.sdk.android.savedCard.SavedCardPaymentRequest
 
@@ -76,6 +85,7 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         viewModel.onPaymentResult(it)
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Step 3: Configure SDK options
@@ -89,7 +99,8 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
             NewMerchantAppTheme {
                 NavHost(
                     navController = navController,
-                    startDestination = HOME_ROUTE
+                    startDestination = HOME_ROUTE,
+                    modifier = Modifier.semantics { testTagsAsResourceId = true }
                 ) {
 
                     composable(HOME_ROUTE) {
@@ -121,18 +132,6 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                             },
                             onDeleteProduct = {
                                 viewModel.onDeleteProduct(it)
-                            },
-                            onSelectSavedCard = {
-                                viewModel.setSavedCard(it)
-                            },
-                            onDeleteSavedCard = {
-                                viewModel.deleteSavedCard(it)
-                            },
-                            onPaySavedCard = {
-                                viewModel.createOrder(
-                                    PaymentType.SAVED_CARD,
-                                    viewModel.createOrderRequest(it)
-                                )
                             },
                             onRefresh = viewModel::onRefresh,
                             onClickWhatYouNeed = {
@@ -186,9 +185,13 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                     )
 
                     PaymentType.CARD -> {
+                        val state = viewModel.uiState.value
                         launchPaymentPage(
                             authUrl = effect.order.getAuthorizationUrl().orEmpty(),
-                            payPageUrl = effect.order.getPayPageUrl().orEmpty()
+                            payPageUrl = effect.order.getPayPageUrl().orEmpty(),
+                            selectedProducts = state.selectedProducts,
+                            currency = state.currency,
+                            savedCards = state.savedCards
                         )
                     }
 
@@ -207,12 +210,18 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         }
     }
 
-    private fun launchPaymentPage(authUrl: String, payPageUrl: String) {
+    private fun launchPaymentPage(
+        authUrl: String,
+        payPageUrl: String,
+        selectedProducts: List<Product> = emptyList(),
+        currency: String = "",
+        savedCards: List<SavedCard> = emptyList()
+    ) {
         val dataStore = DataStoreImpl(this)
         SDKConfig.setLanguage(dataStore.getLanguage().code)
 
         val googlePayConfig = GooglePayConfig(
-            environment = GooglePayConfig.Environment.Test,
+            environment = GooglePayConfig.Environment.Production,
             merchantGatewayId = "BCR2DN4T263KB4BO"
         )
         // Click to Pay configuration - enable Visa Unified Click to Pay
@@ -224,12 +233,24 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
             isSandbox = true,
             testOtpMode = false
         )
+        val samsungPayConfig = SamsungPayConfig(
+            serviceId = paymentClient.serviceId,
+            merchantName = "WestZone"
+        )
         paymentsLauncher.launch(
             UnifiedPaymentPageRequest.builder()
                 .gatewayAuthorizationUrl(authUrl)
                 .payPageUrl(payPageUrl)
                 .setGooglePayConfig(googlePayConfig)
                 .setClickToPayConfig(clickToPayConfig)
+                .setSamsungPayConfig(samsungPayConfig)
+                .setSavedCards(savedCards)
+                .setOrderItems(selectedProducts.map { product ->
+                    OrderItem(
+                        name = product.name,
+                        amount = "$currency ${String.format(Locale.ENGLISH, "%,.2f", product.amount)}"
+                    )
+                })
                 .build()
         )
     }
@@ -270,5 +291,9 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
 
     override fun onFailure(error: String) {
         viewModel.onFailure(error)
+    }
+
+    override fun onCancelled() {
+        viewModel.closeDialog()
     }
 }

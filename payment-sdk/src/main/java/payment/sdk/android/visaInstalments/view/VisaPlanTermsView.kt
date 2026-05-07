@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -33,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.util.extractUrlsAndText
@@ -42,6 +39,7 @@ import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.core.TermsAndCondition
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 fun VisaPlanTermsView(
@@ -66,7 +64,7 @@ fun VisaPlanTermsView(
             ) {
                 if (termsExpanded || isTermsAccepted) {
                     Checkbox(
-                        modifier = Modifier.semantics { testTag = "sdk_visa_toggle_terms" },
+                        modifier = Modifier.testId("sdk_visa_toggle_terms"),
                         checked = isTermsAccepted,
                         onCheckedChange = {
                             onTermsAccepted(it)
@@ -96,7 +94,7 @@ fun VisaPlanTermsView(
                     onClick = {
                         onTermsExpanded(!termsExpanded)
                     },
-                    modifier = Modifier.testTag("sdk_visa_button_readMore")
+                    modifier = Modifier.testId("sdk_visa_button_readMore")
                 ) {
                     Text(
                         text = if (termsExpanded) stringResource(id = R.string.visa_read_less) else stringResource(

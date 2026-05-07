@@ -44,7 +44,7 @@ internal fun SDKOutlinedTextFieldColors(
     placeholderColor: Color = Color.Gray,
     backgroundColor: Color = sdkColor(R.color.payment_sdk_input_field_background_color),
     unfocusedBorderColor: Color = Color(0xFFDADADA),
-    focusedBorderColor: Color = Color(0xFF333333),
+    focusedBorderColor: Color = Color(0xFF91BFDD),
     focusedLabelColor: Color = Color(0xFF333333),
     unfocusedLabelColor: Color = Color.Gray,
     errorBorderColor: Color = Color.Red
