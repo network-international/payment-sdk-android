@@ -7,5 +7,6 @@ data class PaymentResultArgs(
     val formattedAmount: String?,
     val transactionId: String,
     val dateTime: String,
-    val supportedCards: Set<CardType>
+    val supportedCards: Set<CardType>,
+    val orderItems: List<OrderItem> = emptyList()
 )

@@ -147,7 +147,7 @@
 
     <!-- Unified Payment Screen -->
     <string name="payment_separator_text">Or select your payment options</string>
-    <string name="pay_by_card">Pay by card</string>
+    <string name="pay_by_card">Pay by Card</string>
     <string name="click_to_pay_section_title">Click to Pay</string>
     <string name="pay_with_click_to_pay">Pay with Click to Pay</string>
     <string name="powered_by">Powered by</string>
@@ -167,9 +167,15 @@
     <string name="expiration_date_label">Expiration date</string>
     <string name="security_code_label">Security code</string>
     <string name="name_on_card_label">Name on card</string>
+    <string name="name_on_card_placeholder">Enter name on card</string>
     <string name="order_summary">Order summary</string>
+    <string name="order_items_header">Item(s)</string>
+    <string name="order_amount_header">Amount</string>
     <string name="whats_cvv">What\'s CVV?</string>
     <string name="cvv_tooltip">Security code can be located on the back of the card</string>
+    <string name="saved_cards_title">Saved Cards</string>
+    <string name="saved_card_enter_cvv">Enter security code</string>
+    <string name="order_items_title">Order details</string>
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">You paid %1$s</string>

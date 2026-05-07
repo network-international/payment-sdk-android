@@ -56,7 +56,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -78,6 +77,7 @@ import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.ui.screen.SectionView
 import payment.sdk.android.sdk.R as SdkR
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +96,7 @@ fun EnvironmentScreen(
     var showAddEnvironmentDialog by remember { mutableStateOf(false) }
     var showMerchantAttributeDialog by remember { mutableStateOf(false) }
     var showQrConfirmDialog by rememberSaveable { mutableStateOf(false) }
+    var qrNickname by rememberSaveable { mutableStateOf("") }
     var qrRealm by rememberSaveable { mutableStateOf("") }
     var qrOutletReference by rememberSaveable { mutableStateOf("") }
     var qrApiKey by rememberSaveable { mutableStateOf("") }
@@ -109,17 +110,30 @@ fun EnvironmentScreen(
     val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
             val parts = result.contents.split("|")
-            if (parts.size == 3) {
-                qrRealm = parts[0]
-                qrOutletReference = parts[1]
-                qrApiKey = parts[2]
-                showQrConfirmDialog = true
-            } else {
-                Toast.makeText(
-                    context,
-                    "Invalid QR format. Expected: realm|outletReference|apiKey",
-                    Toast.LENGTH_LONG
-                ).show()
+            when (parts.size) {
+                3 -> {
+                    // Legacy format: realm|outletReference|apiKey
+                    qrNickname = ""
+                    qrRealm = parts[0]
+                    qrOutletReference = parts[1]
+                    qrApiKey = parts[2]
+                    showQrConfirmDialog = true
+                }
+                in 4..5 -> {
+                    // New format: nickname|realm|outletReference|apiKey|applePayMerchantId
+                    qrNickname = parts[0]
+                    qrRealm = parts[1]
+                    qrOutletReference = parts[2]
+                    qrApiKey = parts[3]
+                    showQrConfirmDialog = true
+                }
+                else -> {
+                    Toast.makeText(
+                        context,
+                        "Invalid QR format. Expected: nickname|realm|outletReference|apiKey",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
@@ -129,7 +143,7 @@ fun EnvironmentScreen(
             CenterAlignedTopAppBar(
                 title = { Text(text = "Configuration") },
                 navigationIcon = {
-                    IconButton(onClick = onNavUp, modifier = Modifier.testTag("environment_button_back")) {
+                    IconButton(onClick = onNavUp, modifier = Modifier.testId("environment_button_back")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -151,7 +165,7 @@ fun EnvironmentScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp)
-                        .testTag("environment_text_version"),
+                        .testId("environment_text_version"),
                     text = "Build: v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) - SDK: v${SDKConfig.getSDKVersion()}",
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center
@@ -174,6 +188,7 @@ fun EnvironmentScreen(
                 }
                 if (showQrConfirmDialog) {
                     QrEnvironmentDialog(
+                        nickname = qrNickname,
                         realm = qrRealm,
                         outletReference = qrOutletReference,
                         apiKey = qrApiKey,
@@ -200,7 +215,8 @@ fun EnvironmentScreen(
                 PickerView(
                     title = "Order Action",
                     items = OrderAction.entries,
-                    selectedItem = viewModel.getOrderAction()
+                    selectedItem = viewModel.getOrderAction(),
+                    pickerId = "environment_picker_orderAction"
                 ) {
                     @Suppress("UNCHECKED_CAST")
                     viewModel.setOrderAction(it as OrderAction)
@@ -211,7 +227,8 @@ fun EnvironmentScreen(
                 PickerView(
                     title = "Order Type",
                     items = OrderType.entries,
-                    selectedItem = viewModel.getOrderType()
+                    selectedItem = viewModel.getOrderType(),
+                    pickerId = "environment_picker_orderType"
                 ) {
                     @Suppress("UNCHECKED_CAST")
                     viewModel.setOrderType(it as OrderType)
@@ -246,7 +263,8 @@ fun EnvironmentScreen(
                 PickerView(
                     title = "Region",
                     items = Region.entries,
-                    selectedItem = viewModel.getRegion()
+                    selectedItem = viewModel.getRegion(),
+                    pickerId = "environment_picker_region"
                 ) {
                     @Suppress("UNCHECKED_CAST")
                     viewModel.setRegion(it as Region)
@@ -263,7 +281,9 @@ fun EnvironmentScreen(
                     count = state.merchantAttributes.size,
                     isExpanded = isExpandedMerchantAttributes,
                     onExpand = { isExpandedMerchantAttributes = it },
-                    showDialog = { showMerchantAttributeDialog = true }
+                    showDialog = { showMerchantAttributeDialog = true },
+                    addButtonId = "environment_button_addMerchantAttribute",
+                    toggleButtonId = "environment_button_toggleMerchantAttributes"
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isTablet()) 2 else 1),
@@ -293,6 +313,9 @@ fun EnvironmentScreen(
                     isExpanded = isExpandedEnvironments,
                     onExpand = { isExpandedEnvironments = it },
                     showDialog = { showAddEnvironmentDialog = true },
+                    addButtonId = "environment_button_addEnvironment",
+                    scanButtonId = "environment_button_scanQR",
+                    toggleButtonId = "environment_button_toggleEnvironments",
                     onScan = {
                         val options = ScanOptions().apply {
                             setDesiredBarcodeFormats(ScanOptions.QR_CODE)

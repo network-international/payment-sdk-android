@@ -25,16 +25,16 @@ class CardValidatorTest(
                 arrayOf(
                     CardDetector(cards).detect("4539578763621486"),
                     "4539578763621486",
-                    "12/25",
+                    "12/30",
                     "123",
                     "John Doe",
                     true
                 ),
-                arrayOf(null, "4539578763621486", "12/25", "123", "John Doe", false),
+                arrayOf(null, "4539578763621486", "12/30", "123", "John Doe", false),
                 arrayOf(
                     CardDetector(cards).detect("4539578763621486"),
                     "invalidPan",
-                    "12/25",
+                    "12/30",
                     "123",
                     "John Doe",
                     false
@@ -42,7 +42,7 @@ class CardValidatorTest(
                 arrayOf(
                     CardDetector(cards).detect("4539578763621486"),
                     "4539578763621486",
-                    "13/25",
+                    "13/30",
                     "123",
                     "John Doe",
                     true
@@ -50,7 +50,7 @@ class CardValidatorTest(
                 arrayOf(
                     CardDetector(cards).detect("4539578763621486"),
                     "4539578763621486",
-                    "12/25",
+                    "12/30",
                     "123",
                     "",
                     false
@@ -58,7 +58,7 @@ class CardValidatorTest(
                 arrayOf(
                     CardDetector(cards).detect("4539578763621486"),
                     "4539578763621486",
-                    "12/25",
+                    "12/30",
                     "123",
                     "   ",
                     false

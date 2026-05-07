@@ -224,7 +224,10 @@ class MainViewModel(
 
                     is Result.Success -> {
                         _uiState.update {
-                            it.copy(orderReference = result.data.reference)
+                            it.copy(
+                                state = MainViewModelStateType.INIT,
+                                orderReference = result.data.reference
+                            )
                         }
                         _effect.emit(MainViewModelEffect(
                             order = result.data,

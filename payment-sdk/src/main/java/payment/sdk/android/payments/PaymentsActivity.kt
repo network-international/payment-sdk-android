@@ -21,10 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import payment.sdk.android.payments.theme.PgColors
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
+import android.util.Log
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import payment.sdk.android.SDKConfig
@@ -43,6 +45,11 @@ import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.SliceRequest
+import payment.sdk.android.samsungpay.SamsungPayClient
+import payment.sdk.android.samsungpay.SamsungPayResponse
 import payment.sdk.android.payments.model.PaymentResultArgs
 import payment.sdk.android.payments.view.PaymentResultScreen
 import payment.sdk.android.payments.view.UnifiedPaymentPageScreen
@@ -52,6 +59,10 @@ import java.util.Date
 import java.util.Locale
 
 class UnifiedPaymentPageActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "NI-SDK-GPay-Debug"
+    }
 
     override fun attachBaseContext(newBase: Context) {
         val lang = SDKConfig.getLanguage()
@@ -65,12 +76,25 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
     private val viewModel: UnifiedPaymentPageViewModel by viewModels { UnifiedPaymentPageViewModel.Factory(args) }
 
+    /** Snapshot of the Authorized state — captured the first time it arrives so it survives the
+     *  Loading transition that happens during payment dispatch. Required for the result page,
+     *  which is rendered AFTER state has moved past Authorized. */
+    private var lastAuthorizedState: UnifiedPaymentPageVMUiState.Authorized? = null
+
     private lateinit var args: UnifiedPaymentPageRequest
+
+    private val samsungPayClient: SamsungPayClient? by lazy {
+        args.samsungPayConfig?.let { config ->
+            SamsungPayClient(this, config.serviceId, CoroutinesGatewayHttpClient())
+        }
+    }
 
     private val paymentDataLauncher =
         registerForActivityResult(GetPaymentDataResult()) { taskResult ->
+            Log.d(TAG, "paymentDataLauncher: statusCode=${taskResult.status.statusCode}, statusMessage=${taskResult.status.statusMessage}")
             when (taskResult.status.statusCode) {
                 CommonStatusCodes.SUCCESS -> {
+                    Log.d(TAG, "paymentDataLauncher: SUCCESS branch")
                     try {
                         val paymentMethodData = taskResult.result
                             ?.toJson()
@@ -81,32 +105,42 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             ?.getString("token")
                             .orEmpty()
 
+                        Log.d(TAG, "paymentDataLauncher: token length=${token.length}, isEmpty=${token.isEmpty()}")
                         if (token.isNotEmpty()) {
+                            Log.d(TAG, "paymentDataLauncher: calling viewModel.acceptGooglePay")
                             viewModel.acceptGooglePay(token)
                         } else {
+                            Log.w(TAG, "paymentDataLauncher: token empty → setProcessingFinished + Failed")
                             viewModel.setProcessingFinished()
                             finishWithData(UnifiedPaymentPageResult.Failed("Google Pay token is empty"))
                         }
                     } catch (e: Exception) {
+                        Log.e(TAG, "paymentDataLauncher: parse exception → setProcessingFinished + Failed", e)
                         viewModel.setProcessingFinished()
                         finishWithData(UnifiedPaymentPageResult.Failed("Failed to parse Google Pay result"))
                     }
                 }
 
                 CommonStatusCodes.CANCELED -> {
+                    Log.d(TAG, "paymentDataLauncher: CANCELED → setProcessingFinished")
                     viewModel.setProcessingFinished()
-                    finishWithData(UnifiedPaymentPageResult.Cancelled)
                 }
 
                 AutoResolveHelper.RESULT_ERROR -> {
+                    Log.e(TAG, "paymentDataLauncher: RESULT_ERROR → setProcessingFinished + Failed")
                     viewModel.setProcessingFinished()
                     finishWithData(UnifiedPaymentPageResult.Failed("Google Pay error"))
                 }
 
-
                 CommonStatusCodes.INTERNAL_ERROR -> {
+                    Log.e(TAG, "paymentDataLauncher: INTERNAL_ERROR → setProcessingFinished + Failed")
                     viewModel.setProcessingFinished()
                     finishWithData(UnifiedPaymentPageResult.Failed("Google Pay error"))
+                }
+
+                else -> {
+                    Log.w(TAG, "paymentDataLauncher: unhandled statusCode=${taskResult.status.statusCode} → setProcessingFinished")
+                    viewModel.setProcessingFinished()
                 }
             }
         }
@@ -169,6 +203,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setBackgroundDrawableResource(android.R.color.white)
         setOnBackPressed()
         args = runCatching {
             requireNotNull(UnifiedPaymentPageRequest.fromIntent(intent)) {
@@ -182,6 +217,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
         setContent {
             val state by viewModel.uiState.collectAsState()
             val isProcessing by viewModel.isProcessing.collectAsState()
+            val sliceCheckState by viewModel.sliceCheckState.collectAsState()
+            val visCheckState by viewModel.visCheckState.collectAsState()
 
             Box(
                 modifier = Modifier
@@ -191,13 +228,52 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                 when (state) {
                     is UnifiedPaymentPageVMUiState.Authorized -> {
                         val authState = (state as UnifiedPaymentPageVMUiState.Authorized)
+                        lastAuthorizedState = authState
                         UnifiedPaymentPageScreen(
                             supportedCards = authState.supportedCards.toMutableSet().apply {
                                 add(CardType.Visa)
                             },
                             googlePayUiConfig = authState.googlePayUiConfig,
                             isSamsungPayAvailable = authState.isSamsungPayAvailable,
-                            onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
+                            sliceCheckState = sliceCheckState,
+                            visCheckState = visCheckState,
+                            onCheckSliceEligibility = { pan, expiryRaw, cardScheme ->
+                                viewModel.checkSliceEligibility(
+                                    eligibilityCheckUrl = authState.sliceEligibilityCheckUrl,
+                                    paymentCookie = authState.paymentCookie,
+                                    pan = pan,
+                                    expiryRaw = expiryRaw,
+                                    visEligibilityCheckUrl = authState.visEligibilityCheckUrl,
+                                    selfUrl = authState.selfUrl,
+                                    cardScheme = cardScheme
+                                )
+                            },
+                            onCheckSavedCardEligibility = { savedCard ->
+                                // Same Slice → Vis fallback chain as manual entry. The token is
+                                // sent in the API's `cardToken` field (handled by the interactor
+                                // when isSavedCardToken=true) so Slice no longer 422s on tokens.
+                                viewModel.checkSliceEligibility(
+                                    eligibilityCheckUrl = authState.sliceEligibilityCheckUrl,
+                                    paymentCookie = authState.paymentCookie,
+                                    pan = savedCard.cardToken,
+                                    expiryRaw = savedCard.expiry,
+                                    visEligibilityCheckUrl = authState.visEligibilityCheckUrl,
+                                    selfUrl = authState.selfUrl,
+                                    cardScheme = savedCard.scheme,
+                                    isSavedCardToken = true
+                                )
+                            },
+                            onResetSliceCheck = { viewModel.resetSliceCheck() },
+                            onMakePayment = { cardNumber, expiry, cvv, cardholderName, sliceOffer, visaPlan ->
+                                val visaRequest = visaPlan
+                                    ?.takeIf { it.frequency != payment.sdk.android.visaInstalments.model.PlanFrequency.PayInFull }
+                                    ?.let { plan ->
+                                        payment.sdk.android.core.interactor.VisaRequest(
+                                            planSelectionIndicator = true,
+                                            vPlanId = plan.id,
+                                            acceptedTAndCVersion = plan.terms?.version ?: 1
+                                        )
+                                    }
                                 viewModel.makeCardPayment(
                                     selfUrl = authState.selfUrl,
                                     cardPaymentUrl = authState.cardPaymentUrl,
@@ -210,19 +286,64 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                     orderUrl = authState.orderUrl,
                                     amount = authState.amount,
                                     currencyCode = authState.currencyCode,
-                                    payerIp = authState.payerIp
+                                    payerIp = authState.payerIp,
+                                    sliceRequest = sliceOffer?.let {
+                                        SliceRequest(it.period, it.rate, it.fee)
+                                    },
+                                    visaRequest = visaRequest,
+                                    // Inline Vis flow has already determined eligibility — skip the
+                                    // legacy post-tap getPlans / ShowVisaPlans activity to avoid double-prompt.
+                                    skipVisaPlansCheck = visCheckState !is VisCheckState.Idle
+                                )
+                            },
+                            onMakeSavedCardPayment = { savedCard, cvv ->
+                                val url = authState.savedCardPaymentUrl ?: return@UnifiedPaymentPageScreen
+                                viewModel.makeSavedCardPayment(
+                                    savedCard = savedCard,
+                                    savedCardPaymentUrl = url,
+                                    accessToken = authState.accessToken,
+                                    payerIp = authState.payerIp,
+                                    cvv = cvv
                                 )
                             },
                             formattedAmount = authState.orderAmount,
+                            orderValue = authState.amount,
+                            currencyCode = authState.currencyCode,
                             showWallets = authState.showWallets,
+                            savedCards = authState.savedCards,
+                            orderItems = authState.orderItems,
                             onGooglePay = {
                                 viewModel.startGooglePayProcess()
-                                authState.googlePayUiConfig?.task?.addOnCompleteListener(
-                                    paymentDataLauncher::launch
-                                )
+                                authState.googlePayUiConfig?.let { config ->
+                                    config.paymentsClient
+                                        .loadPaymentData(config.paymentDataRequest)
+                                        .addOnCompleteListener(paymentDataLauncher::launch)
+                                }
                             },
                             onSamsungPay = {
-                                finishWithData(UnifiedPaymentPageResult.SamsungPayRequested)
+                                val client = samsungPayClient
+                                val order = viewModel.fetchedOrder
+                                val merchantName = args.samsungPayConfig?.merchantName
+                                if (client != null && order != null && merchantName != null) {
+                                    viewModel.startGooglePayProcess()
+                                    client.startSamsungPay(
+                                        order = order,
+                                        merchantName = merchantName,
+                                        samsungPayResponse = object : SamsungPayResponse {
+                                            override fun onSuccess() {
+                                                finishWithData(UnifiedPaymentPageResult.Success)
+                                            }
+                                            override fun onFailure(error: String) {
+                                                viewModel.setProcessingFinished()
+                                            }
+                                            override fun onCancelled() {
+                                                viewModel.setProcessingFinished()
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    finishWithData(UnifiedPaymentPageResult.SamsungPayRequested)
+                                }
                             },
                             aaniConfig = authState.aaniConfig,
                             clickToPayConfig = authState.clickToPayConfig,
@@ -307,13 +428,20 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
     private fun initEffects() {
         lifecycleScope.launch {
             viewModel.effect.collect {
+                Log.d(TAG, "initEffects: received effect=${it::class.simpleName}")
                 when (it) {
-                    UnifiedPaymentPageVMEffects.Captured -> finishWithData(UnifiedPaymentPageResult.Success)
-                    is UnifiedPaymentPageVMEffects.Failed -> finishWithData(
-                        UnifiedPaymentPageResult.Failed(
-                            it.error
+                    UnifiedPaymentPageVMEffects.Captured -> {
+                        Log.d(TAG, "initEffects: Captured → finishWithData Success")
+                        finishWithData(UnifiedPaymentPageResult.Success)
+                    }
+                    is UnifiedPaymentPageVMEffects.Failed -> {
+                        Log.e(TAG, "initEffects: Failed error='${it.error}' isProcessing=${viewModel.isProcessing.value} → finishWithData Failed")
+                        finishWithData(
+                            UnifiedPaymentPageResult.Failed(
+                                it.error
+                            )
                         )
-                    )
+                    }
 
                     is UnifiedPaymentPageVMEffects.InitiateThreeDS -> {
                         val response = it.threeDSecureDto
@@ -402,6 +530,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode !in setOf(THREE_D_SECURE_REQUEST_KEY, THREE_D_SECURE_TWO_REQUEST_KEY)) {
+            return
+        }
+
         if (resultCode == RESULT_CANCELED) {
             return finishWithData(UnifiedPaymentPageResult.Cancelled)
         }
@@ -477,8 +609,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
     }
 
     private fun showPaymentResult(isSuccess: Boolean, result: UnifiedPaymentPageResult) {
-        val currentState = viewModel.uiState.value
-        val authorizedState = currentState as? UnifiedPaymentPageVMUiState.Authorized
+        // Use the cached Authorized snapshot — by the time we reach the result, the live state
+        // has already transitioned past Authorized (Loading → ShowPaymentResult).
+        val authorizedState = lastAuthorizedState
+            ?: (viewModel.uiState.value as? UnifiedPaymentPageVMUiState.Authorized)
         val formattedAmount = authorizedState?.orderAmount
         val supportedCards = authorizedState?.supportedCards ?: emptySet()
         val orderReference = viewModel.orderReference
@@ -491,7 +625,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             formattedAmount = formattedAmount,
             transactionId = orderReference,
             dateTime = dateTime,
-            supportedCards = supportedCards
+            supportedCards = supportedCards,
+            orderItems = authorizedState?.orderItems ?: emptyList(),
         )
 
         viewModel.showPaymentResult(

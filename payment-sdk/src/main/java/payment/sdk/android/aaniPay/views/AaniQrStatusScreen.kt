@@ -19,11 +19,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 internal enum class QrStatusType {
     EXPIRED, FAILED, TIMEOUT
@@ -103,7 +103,7 @@ internal fun AaniQrStatusScreen(
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 ),
-                modifier = Modifier.testTag("sdk_aanistatus_label_title")
+                modifier = Modifier.testId("sdk_aanistatus_label_title")
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -129,7 +129,7 @@ internal fun AaniQrStatusScreen(
             ),
             shape = RoundedCornerShape(12.dp),
             elevation = ButtonDefaults.elevation(0.dp),
-            modifier = Modifier.fillMaxWidth().testTag("sdk_aanistatus_button_action")
+            modifier = Modifier.fillMaxWidth().testId("sdk_aanistatus_button_action")
         ) {
             Text(
                 text = buttonText,
@@ -152,7 +152,7 @@ internal fun AaniQrStatusScreen(
             ),
             shape = RoundedCornerShape(12.dp),
             elevation = ButtonDefaults.elevation(0.dp),
-            modifier = Modifier.fillMaxWidth().testTag("sdk_aanistatus_button_cancel")
+            modifier = Modifier.fillMaxWidth().testId("sdk_aanistatus_button_cancel")
         ) {
             Text(
                 text = stringResource(R.string.cancel_button),

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.annotation.Keep
 import com.google.gson.Gson
 import payment.sdk.android.core.PaymentResponse
+import payment.sdk.android.core.SliceRequest
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
@@ -28,6 +29,14 @@ class CardPaymentInteractor(
                 )
             )
         }
+        request.sliceRequest?.let {
+            bodyMap[PAYMENT_FIELD_SLICE] = mapOf(
+                "period" to it.period,
+                "rate" to it.rate,
+                "fee" to it.fee
+            )
+            android.util.Log.d("NI-SDK-Slice", "Slice payment: period=${it.period}, rate=${it.rate}, fee=${it.fee}")
+        } ?: android.util.Log.d("NI-SDK-Slice", "No slice selected (Pay in Full)")
         request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
@@ -65,6 +74,7 @@ class CardPaymentInteractor(
         internal const val HEADER_ACCEPT = "Accept"
         internal const val KEY_PAYER_IP = "payerIp"
         internal const val PAYMENT_FIELD_VISA = "vis"
+        internal const val PAYMENT_FIELD_SLICE = "slice"
     }
 }
 
@@ -76,7 +86,8 @@ data class MakeCardPaymentRequest(
     val cardHolder: String,
     val expiry: String,
     val payerIp: String? = null,
-    val visaRequest: VisaRequest? = null
+    val visaRequest: VisaRequest? = null,
+    val sliceRequest: SliceRequest? = null
 )
 
 @Keep

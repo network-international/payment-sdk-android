@@ -15,6 +15,7 @@ data class Environment(
     val type: EnvironmentType,
     val id: String = UUID.randomUUID().toString(),
     val name: String,
+    val nickname: String? = null,
     val apiKey: String,
     val outletReference: String,
     val realm: String,

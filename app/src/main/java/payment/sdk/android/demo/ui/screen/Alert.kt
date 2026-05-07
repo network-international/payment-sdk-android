@@ -5,7 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import payment.sdk.android.core.testId
 
 @Composable
 fun Alert(
@@ -18,7 +18,7 @@ fun Alert(
         text = { Text(text = dialogText) },
         onDismissRequest = onConfirmation,
         confirmButton = {
-            TextButton(onClick = onConfirmation, modifier = Modifier.testTag("alert_button_ok")) {
+            TextButton(onClick = onConfirmation, modifier = Modifier.testId("alert_button_ok")) {
                 Text("Ok")
             }
         }

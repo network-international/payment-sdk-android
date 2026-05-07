@@ -21,11 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
 import payment.sdk.android.demo.ui.screen.AppDialog
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +34,7 @@ fun EditEnvironmentDialog(
     onCancel: () -> Unit,
     onSave: (environment: Environment) -> Unit
 ) {
+    var nickname by remember { mutableStateOf(environment.nickname.orEmpty()) }
     var apiKey by remember { mutableStateOf(environment.apiKey) }
     var outletReference by remember { mutableStateOf(environment.outletReference) }
     var realm by remember { mutableStateOf(environment.realm) }
@@ -58,24 +59,31 @@ fun EditEnvironmentDialog(
 
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
+            value = nickname,
+            onValueChange = { nickname = it },
+            label = { Text("Nickname (optional)") },
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_nickname")
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
             value = realm,
             onValueChange = { realm = it },
             label = { Text("Realm") },
-            modifier = Modifier.fillMaxWidth().testTag("editenv_field_realm")
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_realm")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = apiKey,
             onValueChange = { apiKey = it },
             label = { Text("API Key") },
-            modifier = Modifier.fillMaxWidth().testTag("editenv_field_apiKey")
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_apiKey")
         )
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = outletReference,
             onValueChange = { outletReference = it },
             label = { Text("Outlet Reference") },
-            modifier = Modifier.fillMaxWidth().testTag("editenv_field_outletReference")
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_outletReference")
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -87,7 +95,7 @@ fun EditEnvironmentDialog(
                     onSave(
                         environment.copy(
                             type = entries[selectedEnvironment],
-                            name = realm,
+                            nickname = nickname,
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
@@ -102,7 +110,7 @@ fun EditEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("editenv_button_save")
+                    .testId("editenv_button_save")
             ) {
                 Text("Save")
             }
@@ -111,7 +119,7 @@ fun EditEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("editenv_button_cancel")
+                    .testId("editenv_button_cancel")
             ) {
                 Text("Cancel")
             }

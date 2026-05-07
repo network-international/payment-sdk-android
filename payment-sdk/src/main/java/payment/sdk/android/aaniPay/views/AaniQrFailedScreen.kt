@@ -20,10 +20,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 internal fun AaniQrFailedScreen() {
@@ -51,7 +51,7 @@ internal fun AaniQrFailedScreen() {
             Image(
                 painter = painterResource(R.drawable.cross_circle),
                 contentDescription = "Failed",
-                modifier = Modifier.size(56.dp).testTag("sdk_aanifailed_image_status")
+                modifier = Modifier.size(56.dp).testId("sdk_aanifailed_image_status")
             )
 
             Spacer(modifier = Modifier.height(16.dp))

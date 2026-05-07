@@ -27,9 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +39,7 @@ fun WhatYouNeedScreen(onNavUp: () -> Unit) {
             CenterAlignedTopAppBar(
                 title = { Text(text = "What You Need") },
                 navigationIcon = {
-                    IconButton(onClick = onNavUp, modifier = Modifier.testTag("whatyouneed_button_back")) {
+                    IconButton(onClick = onNavUp, modifier = Modifier.testId("whatyouneed_button_back")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",

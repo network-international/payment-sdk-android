@@ -107,7 +107,7 @@
     <string name="aani_tap_notification">اضغط على الإشعار الذي تلقيته في التطبيق لإكمال عملية الدفع.</string>
     <string name="aani_note_do_not_close">ملاحظة: يرجى عدم إغلاق التطبيق أثناء تشغيل المؤقت.</string>
     <string name="aani_qr_code">رمز الاستجابة</string>
-    <string name="aani_generate_qr">إنشاء رمز QR</string>
+    <string name="aani_generate_qr">إنشاء رمز الاستجابة</string>
     <string name="aani_scan_qr_to_pay">امسح رمز الاستجابة - قم بالدفع - تم</string>
     <string name="aani_generating_qr">جارٍ إنشاء رمز الاستجابة</string>
     <string name="aani_keep_modal_open">يرجى إبقاء النافذة مفتوحة</string>
@@ -147,9 +147,15 @@
     <string name="expiration_date_label">تاريخ الانتهاء</string>
     <string name="security_code_label">رمز الأمان</string>
     <string name="name_on_card_label">الاسم على البطاقة</string>
+    <string name="name_on_card_placeholder">أدخل الاسم على البطاقة</string>
     <string name="order_summary">ملخص الطلب</string>
+    <string name="order_items_header">البند(ود)</string>
+    <string name="order_amount_header">المبلغ</string>
     <string name="whats_cvv">ما هو CVV؟</string>
     <string name="cvv_tooltip">يمكن العثور على رمز الأمان على ظهر البطاقة</string>
+    <string name="saved_cards_title">البطاقات المحفوظة</string>
+    <string name="saved_card_enter_cvv">أدخل رمز الأمان</string>
+    <string name="order_items_title">تفاصيل الطلب</string>
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">لقد دفعت %1$s</string>

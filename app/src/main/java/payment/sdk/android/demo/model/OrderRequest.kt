@@ -28,7 +28,8 @@ fun OrderRequest.toMap(): MutableMap<String, Any> {
             "value" to amount.value * 100
         ),
         "language" to language,
-        "description" to description
+        "description" to description,
+        "emailAddress" to "info@network.global"
     )
     if (merchantAttributes.isNotEmpty()) {
         bodyMap["merchantAttributes"] = merchantAttributes
