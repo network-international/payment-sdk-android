@@ -221,8 +221,8 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         SDKConfig.setLanguage(dataStore.getLanguage().code)
 
         val googlePayConfig = GooglePayConfig(
-            environment = GooglePayConfig.Environment.Production,
-            merchantGatewayId = "BCR2DN4T263KB4BO"
+            environment = GooglePayConfig.Environment.Test,
+            merchantGatewayId = "BCR2DN4T27NJW2Y"
         )
         // Click to Pay configuration - enable Visa Unified Click to Pay
         val clickToPayConfig = ClickToPayConfig(

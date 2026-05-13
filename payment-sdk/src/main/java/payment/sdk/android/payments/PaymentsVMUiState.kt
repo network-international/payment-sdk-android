@@ -4,6 +4,7 @@ import com.google.android.gms.wallet.PaymentDataRequest
 import com.google.android.gms.wallet.PaymentsClient
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
@@ -31,6 +32,7 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val googlePayUiConfig: GooglePayUiConfig? = null,
         val aaniConfig: AaniPayLauncher.Config? = null,
         val clickToPayConfig: ClickToPayLauncher.Config? = null,
+        val qpayConfig: QPayLauncher.Config? = null,
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,

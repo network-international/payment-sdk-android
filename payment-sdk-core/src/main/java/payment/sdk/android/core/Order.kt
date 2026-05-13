@@ -107,6 +107,9 @@ class Order {
 
         @SerializedName(value = "payment:vis-eligibility-check")
         var visEligibilityCheck: Href? = null
+
+        @SerializedName(value = "payment:qpay")
+        var qpay: Href? = null
     }
 
     @Keep
@@ -167,6 +170,9 @@ fun Order.isVisaClickToPayEnabled() = paymentMethods?.wallet?.contains("VISA_CLI
 fun Order.getPaymentReference() = embedded?.payment?.firstOrNull()?.reference
 
 fun Order.getOrderId() = embedded?.payment?.firstOrNull()?.reference?.substringBefore(":")?.trim()
+
+/** Backend QPay endpoint that returns the QCB form fields. */
+fun Order.getQPayUrl() = embedded?.payment?.firstOrNull()?.links?.qpay?.href
 
 fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
 

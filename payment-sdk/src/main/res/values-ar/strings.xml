@@ -42,14 +42,17 @@
 
     <string name="payments_wallets_title">أو الدفع باستخدام</string>
 
-    <!-- Error Message. The creditcard number is not valid. Please check the number on the card. -->
-    <string name="error_message_pan_invalid">رقم بطاقة الائتمان غير صالح. يرجى التحقق من الرقم الموجود على البطاقة</string>
+    <!-- Error Message. The credit card number is not valid. -->
+    <string name="error_message_pan_invalid">رقم البطاقة غير صحيح</string>
+
+    <!-- Error Message. The credit card number length is not valid. -->
+    <string name="error_message_pan_invalid_length">طول رقم البطاقة غير صحيح</string>
 
     <!-- Error Message. The card end date is not valid. -->
-    <string name="error_message_card_end_date_invalid">تاريخ انتهاء البطاقة غير صالح</string>
+    <string name="error_message_card_end_date_invalid">تاريخ الانتهاء غير صالح.</string>
 
     <!-- Error Message. The card CVV is not valid. -->
-    <string name="error_message_card_cvv_invalid">رمز بطاقة CVV غير صالح</string>
+    <string name="error_message_card_cvv_invalid">رمز الأمان غير صحيح</string>
 
     <!-- Error Message. The cardholder name is not valid. -->
     <string name="error_message_cardholder_name_invalid">اسم حامل البطاقة غير صالح</string>

@@ -3,6 +3,7 @@ package payment.sdk.android.payments.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
@@ -26,7 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.core.SliceOffer
 import payment.sdk.android.payments.SliceCheckState
@@ -65,13 +69,17 @@ fun SliceEligibilityRow(state: SliceCheckState) {
     }
 }
 
-// Figma: Slice installment picker — tab row + detail card
+// Figma: Slice installment picker — tab row + detail card.
+// `pillBleedStart` / `pillBleedEnd` let the horizontally-scrolling pill row escape ancestor
+// padding (so pills reach the screen edges) while banner & detail stay aligned with siblings.
 @Composable
 fun SliceInstallmentSection(
     offers: List<SliceOffer>,
-    onOfferSelected: (SliceOffer?) -> Unit
+    onOfferSelected: (SliceOffer?) -> Unit,
+    pillBleedStart: Dp = 0.dp,
+    pillBleedEnd: Dp = 0.dp,
 ) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(-1) }
 
     Column(
         modifier = Modifier
@@ -110,9 +118,22 @@ fun SliceInstallmentSection(
 
         Spacer(Modifier.height(Spacing.rowGap))
 
-        // Pill tab row
+        // Pill tab row — horizontally scrollable, bleeds past ancestor padding to screen edges.
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .layout { measurable, constraints ->
+                    val startPx = pillBleedStart.roundToPx()
+                    val endPx = pillBleedEnd.roundToPx()
+                    val expandedWidth = constraints.maxWidth + startPx + endPx
+                    val placeable = measurable.measure(
+                        constraints.copy(minWidth = expandedWidth, maxWidth = expandedWidth)
+                    )
+                    layout(constraints.maxWidth, placeable.height) {
+                        placeable.place(-startPx, 0)
+                    }
+                }
+                .horizontalScroll(rememberScrollState())
+                .padding(start = pillBleedStart, end = pillBleedEnd),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SliceTab(

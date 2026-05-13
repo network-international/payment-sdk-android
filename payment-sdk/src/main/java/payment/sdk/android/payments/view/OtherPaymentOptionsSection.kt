@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.payments.theme.PgSize
@@ -43,10 +44,12 @@ fun OtherPaymentOptionsSection(
     isSamsungPayAvailable: Boolean,
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
+    qpayConfig: QPayLauncher.Config? = null,
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
+    onClickQPay: (QPayLauncher.Config) -> Unit = {},
     onOptionSelected: (PaymentOption) -> Unit
 ) {
     Column(
@@ -122,6 +125,21 @@ fun OtherPaymentOptionsSection(
                     )
                 },
                 onSelect = { onOptionSelected(PaymentOption.CLICK_TO_PAY) }
+            )
+        }
+
+        if (qpayConfig != null) {
+            PaymentOptionRow(
+                selected = selectedOption == PaymentOption.QPAY,
+                label = "QPay",
+                trailingIcon = {
+                    Text(
+                        text = "QPay",
+                        style = PgType.bodyRowTitle,
+                        color = PgColors.textPrimary
+                    )
+                },
+                onSelect = { onOptionSelected(PaymentOption.QPAY) }
             )
         }
     }
