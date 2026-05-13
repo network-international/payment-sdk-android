@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.core.getQPayUrl
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
@@ -244,6 +246,21 @@ internal class UnifiedPaymentPageViewModel(
             )
         }
 
+        // Configure QPay if `payment:qpay` link exists in the order AND currency is QAR.
+        // QCB only supports QAR; the SDK gates here so the row never shows for other currencies.
+        val qpayConfig = run {
+            val qpayUrl = order.getQPayUrl() ?: return@run null
+            if (!currencyCode.equals("QAR", ignoreCase = true)) return@run null
+            val payPageUrl = cardPaymentsIntent.paymentUrl ?: return@run null
+            QPayLauncher.Config(
+                qpayUrl = qpayUrl,
+                payPageUrl = payPageUrl,
+                orderUrl = orderUrl,
+                accessToken = accessToken,
+                currencyCode = currencyCode
+            )
+        }
+
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
         if (supportedCards.isEmpty()) {
@@ -274,6 +291,7 @@ internal class UnifiedPaymentPageViewModel(
                 locale = SDKConfig.getLanguage(),
                 aaniConfig = aaniConfig,
                 clickToPayConfig = clickToPayConfig,
+                qpayConfig = qpayConfig,
                 payerIp = payerIp,
                 orderReference = order.reference.orEmpty(),
                 savedCards = cardPaymentsIntent.savedCards,
@@ -403,6 +421,8 @@ internal class UnifiedPaymentPageViewModel(
         savedCard: SavedCard,
         savedCardPaymentUrl: String,
         accessToken: String,
+        paymentCookie: String,
+        orderUrl: String,
         payerIp: String,
         cvv: String?
     ) {
@@ -410,6 +430,7 @@ internal class UnifiedPaymentPageViewModel(
         viewModelScope.launch(dispatcher) {
             val request = SavedCardPaymentApiRequest(
                 accessToken = accessToken,
+                paymentCookie = paymentCookie,
                 savedCardUrl = savedCardPaymentUrl,
                 savedCard = savedCard,
                 payerIp = payerIp,
@@ -425,10 +446,14 @@ internal class UnifiedPaymentPageViewModel(
                         "AWAIT_3DS" -> {
                             try {
                                 if (response.paymentResponse.isThreeDSecureTwo()) {
+                                    // Pull from the function parameters — uiState is Loading
+                                    // here (we transitioned to it at the top of this fn) so
+                                    // casting to Authorized would yield null and the cookie
+                                    // would be empty, breaking the 3DS2 /authentications call.
                                     val dto = threeDSecureFactory.buildThreeDSecureTwoDto(
                                         paymentResponse = response.paymentResponse,
-                                        orderUrl = (uiState.value as? UnifiedPaymentPageVMUiState.Authorized)?.orderUrl.orEmpty(),
-                                        paymentCookie = (uiState.value as? UnifiedPaymentPageVMUiState.Authorized)?.paymentCookie.orEmpty()
+                                        orderUrl = orderUrl,
+                                        paymentCookie = paymentCookie
                                     )
                                     _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDSTwo(dto))
                                 } else {

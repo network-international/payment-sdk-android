@@ -32,6 +32,7 @@ import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -150,6 +151,15 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             AaniPayLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
             is AaniPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed("Aani Pay failed"))
             AaniPayLauncher.Result.Canceled -> {}
+        }
+    }
+
+    private val qpayLauncher = QPayLauncher(this) { result ->
+        when (result) {
+            QPayLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            is QPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            QPayLauncher.Result.Canceled -> {}
+            QPayLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid QPay request"))
         }
     }
 
@@ -302,6 +312,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                     savedCard = savedCard,
                                     savedCardPaymentUrl = url,
                                     accessToken = authState.accessToken,
+                                    paymentCookie = authState.paymentCookie,
+                                    orderUrl = authState.orderUrl,
                                     payerIp = authState.payerIp,
                                     cvv = cvv
                                 )
@@ -347,12 +359,16 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             aaniConfig = authState.aaniConfig,
                             clickToPayConfig = authState.clickToPayConfig,
+                            qpayConfig = authState.qpayConfig,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
                             },
                             onClickToPay = { config ->
                                 clickToPayLauncher.launch(config)
+                            },
+                            onClickQPay = { config ->
+                                qpayLauncher.launch(config)
                             },
                             onClose = {
                                 finishWithData(UnifiedPaymentPageResult.Cancelled)
