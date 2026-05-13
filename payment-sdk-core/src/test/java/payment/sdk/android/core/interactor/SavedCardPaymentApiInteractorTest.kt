@@ -27,9 +27,10 @@ class SavedCardPaymentApiInteractorTest {
     private lateinit var sut: SavedCardPaymentApiInteractor
 
     private val savedCardPaymentRequest = SavedCardPaymentApiRequest(
-        "",
-        "",
-        SavedCard(
+        accessToken = "",
+        paymentCookie = "",
+        savedCardUrl = "",
+        savedCard = SavedCard(
             cardholderName = "",
             expiry = "",
             maskedPan = "",
@@ -37,8 +38,8 @@ class SavedCardPaymentApiInteractorTest {
             cardToken = "",
             recaptureCsc = false
         ),
-        "1.1.1.1",
-        null,
+        payerIp = "1.1.1.1",
+        cvv = null,
     )
 
     @Before

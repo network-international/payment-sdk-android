@@ -98,6 +98,7 @@ class SavedCardViewModelTest {
 
     private val savedCardPaymentRequest = SavedCardPaymentApiRequest(
         accessToken = "accessToken",
+        paymentCookie = "payment-token=fake",
         savedCardUrl = "savedCardUrl",
         savedCard = SavedCard(
             cardholderName = "Mr Something",

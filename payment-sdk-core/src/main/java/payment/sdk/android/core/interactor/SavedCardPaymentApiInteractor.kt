@@ -15,36 +15,47 @@ class SavedCardPaymentApiInteractor(
     private val app: Application
 ) {
     suspend fun doSavedCardPayment(request: SavedCardPaymentApiRequest): SavedCardResponse {
-        val bodyMap = mutableMapOf<String, Any>(
-            KEY_EXPIRY to request.savedCard.expiry,
-            KEY_CARD_TOKEN to request.savedCard.cardToken,
-            KEY_CARDHOLDER_NAME to request.savedCard.cardholderName
-        )
-        request.cvv?.let {
-            bodyMap.put(KEY_CVV, it)
+        // Use a JsonObject directly so we can emit explicit nulls — iOS sends
+        // `"vis":null` even when no Visa plan is selected, and the gateway's
+        // saved-card route appears to require the key to be present.
+        val bodyJson = com.google.gson.JsonObject().apply {
+            addProperty(KEY_EXPIRY, request.savedCard.expiry)
+            addProperty(KEY_CARD_TOKEN, request.savedCard.cardToken)
+            addProperty(KEY_CARDHOLDER_NAME, request.savedCard.cardholderName)
+            request.cvv?.let { addProperty(KEY_CVV, it) }
+            request.payerIp?.let { addProperty(KEY_PAYER_IP, it) }
+            val visa = request.visaRequest
+            if (visa != null) {
+                add(CardPaymentInteractor.PAYMENT_FIELD_VISA, com.google.gson.JsonObject().apply {
+                    addProperty(CardPaymentInteractor.PAYMENT_FIELD_PLAN_SELECTION_INDICATOR, visa.planSelectionIndicator)
+                    addProperty(CardPaymentInteractor.PAYMENT_FIELD_VISA_PLAN_ID, visa.vPlanId)
+                    addProperty(CardPaymentInteractor.PAYMENT_FIELD_VISA_TERMS, visa.acceptedTAndCVersion)
+                })
+            } else {
+                // Explicit null — matches the iOS body shape.
+                add(CardPaymentInteractor.PAYMENT_FIELD_VISA, com.google.gson.JsonNull.INSTANCE)
+            }
         }
-        request.visaRequest?.let {
-            bodyMap.put(
-                CardPaymentInteractor.PAYMENT_FIELD_VISA, mapOf(
-                    CardPaymentInteractor.PAYMENT_FIELD_PLAN_SELECTION_INDICATOR to it.planSelectionIndicator,
-                    CardPaymentInteractor.PAYMENT_FIELD_VISA_PLAN_ID to it.vPlanId,
-                    CardPaymentInteractor.PAYMENT_FIELD_VISA_TERMS to it.acceptedTAndCVersion
-                )
-            )
-        }
-        request.payerIp?.let {
-            bodyMap.put(KEY_PAYER_IP, it)
-        }
-        val deviceId = DeviceIdProvider.getDeviceId(app)
+        // Use StringBody with a Gson-serialized payload so the explicit
+        // `vis: null` is preserved. `Body.Json` (org.json.JSONObject) silently
+        // drops null values, which would put us right back where we started.
+        val bodyString = bodyJson.toString()
+        // Auth via Cookie matches the eligibility-check call (see
+        // VisaInstallmentPlanInteractor) — the gateway's auth filter on
+        // /saved-card rejects `Authorization: payment <jwt>` with 401 before
+        // the request reaches the controller (no x-correlation-id on the
+        // response). iOS appears to send the `payment` scheme but actually
+        // succeeds because NSURLSession auto-attaches the payment-token cookie
+        // (the saved-card URL falls under the cookie's Path scope). On
+        // Android HttpURLConnection we have to set the cookie ourselves.
         val response = httpClient.put(
             url = request.savedCardUrl,
             headers = mapOf(
                 TransactionServiceHttpAdapter.HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
                 TransactionServiceHttpAdapter.HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
-                TransactionServiceHttpAdapter.HEADER_AUTHORIZATION to "Bearer ${request.accessToken}",
-                TransactionServiceHttpAdapter.HEADER_FINGERPRINT to deviceId
+                "Cookie" to request.paymentCookie
             ),
-            body = Body.Json(bodyMap)
+            body = Body.StringBody(bodyString)
         )
 
         return when (response) {
@@ -67,6 +78,7 @@ class SavedCardPaymentApiInteractor(
 
 data class SavedCardPaymentApiRequest(
     val accessToken: String,
+    val paymentCookie: String,
     val savedCardUrl: String,
     val savedCard: SavedCard,
     val payerIp: String?,

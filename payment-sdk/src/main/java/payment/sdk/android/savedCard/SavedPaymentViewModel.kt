@@ -153,6 +153,7 @@ internal class SavedPaymentViewModel(
         )
         val savedCardPaymentRequest = SavedCardPaymentApiRequest(
             accessToken = accessToken,
+            paymentCookie = paymentCookie,
             savedCardUrl = savedCardUrl,
             savedCard = savedCard,
             cvv = cvv,
