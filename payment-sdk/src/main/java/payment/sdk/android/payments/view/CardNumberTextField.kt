@@ -22,6 +22,9 @@ fun CardNumberTextField(
     pan: String,
     paymentCard: PaymentCard?,
     sliceCheckState: SliceCheckState = SliceCheckState.Idle,
+    isError: Boolean = false,
+    errorText: String? = null,
+    onFocusChanged: (Boolean) -> Unit = {},
     onValueChanged: (String) -> Unit
 ) {
     PgTextField(
@@ -45,6 +48,9 @@ fun CardNumberTextField(
         visualTransformation = CreditCardVisualTransformation(
             paymentCard?.binRange?.length?.pattern ?: SpacingPatterns.Default
         ),
+        isError = isError,
+        errorText = errorText,
+        onFocusChanged = onFocusChanged,
         testTag = "sdk_cardinput_field_pan"
     )
 }

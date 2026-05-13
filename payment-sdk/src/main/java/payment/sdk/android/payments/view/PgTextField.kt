@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -48,6 +49,9 @@ fun PgTextField(
     statusLine: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    isError: Boolean = false,
+    errorText: String? = null,
+    onFocusChanged: (Boolean) -> Unit = {},
     testTag: String = ""
 ) {
     // Preserve cursor across recompositions. A fresh TextFieldValue(value) on every recompose
@@ -74,6 +78,9 @@ fun PgTextField(
         statusLine = statusLine,
         keyboardOptions = keyboardOptions,
         visualTransformation = visualTransformation,
+        isError = isError,
+        errorText = errorText,
+        onFocusChanged = onFocusChanged,
         testTag = testTag
     )
 }
@@ -91,6 +98,9 @@ fun PgTextField(
     statusLine: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    isError: Boolean = false,
+    errorText: String? = null,
+    onFocusChanged: (Boolean) -> Unit = {},
     testTag: String = ""
 ) {
     PgTextFieldImpl(
@@ -103,6 +113,9 @@ fun PgTextField(
         statusLine = statusLine,
         keyboardOptions = keyboardOptions,
         visualTransformation = visualTransformation,
+        isError = isError,
+        errorText = errorText,
+        onFocusChanged = onFocusChanged,
         testTag = testTag
     )
 }
@@ -120,11 +133,20 @@ private fun PgTextFieldImpl(
     statusLine: (@Composable () -> Unit)?,
     keyboardOptions: KeyboardOptions,
     visualTransformation: VisualTransformation,
+    isError: Boolean,
+    errorText: String?,
+    onFocusChanged: (Boolean) -> Unit,
     testTag: String
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val borderColor = if (isFocused) PgColors.borderInputFocused else PgColors.borderInput
+    // Error border takes precedence over focused/idle so a wrong value remains
+    // visually flagged even while the user is editing it.
+    val borderColor = when {
+        isError -> PgColors.borderInputError
+        isFocused -> PgColors.borderInputFocused
+        else -> PgColors.borderInput
+    }
     val shape = RoundedCornerShape(Radius.input)
 
     androidx.compose.foundation.layout.Column(modifier = modifier) {
@@ -142,6 +164,7 @@ private fun PgTextFieldImpl(
                 .heightIn(min = PgSize.inputMinHeight)
                 .border(1.dp, borderColor, shape)
                 .background(Color.White, shape)
+                .onFocusChanged { state -> onFocusChanged(state.isFocused) }
                 .let { if (testTag.isNotEmpty()) it.testId(testTag) else it },
             textStyle = PgType.bodyInput.copy(color = PgColors.textPrimary),
             keyboardOptions = keyboardOptions,
@@ -172,6 +195,14 @@ private fun PgTextFieldImpl(
                 }
             }
         )
+        if (isError && !errorText.isNullOrEmpty()) {
+            Spacer(Modifier.height(Spacing.fieldLabelGap))
+            Text(
+                text = errorText,
+                style = PgType.bodyRowSubtitle,
+                color = PgColors.textError
+            )
+        }
         statusLine?.invoke()
     }
 }

@@ -29,6 +29,9 @@ object PgColors {
     val borderInputFocused = Color(0xFF91BFDD)
     val borderTabUnselected = Color(0xFFC2DBEC)
 
+    val borderInputError = Color(0xFFD0021B)
+    val textError = Color(0xFFD0021B)
+
     val dividerSlice = Color(0xFFFFF2D8)
 
     val badgeDarkBg = Color(0xFF5C3F00)

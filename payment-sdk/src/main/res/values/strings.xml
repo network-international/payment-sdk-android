@@ -51,14 +51,17 @@
     Credit or Debit card cardholder name. -->
     <string name="card_cardholder_label_title">Cardholder name</string>
 
-    <!-- Error Message. The credit card number is not valid. Please check the number on the card. -->
-    <string name="error_message_pan_invalid">The credit card number is not valid. Please check the number on the card</string>
+    <!-- Error Message. The credit card number is not valid. -->
+    <string name="error_message_pan_invalid">Invalid card number</string>
+
+    <!-- Error Message. The credit card number length is not valid. -->
+    <string name="error_message_pan_invalid_length">Invalid card number length</string>
 
     <!-- Error Message. The card end date is not valid. -->
-    <string name="error_message_card_end_date_invalid">The card expiry date is not valid</string>
+    <string name="error_message_card_end_date_invalid">Expiry date is invalid.</string>
 
     <!-- Error Message. The card CVV is not valid. -->
-    <string name="error_message_card_cvv_invalid">The card CVV is not valid</string>
+    <string name="error_message_card_cvv_invalid">Security code is invalid</string>
 
     <!-- Error Message. The cardholder name is not valid. -->
     <string name="error_message_cardholder_name_invalid">The cardholder name is not valid</string>

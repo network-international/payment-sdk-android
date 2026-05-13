@@ -401,10 +401,18 @@ internal class CardPaymentPresenter(
     private fun validateInputs(): MutableSet<InputValidationError> {
         val errors = mutableSetOf<InputValidationError>()
 
+        // For the PAN we surface two distinct errors: wrong length vs. typed-in-full
+        // but failing Luhn — the user needs different feedback for each case.
         view.cardNumber.setErrorWhen {
             !full || !Luhn.isValidPan(rawTxt)
         }.also { invalid ->
-            if (invalid) errors.add(InputValidationError.INVALID_CARD_NUMBER)
+            if (invalid) {
+                if (view.cardNumber.full) {
+                    errors.add(InputValidationError.INVALID_CARD_NUMBER)
+                } else {
+                    errors.add(InputValidationError.INVALID_CARD_NUMBER_LENGTH)
+                }
+            }
         }
 
         view.expireDate.setErrorWhen {
@@ -429,16 +437,21 @@ internal class CardPaymentPresenter(
     }
 
     private fun getTopValidationErrorMessage(errors: List<InputValidationError>): String {
-        if (errors.size > 1) {
-            return stringResources.getString(R.string.error_message_card_numbers_multiple)
-        }
-        return stringResources.getString(
-                when (errors.first()) {
+        // Each invalid field gets its own dedicated message — no generic
+        // "multiple card details are not valid" or "all fields are mandatory"
+        // fallback. Multiple errors are joined with newlines so the user sees
+        // exactly which fields need attention.
+        return errors.joinToString(separator = "\n") { error ->
+            stringResources.getString(
+                when (error) {
                     InputValidationError.INVALID_CARD_NUMBER -> CARD_NUMBER_ERROR_RESOURCE
+                    InputValidationError.INVALID_CARD_NUMBER_LENGTH -> CARD_NUMBER_LENGTH_ERROR_RESOURCE
                     InputValidationError.INVALID_EXPIRE_DATE -> CARD_EXPIRY_ERROR_RESOURCE
                     InputValidationError.INVALID_CVV -> CVV_ERROR_RESOURCE
                     else -> GENERIC_ERROR_RESOURCE
-                })
+                }
+            )
+        }
     }
 
     companion object {
@@ -457,6 +470,7 @@ internal class CardPaymentPresenter(
         internal val MESSAGE_LAUNCHING_3DS = R.string.launching_3d_secure
 
         private val CARD_NUMBER_ERROR_RESOURCE: Int = R.string.error_message_pan_invalid
+        private val CARD_NUMBER_LENGTH_ERROR_RESOURCE: Int = R.string.error_message_pan_invalid_length
         private val CARD_EXPIRY_ERROR_RESOURCE: Int = R.string.error_message_card_end_date_invalid
         private val CVV_ERROR_RESOURCE: Int = R.string.error_message_card_cvv_invalid
         private val CARD_HOLDER_ERROR_RESOURCE: Int = R.string.error_message_cardholder_name_invalid

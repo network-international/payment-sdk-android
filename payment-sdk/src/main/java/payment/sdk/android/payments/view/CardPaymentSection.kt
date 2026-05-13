@@ -53,6 +53,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.PaymentCard
+import payment.sdk.android.cardpayment.validation.Luhn
+import payment.sdk.android.cardpayment.widget.ExpireDateEditText
 import payment.sdk.android.core.CardType
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.payments.theme.PgSize
@@ -103,6 +105,17 @@ fun CardPaymentSection(
     val expiryFocus = remember { FocusRequester() }
     val cvvFocus = remember { FocusRequester() }
     val cardHolderFocus = remember { FocusRequester() }
+
+    // Per-field "dirty" state: a field is dirty once the user has focused it
+    // and then moved focus away. We only flag incomplete-but-non-empty fields
+    // (e.g. 2 of 3 CVV digits) once they're dirty, so we don't shout at the
+    // user while they're still typing.
+    var panDirty by remember { mutableStateOf(false) }
+    var panWasFocused by remember { mutableStateOf(false) }
+    var expiryDirty by remember { mutableStateOf(false) }
+    var expiryWasFocused by remember { mutableStateOf(false) }
+    var cvvDirty by remember { mutableStateOf(false) }
+    var cvvWasFocused by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxWidth()
@@ -176,6 +189,57 @@ fun CardPaymentSection(
             enter = fadeIn(animationSpec = tween(250)) + expandVertically(animationSpec = tween(250)),
             exit = fadeOut(animationSpec = tween(250)) + shrinkVertically(animationSpec = tween(250))
         ) {
+            // Per-field error indicators. We flag immediately for unambiguous
+            // problems (e.g. PAN that has a valid length but fails Luhn) and
+            // use dirty state for "you stopped typing before finishing" cases
+            // so the field can explain why the Pay button is disabled.
+            val expectedPanLength = paymentCard?.binRange?.length?.value ?: 16
+            val expectedCvvLength = paymentCard?.cvv?.length ?: 3
+
+            // A PAN length is acceptable when it matches the brand's BIN length
+            // (covers shorter cards like AmEx at 15 / Diners at 14) OR it falls
+            // in the broad 16–19 range that ISO/IEC 7812 permits.
+            val isPanLengthValid =
+                (paymentCard != null && pan.length == expectedPanLength) || pan.length in 16..19
+
+            // Show PAN errors only after the user has left the field so the
+            // form doesn't flash red while they're still typing. The dirty
+            // flag is cleared on focus-gain and on every keystroke, so an
+            // error disappears the moment the user comes back to edit.
+            val panError: String? = when {
+                pan.isEmpty() -> null
+                !panDirty -> null
+                isPanLengthValid && !Luhn.isValidPan(pan) ->
+                    stringResource(R.string.error_message_pan_invalid)
+                paymentCard == null && !isPanLengthValid ->
+                    stringResource(R.string.error_card_not_supported)
+                !isPanLengthValid ->
+                    stringResource(R.string.error_message_pan_invalid_length)
+                else -> null
+            }
+
+            // Show expiry errors only after the user has moved on from the
+            // field (dirty). Mid-entry feedback ("12/" → "1") would shout at
+            // the user before they've had a chance to finish typing.
+            val expiryError: String? = when {
+                expiry.text.isEmpty() -> null
+                !expiryDirty -> null
+                expiry.text.length == 5 && !ExpireDateEditText.isValidExpire(expiry.text) ->
+                    stringResource(R.string.error_message_card_end_date_invalid)
+                expiry.text.length < 5 ->
+                    stringResource(R.string.error_message_card_end_date_invalid)
+                else -> null
+            }
+
+            val cvvError: String? = when {
+                cvv.isEmpty() -> null
+                cvv.length > expectedCvvLength ->
+                    stringResource(R.string.error_message_card_cvv_invalid)
+                cvvDirty && cvv.length < expectedCvvLength ->
+                    stringResource(R.string.error_message_card_cvv_invalid)
+                else -> null
+            }
+
             Column(modifier = Modifier
                 .clip(RectangleShape)
                 .padding(
@@ -186,13 +250,38 @@ fun CardPaymentSection(
                     pan = pan,
                     paymentCard = paymentCard,
                     sliceCheckState = sliceCheckState,
+                    isError = panError != null,
+                    errorText = panError,
+                    onFocusChanged = { focused ->
+                        if (focused) {
+                            panWasFocused = true
+                            // Clear any stale "too short" warning the moment
+                            // the user comes back to edit — they're trying.
+                            panDirty = false
+                        } else if (panWasFocused) {
+                            panDirty = true
+                        }
+                    },
                     onValueChanged = { text ->
-                        val maxLength = paymentCard?.binRange?.length?.value ?: 16
-                        if (text.length <= maxLength) {
+                        // Universal cap at 19 digits (max valid PAN length).
+                        // BIN-detected length still drives the auto-advance
+                        // below, but the user can keep typing past it for
+                        // brands whose actual cards run longer than the
+                        // common 16-digit BIN entry.
+                        if (text.length <= 19) {
                             val newPan = text.filter { it.isDigit() }
                             val newCard = if (newPan.isNotEmpty()) cardDetector.detect(newPan) else null
+                            val previousLength = pan.length
                             onPanChanged(newPan, newCard)
-                            if (newPan.length == maxLength) {
+                            // Any edit invalidates the "user left this incomplete"
+                            // signal — re-evaluate on subsequent blur.
+                            panDirty = false
+                            // Only auto-advance on the transition INTO the BIN
+                            // length — not on every keystroke once already past
+                            // it, otherwise typing the 17th–19th digit kicks
+                            // the user out of the PAN field.
+                            val advanceAt = newCard?.binRange?.length?.value ?: 16
+                            if (newPan.length == advanceAt && previousLength < advanceAt) {
                                 expiryFocus.requestFocus()
                             }
                         }
@@ -210,8 +299,21 @@ fun CardPaymentSection(
                             .weight(1f)
                             .focusRequester(expiryFocus),
                         text = expiry,
-                        onValueChange = { onExpiryChanged(it) },
-                        focusCvv = { cvvFocus.requestFocus() }
+                        onValueChange = {
+                            expiryDirty = false
+                            onExpiryChanged(it)
+                        },
+                        focusCvv = { cvvFocus.requestFocus() },
+                        isError = expiryError != null,
+                        errorText = expiryError,
+                        onFocusChanged = { focused ->
+                            if (focused) {
+                                expiryWasFocused = true
+                                expiryDirty = false
+                            } else if (expiryWasFocused) {
+                                expiryDirty = true
+                            }
+                        }
                     )
 
                     PgTextField(
@@ -222,6 +324,7 @@ fun CardPaymentSection(
                         onValueChange = { text ->
                             val maxLength = paymentCard?.cvv?.length ?: 3
                             if (text.length <= maxLength) {
+                                cvvDirty = false
                                 onCvvChanged(text)
                                 if (text.length == maxLength) {
                                     cardHolderFocus.requestFocus()
@@ -232,6 +335,16 @@ fun CardPaymentSection(
                         placeholder = "CVV",
                         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                         visualTransformation = PasswordVisualTransformation(),
+                        isError = cvvError != null,
+                        errorText = cvvError,
+                        onFocusChanged = { focused ->
+                            if (focused) {
+                                cvvWasFocused = true
+                                cvvDirty = false
+                            } else if (cvvWasFocused) {
+                                cvvDirty = true
+                            }
+                        },
                         testTag = "sdk_card_field_cvv"
                     )
                 }
@@ -308,7 +421,9 @@ fun CardPaymentSection(
                 if (sliceCheckState is SliceCheckState.Available) {
                     SliceInstallmentSection(
                         offers = sliceCheckState.offers,
-                        onOfferSelected = { onSliceOfferSelected(it) }
+                        onOfferSelected = { onSliceOfferSelected(it) },
+                        pillBleedStart = Spacing.pageH + PgSize.radioOuter + 12.dp,
+                        pillBleedEnd = Spacing.pageH,
                     )
                 }
 

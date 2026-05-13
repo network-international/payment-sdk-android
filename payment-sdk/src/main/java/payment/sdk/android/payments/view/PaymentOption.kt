@@ -6,5 +6,6 @@ enum class PaymentOption {
     CLICK_TO_PAY,
     GOOGLE_PAY,
     SAMSUNG_PAY,
-    AANI
+    AANI,
+    QPAY
 }
