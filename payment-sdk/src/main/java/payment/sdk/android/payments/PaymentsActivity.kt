@@ -231,7 +231,11 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                 aaniPayLauncher.launch(config)
                             },
                             onClickToPay = { config ->
-                                clickToPayLauncher.launch(config)
+                                if (config.clickToPayConfig.dpaId.isNullOrEmpty()) {
+                                    finishWithData(UnifiedPaymentPageResult.Failed("Click to Pay dpaId is missing. If you constructed ClickToPayConfig with a merchantId, fetch the credentials via ClickToPayMerchantConfigInteractor before launching."))
+                                } else {
+                                    clickToPayLauncher.launch(config)
+                                }
                             },
                             onClose = {
                                 finishWithData(UnifiedPaymentPageResult.Cancelled)
