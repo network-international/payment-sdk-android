@@ -95,14 +95,14 @@ internal class ClickToPayViewModel(
     fun getInitConfigJson(): String {
         return JSONObject().apply {
             put("sdkUrl", config.clickToPayConfig.getSdkUrl())
-            put("dpaId", config.clickToPayConfig.dpaId)
+            config.clickToPayConfig.dpaId?.let { put("dpaId", it) }
             put("dpaClientId", config.clickToPayConfig.dpaClientId ?: JSONObject.NULL)
-            put("dpaName", config.clickToPayConfig.dpaName)
+            config.clickToPayConfig.dpaName?.let { put("dpaName", it) }
             put("cardBrands", config.clickToPayConfig.getCardBrandsParam())
             put("amount", config.amount)
             put("currencyCode", config.currencyCode)
             put("orderReference", config.orderReference ?: JSONObject.NULL)
-            put("merchantName", config.merchantName ?: config.clickToPayConfig.dpaName)
+            (config.merchantName ?: config.clickToPayConfig.dpaName)?.let { put("merchantName", it) }
             put("locale", config.locale)
             // Add encryption keys from VCTP config
             vctpConfig?.kid?.let { put("kid", it) }
