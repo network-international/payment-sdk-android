@@ -169,11 +169,12 @@ class CoroutinesGatewayHttpClient : HttpClient {
                 HttpURLConnection.HTTP_OK, HttpURLConnection.HTTP_CREATED -> {
                     reader = connection.inputStream.bufferedReader()
                     val responseBody = reader.readText()
-                    logResponse(responseCode, url, responseBody)
+                    logResponse(responseCode, url, connection.headerFields, responseBody)
                     return Pair(connection.headerFields, JSONObject(responseBody))
                 }
                 // No Content (common DELETE response)
                 HttpURLConnection.HTTP_NO_CONTENT -> {
+                    logResponse(responseCode, url, connection.headerFields, "")
                     return Pair(connection.headerFields, JSONObject("{}"))
                 }
                 // Not Discerned
@@ -185,8 +186,12 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     } catch (e: Exception) {
                         "Failed to read error body: ${e.message}"
                     }
-                    logResponse(responseCode, url, errorBody)
-                    throw IllegalStateException("HTTP: $responseCode - $errorBody")
+                    logResponse(responseCode, url, connection.headerFields, errorBody)
+                    val correlationId = findCorrelationId(connection.headerFields)
+                    throw IllegalStateException(
+                        "HTTP: $responseCode - $errorBody" +
+                            (correlationId?.let { " (x-correlation-id: $it)" } ?: "")
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -212,13 +217,34 @@ class CoroutinesGatewayHttpClient : HttpClient {
         Log.d(TAG, "🔗 cURL:\n$parts")
     }
 
-    private fun logResponse(code: Int, url: String, body: String) {
+    private fun logResponse(
+        code: Int,
+        url: String,
+        headers: Map<String, List<String>>?,
+        body: String
+    ) {
         val prettyBody = try {
             JSONObject(body).toString(2)
         } catch (e: Exception) {
             body
         }
-        Log.d(TAG, "⬅️ RESPONSE: $code $url\n$prettyBody")
+        val headersBlock = formatHeaders(headers)
+        Log.d(TAG, "⬅️ RESPONSE: $code $url\nHeaders:\n$headersBlock\nBody:\n$prettyBody")
+    }
+
+    private fun formatHeaders(headers: Map<String, List<String>>?): String {
+        if (headers.isNullOrEmpty()) return "  (none)"
+        return headers.entries.joinToString("\n") { (key, values) ->
+            val name = key ?: "(status)"
+            "  $name: ${values.joinToString(", ")}"
+        }
+    }
+
+    private fun findCorrelationId(headers: Map<String, List<String>>?): String? {
+        if (headers == null) return null
+        return headers.entries
+            .firstOrNull { it.key?.equals("x-correlation-id", ignoreCase = true) == true }
+            ?.value?.firstOrNull()
     }
 
     companion object {

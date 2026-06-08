@@ -22,6 +22,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            consumerProguardFiles 'proguard-rules.pro'
         }
     }
 
@@ -50,7 +51,15 @@ android {
         test.resources.srcDirs += 'src/unitTests/resources'
     }
 
-    testOptions.unitTests.includeAndroidResources = true
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                jvmArgs '-Xmx4g', '-XX:+UseG1GC', '-XX:MaxMetaspaceSize=512m'
+                maxParallelForks = 1
+            }
+        }
+    }
     namespace 'payment.sdk.android.sdk'
 }
 

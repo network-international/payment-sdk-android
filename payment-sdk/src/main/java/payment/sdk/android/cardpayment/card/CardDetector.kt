@@ -175,7 +175,12 @@ class CardDetector(private val supportedCards: Set<CardType>) {
                         CardType.DinersClubInternational,
                         Cvv(3, CardFace.BACK),
                         listOf(
-                                BinRange(start = 36.toBigInteger(), end = 36.toBigInteger(), length = BinLength(value = 14, pattern = SpacingPatterns.Pattern_4_6_4))
+                                // Diners Club Carte Blanche: 300-305 (14-digit PANs starting with 300xxx-305xxx)
+                                BinRange(start = 300.toBigInteger(), end = 305.toBigInteger(), length = BinLength(value = 14, pattern = SpacingPatterns.Pattern_4_6_4)),
+                                // Diners Club International: 36
+                                BinRange(start = 36.toBigInteger(), end = 36.toBigInteger(), length = BinLength(value = 14, pattern = SpacingPatterns.Pattern_4_6_4)),
+                                // Diners Club International (legacy): 38
+                                BinRange(start = 38.toBigInteger(), end = 38.toBigInteger(), length = BinLength(value = 14, pattern = SpacingPatterns.Pattern_4_6_4))
                         )
 
                 ),

@@ -42,14 +42,17 @@
 
     <string name="payments_wallets_title">أو الدفع باستخدام</string>
 
-    <!-- Error Message. The creditcard number is not valid. Please check the number on the card. -->
-    <string name="error_message_pan_invalid">رقم بطاقة الائتمان غير صالح. يرجى التحقق من الرقم الموجود على البطاقة</string>
+    <!-- Error Message. The credit card number is not valid. -->
+    <string name="error_message_pan_invalid">رقم البطاقة غير صحيح</string>
+
+    <!-- Error Message. The credit card number length is not valid. -->
+    <string name="error_message_pan_invalid_length">طول رقم البطاقة غير صحيح</string>
 
     <!-- Error Message. The card end date is not valid. -->
-    <string name="error_message_card_end_date_invalid">تاريخ انتهاء البطاقة غير صالح</string>
+    <string name="error_message_card_end_date_invalid">تاريخ الانتهاء غير صالح.</string>
 
     <!-- Error Message. The card CVV is not valid. -->
-    <string name="error_message_card_cvv_invalid">رمز بطاقة CVV غير صالح</string>
+    <string name="error_message_card_cvv_invalid">رمز الأمان غير صحيح</string>
 
     <!-- Error Message. The cardholder name is not valid. -->
     <string name="error_message_cardholder_name_invalid">اسم حامل البطاقة غير صالح</string>
@@ -107,7 +110,7 @@
     <string name="aani_tap_notification">اضغط على الإشعار الذي تلقيته في التطبيق لإكمال عملية الدفع.</string>
     <string name="aani_note_do_not_close">ملاحظة: يرجى عدم إغلاق التطبيق أثناء تشغيل المؤقت.</string>
     <string name="aani_qr_code">رمز الاستجابة</string>
-    <string name="aani_generate_qr">إنشاء رمز QR</string>
+    <string name="aani_generate_qr">إنشاء رمز الاستجابة</string>
     <string name="aani_scan_qr_to_pay">امسح رمز الاستجابة - قم بالدفع - تم</string>
     <string name="aani_generating_qr">جارٍ إنشاء رمز الاستجابة</string>
     <string name="aani_keep_modal_open">يرجى إبقاء النافذة مفتوحة</string>
@@ -147,9 +150,15 @@
     <string name="expiration_date_label">تاريخ الانتهاء</string>
     <string name="security_code_label">رمز الأمان</string>
     <string name="name_on_card_label">الاسم على البطاقة</string>
+    <string name="name_on_card_placeholder">أدخل الاسم على البطاقة</string>
     <string name="order_summary">ملخص الطلب</string>
+    <string name="order_items_header">البند(ود)</string>
+    <string name="order_amount_header">المبلغ</string>
     <string name="whats_cvv">ما هو CVV؟</string>
     <string name="cvv_tooltip">يمكن العثور على رمز الأمان على ظهر البطاقة</string>
+    <string name="saved_cards_title">البطاقات المحفوظة</string>
+    <string name="saved_card_enter_cvv">أدخل رمز الأمان</string>
+    <string name="order_items_title">تفاصيل الطلب</string>
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">لقد دفعت %1$s</string>

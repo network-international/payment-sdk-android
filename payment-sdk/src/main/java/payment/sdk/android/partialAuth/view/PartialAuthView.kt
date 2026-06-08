@@ -30,14 +30,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.core.testId
 import payment.sdk.android.partialAuth.PartialAuthViewModel
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
@@ -132,7 +131,7 @@ fun PartialAuthView(
             Button(
                 modifier = Modifier
                     .weight(1f)
-                    .semantics { testTag = "sdk_partialauth_button_accept" },
+                    .testId("sdk_partialauth_button_accept"),
                 onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.acceptUrl, args.paymentCookie)
@@ -149,7 +148,7 @@ fun PartialAuthView(
             OutlinedButton(
                 modifier = Modifier
                     .weight(1f)
-                    .semantics { testTag = "sdk_partialauth_button_decline" },
+                    .testId("sdk_partialauth_button_decline"),
                 onClick = {
                     isLoading = true
                     viewModel.submitRequest(args.declineUrl, args.paymentCookie)

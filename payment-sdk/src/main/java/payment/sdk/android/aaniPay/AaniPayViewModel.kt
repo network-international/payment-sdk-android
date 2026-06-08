@@ -116,7 +116,6 @@ internal class AaniPayViewModel(
                     lastQrAmount = response.aaniPayResponse.amount.value ?: 0.0
                     lastQrCurrencyCode = response.aaniPayResponse.amount.currencyCode ?: "AED"
                     val emvData = response.aaniPayResponse.aani?.emvQrData ?: ""
-                    android.util.Log.d("AaniQR", "emvQrData: $emvData")
                     _state.update {
                         AaniPayVMState.QrDisplay(
                                 amount = response.aaniPayResponse.amount.value ?: 0.0,

@@ -11,58 +11,66 @@ internal class CreditCardVisualTransformation(
 ) : VisualTransformation {
 
     override fun filter(text: AnnotatedString): TransformedText {
-        val maxLength = pattern.count { it == '#' }
-        val trimmedText = if (text.text.length > maxLength) {
-            text.text.substring(0, maxLength)
-        } else {
-            text.text
-        }
+        val raw = text.text
 
+        // Format with the pattern up to its capacity, then append any extra
+        // digits unformatted. ISO/IEC 7812 allows PANs up to 19 digits, but
+        // most BIN patterns only describe the common 16-digit layout — we
+        // must still display whatever the user typed beyond that, not
+        // silently truncate it.
         val maskedText = buildString {
-            var index = 0
-            for (char in pattern) {
-                if (char == '#') {
-                    if (index < trimmedText.length) {
-                        append(trimmedText[index])
-                        index++
-                    } else {
-                        break
-                    }
+            var rawIdx = 0
+            for (patternChar in pattern) {
+                if (rawIdx >= raw.length) break
+                if (patternChar == '#') {
+                    append(raw[rawIdx])
+                    rawIdx++
                 } else {
-                    append(char)
+                    append(patternChar)
                 }
             }
+            if (rawIdx < raw.length) {
+                append(raw.substring(rawIdx))
+            }
+        }
+
+        // Number of separator (non-'#') characters from the pattern that are
+        // actually rendered before raw position `n` (separators only show once
+        // they're "reached" by typed digits).
+        fun separatorsBeforeRaw(n: Int): Int {
+            var separators = 0
+            var rawCounted = 0
+            for (patternChar in pattern) {
+                if (rawCounted >= n) break
+                if (patternChar == '#') rawCounted++ else separators++
+            }
+            return separators
+        }
+
+        // Number of separators inserted before visual position `n`.
+        fun separatorsBeforeVisual(n: Int): Int {
+            var separators = 0
+            var visualCounted = 0
+            for (patternChar in pattern) {
+                if (visualCounted >= n) break
+                visualCounted++
+                if (patternChar != '#') separators++
+            }
+            return separators
         }
 
         val offsetTranslator = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
-                if (offset > trimmedText.length) return maskedText.length
-                var transformedOffset = offset
-                var transformedIndex = 0
-                for (i in pattern.indices) {
-                    if (pattern[i] == '#') {
-                        if (transformedIndex == offset) break
-                        transformedIndex++
-                    } else {
-                        transformedOffset++
-                    }
-                }
-                return transformedOffset.coerceAtMost(maskedText.length)
+                val capped = offset.coerceAtMost(raw.length)
+                return (capped + separatorsBeforeRaw(capped))
+                    .coerceAtMost(maskedText.length)
             }
 
             override fun transformedToOriginal(offset: Int): Int {
-                if (offset > maskedText.length) return trimmedText.length
-                var originalOffset = offset
-                var originalIndex = 0
-                for (i in pattern.indices) {
-                    if (pattern[i] == '#') {
-                        if (originalIndex == offset) break
-                        originalIndex++
-                    } else {
-                        originalOffset--
-                    }
-                }
-                return originalOffset.coerceAtMost(trimmedText.length)
+                val capped = offset.coerceAtMost(maskedText.length)
+                return (capped - separatorsBeforeVisual(capped))
+                    .coerceAtLeast(0)
+                    .coerceAtMost(raw.length)
             }
         }
 

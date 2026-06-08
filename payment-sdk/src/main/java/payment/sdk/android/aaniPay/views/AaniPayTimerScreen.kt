@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.TextUtilsCompat
 import kotlinx.coroutines.delay
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.testId
 import payment.sdk.android.sdk.R
 import java.util.Locale
 
@@ -72,7 +71,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
                 fontSize = 28.sp,
                 color = colorResource(id = R.color.payment_sdk_pay_button_background_color)
             ),
-            modifier = Modifier.semantics { testTag = "sdk_aani_label_amount" }
+            modifier = Modifier.testId("sdk_aani_label_amount")
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -90,7 +89,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
 
         Text(
             text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
-            modifier = Modifier.semantics { testTag = "sdk_aani_label_timer" },
+            modifier = Modifier.testId("sdk_aani_label_timer"),
             style = TextStyle(
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold

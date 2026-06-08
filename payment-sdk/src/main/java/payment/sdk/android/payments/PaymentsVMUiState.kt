@@ -1,17 +1,21 @@
 package payment.sdk.android.payments
 
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.wallet.PaymentData
+import com.google.android.gms.wallet.PaymentDataRequest
+import com.google.android.gms.wallet.PaymentsClient
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
+import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.SliceOffer
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
+import payment.sdk.android.payments.model.OrderItem
 import payment.sdk.android.payments.model.PaymentResultArgs
 import payment.sdk.android.sdk.R
 
@@ -28,6 +32,7 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val googlePayUiConfig: GooglePayUiConfig? = null,
         val aaniConfig: AaniPayLauncher.Config? = null,
         val clickToPayConfig: ClickToPayLauncher.Config? = null,
+        val qpayConfig: QPayLauncher.Config? = null,
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,
@@ -37,7 +42,12 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val currencyCode: String,
         val locale: String,
         val payerIp: String,
-        val orderReference: String = ""
+        val orderReference: String = "",
+        val savedCards: List<SavedCard> = emptyList(),
+        val savedCardPaymentUrl: String? = null,
+        val orderItems: List<OrderItem> = emptyList(),
+        val sliceEligibilityCheckUrl: String? = null,
+        val visEligibilityCheckUrl: String? = null
     ) : UnifiedPaymentPageVMUiState(R.string.make_payment)
 
     data class ShowVisaPlans(
@@ -68,9 +78,25 @@ sealed class UnifiedPaymentPageVMEffects {
     data class Failed(val error: String) : UnifiedPaymentPageVMEffects()
 }
 
+sealed class SliceCheckState {
+    data object Idle : SliceCheckState()
+    data object Checking : SliceCheckState()
+    data class Available(val offers: List<SliceOffer>) : SliceCheckState()
+    data object Unavailable : SliceCheckState()
+}
+
+/** State for inline Visa Installments check that runs after Slice fails or returns empty. */
+sealed class VisCheckState {
+    data object Idle : VisCheckState()
+    data object Checking : VisCheckState()
+    data class Available(val plans: payment.sdk.android.core.VisaPlans) : VisCheckState()
+    data object Unavailable : VisCheckState()
+}
+
 data class GooglePayUiConfig(
     val allowedPaymentMethods: String,
     val googlePayAcceptUrl: String,
     val canUseGooglePay: Boolean,
-    val task: Task<PaymentData>
+    val paymentsClient: PaymentsClient,
+    val paymentDataRequest: PaymentDataRequest
 )

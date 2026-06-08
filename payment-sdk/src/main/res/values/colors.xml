@@ -34,6 +34,20 @@
 
     <color name="payment_sdk_input_field_background_color">#FFFFFF</color>
     <color name="payment_sdk_auth_view_background_color">#F2F2F2</color>
+
+    <!-- Payment page design tokens -->
+    <color name="pg_surface_row">#F5F9FC</color>
+    <color name="pg_surface_slice_detail">#FFF8EA</color>
+    <color name="pg_text_primary">#070707</color>
+    <color name="pg_text_secondary">#4A4A4A</color>
+    <color name="pg_text_eligibility">#EEAA16</color>
+    <color name="pg_border_input_focused">#91BFDD</color>
+    <color name="pg_border_row">#E6F0F7</color>
+    <color name="pg_border_section">#C2DBEC</color>
+    <color name="pg_divider_slice">#FFF2D8</color>
+    <color name="pg_badge_dark_bg">#5C3F00</color>
+    <color name="pg_spinner_primary">#EEAA16</color>
+    <color name="pg_spinner_track">#FFD781</color>
     <color name="payment_sdk_auth_view_indicator_color">@color/progress_green</color>
     <color name="payment_sdk_auth_view_label_color">#000000</color>
     <color name="payment_sdk_3ds_view_background_color">#FFFFFF</color>

@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -27,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 fun SavedCardView(
@@ -57,7 +57,7 @@ fun SavedCardView(
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
             .clickable { onClick() }
-            .testTag("savedcard_item_${savedCard.maskedPan}")
+            .testId("savedcard_item_${savedCard.maskedPan}")
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -88,7 +88,7 @@ fun SavedCardView(
 
             if (isEditing && !isSelected) {
                 Button(
-                    modifier = Modifier.padding(8.dp).testTag("savedcard_button_delete"),
+                    modifier = Modifier.padding(8.dp).testId("savedcard_button_delete"),
                     onClick = onDelete,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF93000A))
                 ) {
@@ -100,7 +100,7 @@ fun SavedCardView(
                 }
             }
             if (!isEditing) {
-                Button(modifier = Modifier.padding(8.dp).testTag("savedcard_button_pay"), onClick = onPay) {
+                Button(modifier = Modifier.padding(8.dp).testId("savedcard_button_pay"), onClick = onPay) {
                     Text(text = "Pay", style = MaterialTheme.typography.bodySmall)
                 }
             }

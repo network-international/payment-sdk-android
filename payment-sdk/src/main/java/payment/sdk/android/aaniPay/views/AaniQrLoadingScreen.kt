@@ -19,11 +19,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.sdk.R
+import payment.sdk.android.core.testId
 
 @Composable
 internal fun AaniQrLoadingScreen() {
@@ -53,7 +53,7 @@ internal fun AaniQrLoadingScreen() {
             ) {
                 CircularProgressIndicator(
                     color = goldColor,
-                    modifier = Modifier.size(48.dp).testTag("sdk_aaniloading_progress_spinner")
+                    modifier = Modifier.size(48.dp).testId("sdk_aaniloading_progress_spinner")
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(

@@ -14,7 +14,8 @@
         <activity
             android:name="payment.sdk.android.payments.UnifiedPaymentPageActivity"
             android:screenOrientation="portrait"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.visaInstalments.VisaInstallmentsActivity"
             android:theme="@style/SdkTheme.ThreeDSecure"
@@ -61,6 +62,11 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="payment.sdk.android.clicktopay.ClickToPayActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.qpay.QPayActivity"
             android:screenOrientation="portrait"
             android:exported="false"
             android:theme="@style/SdkTheme.ThreeDSecure" />

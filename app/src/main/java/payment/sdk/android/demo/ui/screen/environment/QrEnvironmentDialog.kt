@@ -20,17 +20,18 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
 import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.ui.screen.AppDialog
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrEnvironmentDialog(
+    nickname: String = "",
     realm: String,
     outletReference: String,
     apiKey: String,
@@ -107,6 +108,7 @@ fun QrEnvironmentDialog(
                         Environment(
                             type = entries[selectedEnvironment],
                             name = realm,
+                            nickname = nickname,
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
@@ -118,7 +120,7 @@ fun QrEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("qrenv_button_add")
+                    .testId("qrconfirm_button_add")
             ) {
                 Text("Add")
             }
@@ -127,7 +129,7 @@ fun QrEnvironmentDialog(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
-                    .testTag("qrenv_button_cancel")
+                    .testId("qrconfirm_button_cancel")
             ) {
                 Text("Cancel")
             }

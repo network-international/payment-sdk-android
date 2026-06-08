@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleEventObserver
@@ -30,7 +29,7 @@ import payment.sdk.android.demo.model.Product
 import payment.sdk.android.demo.ui.screen.Alert
 import payment.sdk.android.demo.ui.screen.CircularProgressDialog
 import payment.sdk.android.demo.ui.screen.TopBar
-import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.testId
 
 @Composable
 fun HomeScreen(
@@ -42,9 +41,6 @@ fun HomeScreen(
     closeDialog: () -> Unit,
     onClickEnvironment: () -> Unit,
     onDeleteProduct: (Product) -> Unit,
-    onSelectSavedCard: (SavedCard) -> Unit,
-    onDeleteSavedCard: (SavedCard) -> Unit,
-    onPaySavedCard: (SavedCard) -> Unit,
     onRefresh: () -> Unit,
     onClickWhatYouNeed: () -> Unit = {},
 ) {
@@ -82,7 +78,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .testTag("home_grid_products"),
+                        .testId("storefront_grid_products"),
                     columns = GridCells.Fixed(if (isTablet()) 4 else 2),
                 ) {
                     items(state.products) { product ->
@@ -107,11 +103,6 @@ fun HomeScreen(
                         currency = state.currency,
                         onClickPayByCard = onClickPayByCard,
                         onClickSamsungPay = onClickSamsungPay,
-                        savedCard = state.savedCard,
-                        savedCards = state.savedCards,
-                        onSelectCard = onSelectSavedCard,
-                        onDeleteSavedCard = onDeleteSavedCard,
-                        onPaySavedCard = onPaySavedCard,
                     )
                 }
 

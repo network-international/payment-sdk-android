@@ -2,6 +2,7 @@ package payment.sdk.android.savedCard.view
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,14 +26,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import payment.sdk.android.core.CardMapping
@@ -40,6 +38,7 @@ import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.savedCard.isAmex
+import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -72,9 +71,9 @@ internal fun SavedCardPaymentView(
         )
 
         Column {
+            Box(modifier = Modifier.testId("sdk_savedcard_field_cvv")) {
             TextField(
                 modifier = Modifier
-                    .testTag("sdk_savedcard_field_cvv")
                     .onFocusEvent {
                         if (it.isFocused) {
                             coroutineScope.launch {
@@ -84,8 +83,7 @@ internal fun SavedCardPaymentView(
                     }
                     .focusRequester(focusRequester)
                     .padding(8.dp)
-                    .fillMaxWidth()
-                    .semantics { testTag = "sdk_savedcard_field_cvv" },
+                    .fillMaxWidth(),
                 value = cvv,
                 keyboardActions = KeyboardActions(
                     onDone = {
@@ -114,6 +112,7 @@ internal fun SavedCardPaymentView(
                 placeholder = {
                     Text(text = "CVV (required)")
                 })
+            } // Box
             if (isErrorCvv) {
                 Text(
                     text = "Invalid CVV",
