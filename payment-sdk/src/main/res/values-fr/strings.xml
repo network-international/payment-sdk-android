@@ -1,5 +1,7 @@
 <resources>
 
+    <string name="enter_card_number">Entrez le numéro de carte</string>
+
     <string name="payments_wallets_title">OU PAYER AVEC</string>
 
     <!-- Title name in payment page -->
@@ -84,6 +86,7 @@
 
 
     <string name="aani">Payer avec AANI</string>
+    <string name="qpay">Payer avec QPay</string>
     <string name="aani_mobile_number">Numéro de mobile</string>
     <string name="aani_emirates_id">Emirates ID</string>
     <string name="aani_passport_id">Numéro de passeport</string>
@@ -135,7 +138,7 @@
     <string name="pay_with_google_pay">Payer avec Google Pay</string>
     <string name="pay_with_samsung_pay">Payer avec Samsung Pay</string>
     <string name="pay_with_aani">Demande de paiement</string>
-    <string name="or_select_payment_options">Ou sélectionnez vos options de paiement</string>
+    <string name="or_select_payment_options">Autres options de paiement</string>
     <string name="expiration_date_label">Date d\'expiration</string>
     <string name="security_code_label">Code de sécurité</string>
     <string name="name_on_card_label">Nom sur la carte</string>
@@ -153,5 +156,7 @@
     <string name="payment_result_reference_number">Numéro de référence</string>
     <string name="payment_result_date_time">Date de transaction</string>
     <string name="payment_result_done">Terminé</string>
+    <string name="select_payment_option_validation">Veuillez sélectionner une option de paiement pour continuer</string>
+    <string name="card_already_saved">Cette carte est déjà enregistrée</string>
 
 </resources>

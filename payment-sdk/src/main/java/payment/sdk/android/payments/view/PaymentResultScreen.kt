@@ -2,6 +2,8 @@ package payment.sdk.android.payments.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -53,6 +56,10 @@ fun PaymentResultScreen(
             .fillMaxSize()
             .background(Color.White)
             .navigationBarsPadding()
+            // The whole page scrolls — header, status block, footer, and the Done button —
+            // so nothing gets clipped when the slice receipt section makes the page taller
+            // than the viewport.
+            .verticalScroll(rememberScrollState())
     ) {
         // ── Merchant header (shop logo + order summary) — same style as the unified payment page
         MerchantHeader(
@@ -60,15 +67,14 @@ fun PaymentResultScreen(
             orderItems = args.orderItems
         )
 
-        // ── Centered status block ───────────────────────────────────────────────
+        // ── Status block ────────────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
                 .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
+            Spacer(Modifier.height(24.dp))
             Icon(
                 painter = painterResource(
                     id = if (args.isSuccess) R.drawable.ic_payment_success else R.drawable.ic_payment_failure
@@ -82,7 +88,7 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text(
+            AedAmountText(
                 text = if (args.isSuccess) {
                     if (args.formattedAmount != null) {
                         stringResource(R.string.payment_result_success_title, args.formattedAmount)
@@ -92,7 +98,7 @@ fun PaymentResultScreen(
                 } else {
                     stringResource(R.string.payment_result_failure_title)
                 },
-                fontSize = 22.sp,
+                style = androidx.compose.ui.text.TextStyle(fontSize = 22.sp),
                 fontWeight = FontWeight.SemiBold,
                 color = accent,
                 textAlign = TextAlign.Center,
@@ -114,6 +120,11 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(32.dp))
 
+            if (args.isSuccess && args.sliceReceipt != null) {
+                SliceSuccessSection(receipt = args.sliceReceipt)
+                Spacer(Modifier.height(24.dp))
+            }
+
             DetailLine(
                 label = if (args.isSuccess)
                     stringResource(R.string.payment_result_transaction_id)
@@ -126,6 +137,7 @@ fun PaymentResultScreen(
                 label = stringResource(R.string.payment_result_date_time),
                 value = args.dateTime
             )
+            Spacer(Modifier.height(24.dp))
         }
 
         // ── Footer + done button ────────────────────────────────────────────────
@@ -159,6 +171,84 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun SliceSuccessSection(receipt: payment.sdk.android.payments.model.SliceReceipt) {
+    val textColor = Color(0xFF070707)
+    val lgSize = 16.sp
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Your purchase has been Sliced successfully!",
+            // FontWeight 350 ≈ "Medium" (rounds to 400 on system fonts that don't expose 350).
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(350),
+                color = textColor,
+            ),
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(12.dp))
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_slice),
+            contentDescription = "slice by network",
+            modifier = Modifier
+                .height(70.dp)
+                .width(170.dp),
+            contentScale = ContentScale.Fit,
+        )
+        Spacer(Modifier.height(16.dp))
+        SliceReceiptRow(label = "Tenor", value = receipt.tenor, textColor = textColor, lgSize = lgSize)
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(
+            label = if (receipt.isIslamic) "Murabaha" else "Interest rate",
+            value = receipt.interestRate,
+            textColor = textColor,
+            lgSize = lgSize,
+        )
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(label = "Fees", value = receipt.fees, textColor = textColor, lgSize = lgSize)
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(label = "Instalment amount", value = receipt.installmentAmount, textColor = textColor, lgSize = lgSize)
+    }
+}
+
+@Composable
+private fun SliceReceiptRow(
+    label: String,
+    value: String,
+    textColor: Color,
+    lgSize: androidx.compose.ui.unit.TextUnit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            // FontWeight 325 ≈ "Book"; system font rounds to nearest available (typically 300/400).
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(325),
+                letterSpacing = (lgSize.value * 0.01f).sp,
+                color = textColor,
+            ),
+        )
+        AedAmountText(
+            text = value,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(350),
+                color = textColor,
+            ),
+            color = textColor,
+        )
     }
 }
 
@@ -223,9 +313,9 @@ private fun MerchantHeader(
                     fontSize = 13.sp,
                     color = MutedGrey
                 )
-                Text(
+                AedAmountText(
                     text = formattedAmount,
-                    fontSize = 18.sp,
+                    style = androidx.compose.ui.text.TextStyle(fontSize = 18.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryText
                 )

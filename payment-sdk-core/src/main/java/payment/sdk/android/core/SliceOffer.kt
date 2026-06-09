@@ -22,5 +22,10 @@ data class SliceOffer(
 @Keep
 data class SliceEligibilityResponse(
     @SerializedName("transactionAmount") val transactionAmount: SliceAmount,
-    @SerializedName("offers") val offers: List<SliceOffer>
+    @SerializedName("offers") val offers: List<SliceOffer>,
+    /**
+     * Backend flag: "Y" = conventional interest-based offers, "I" = Islamic / Murabaha,
+     * "N" = ineligible (no offers shown). Other values are treated as conventional.
+     */
+    @SerializedName("indicator") val indicator: String? = null,
 )

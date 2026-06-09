@@ -41,6 +41,7 @@ fun AddEnvironmentDialog(
     var apiKey by remember { mutableStateOf("") }
     var outletReference by remember { mutableStateOf("") }
     var realm by remember { mutableStateOf("") }
+    var clickToPayMerchantId by remember { mutableStateOf("") }
     val entries = EnvironmentType.values()
     var selectedEnvironment by remember { mutableIntStateOf(0) }
 
@@ -96,6 +97,15 @@ fun AddEnvironmentDialog(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxWidth().testId("addenv_field_clickToPayMerchantId")) {
+            TextField(
+                value = clickToPayMerchantId,
+                onValueChange = { clickToPayMerchantId = it },
+                label = { Text("Click to Pay Merchant ID (optional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -111,7 +121,8 @@ fun AddEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = region
+                            region = region,
+                            clickToPayMerchantId = clickToPayMerchantId.takeIf { it.isNotBlank() }
                         )
                     )
                     onCancel()

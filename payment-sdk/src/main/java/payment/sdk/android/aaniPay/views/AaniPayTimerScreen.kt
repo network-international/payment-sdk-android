@@ -64,7 +64,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        payment.sdk.android.payments.view.AedAmountText(
             text = stringResource(R.string.aani_paying_amount, amount),
             style = TextStyle(
                 fontWeight = FontWeight.Bold,

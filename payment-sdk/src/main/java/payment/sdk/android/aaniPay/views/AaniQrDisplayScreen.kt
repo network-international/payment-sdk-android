@@ -178,7 +178,7 @@ internal fun AaniQrDisplayScreen(
                     color = Color.Gray
                 )
             )
-            Text(
+            payment.sdk.android.payments.view.AedAmountText(
                 text = formattedAmount,
                 style = TextStyle(
                     fontWeight = FontWeight.SemiBold,

@@ -38,6 +38,7 @@ fun EditEnvironmentDialog(
     var apiKey by remember { mutableStateOf(environment.apiKey) }
     var outletReference by remember { mutableStateOf(environment.outletReference) }
     var realm by remember { mutableStateOf(environment.realm) }
+    var clickToPayMerchantId by remember { mutableStateOf(environment.clickToPayMerchantId.orEmpty()) }
     val entries = EnvironmentType.values()
     var selectedEnvironment by remember { mutableIntStateOf(entries.indexOf(environment.type)) }
 
@@ -85,6 +86,13 @@ fun EditEnvironmentDialog(
             label = { Text("Outlet Reference") },
             modifier = Modifier.fillMaxWidth().testId("editenv_field_outletReference")
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = clickToPayMerchantId,
+            onValueChange = { clickToPayMerchantId = it },
+            label = { Text("Click to Pay Merchant ID (optional)") },
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_clickToPayMerchantId")
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -99,7 +107,8 @@ fun EditEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = environment.region
+                            region = environment.region,
+                            clickToPayMerchantId = clickToPayMerchantId.takeIf { it.isNotBlank() }
                         )
                     )
                     onCancel()

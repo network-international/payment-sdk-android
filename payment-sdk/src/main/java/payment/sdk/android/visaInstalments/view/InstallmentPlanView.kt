@@ -133,7 +133,7 @@ fun InstallmentFeeAndRateView(
 @Composable
 fun InstallmentPlanAmount(frequency: PlanFrequency, amount: String) {
     if (frequency == PlanFrequency.PayInFull) {
-        Text(
+        payment.sdk.android.payments.view.AedAmountText(
             modifier = Modifier.fillMaxWidth(),
             text = amount,
             style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
@@ -146,7 +146,7 @@ fun InstallmentPlanAmount(frequency: PlanFrequency, amount: String) {
             PlanFrequency.BI_MONTHLY -> R.string.visa_bi_weekly_instalment
             else -> -1
         }
-        Text(
+        payment.sdk.android.payments.view.AedAmountText(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(
                 id = res, amount

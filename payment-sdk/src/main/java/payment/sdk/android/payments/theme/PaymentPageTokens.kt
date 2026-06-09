@@ -34,7 +34,7 @@ object PgColors {
 
     val dividerSlice = Color(0xFFFFF2D8)
 
-    val badgeDarkBg = Color(0xFF5C3F00)
+    val badgeDarkBg = Color(0xFF2FBF71)
     val badgeDarkText = Color.White
 
     val spinnerPrimary = Color(0xFFEEAA16)

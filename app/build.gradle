@@ -8,8 +8,8 @@ android {
         applicationId "payment.sdk.android.demo"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "140")
-        versionName System.getenv("VERSION_NAME") ?: "7.0.3"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "145")
+        versionName System.getenv("VERSION_NAME") ?: "7.0.7"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true

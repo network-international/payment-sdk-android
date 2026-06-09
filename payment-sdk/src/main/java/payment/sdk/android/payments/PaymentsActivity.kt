@@ -81,6 +81,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
      *  Loading transition that happens during payment dispatch. Required for the result page,
      *  which is rendered AFTER state has moved past Authorized. */
     private var lastAuthorizedState: UnifiedPaymentPageVMUiState.Authorized? = null
+    private var lastSliceOffer: payment.sdk.android.core.SliceOffer? = null
+    private var lastSliceIsIslamic: Boolean = false
 
     private lateinit var args: UnifiedPaymentPageRequest
 
@@ -275,6 +277,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             onResetSliceCheck = { viewModel.resetSliceCheck() },
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName, sliceOffer, visaPlan ->
+                                lastSliceOffer = sliceOffer
+                                lastSliceIsIslamic =
+                                    (viewModel.sliceCheckState.value as? payment.sdk.android.payments.SliceCheckState.Available)?.isIslamic == true
                                 val visaRequest = visaPlan
                                     ?.takeIf { it.frequency != payment.sdk.android.visaInstalments.model.PlanFrequency.PayInFull }
                                     ?.let { plan ->
@@ -640,6 +645,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
         val dateFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
         val dateTime = dateFormatter.format(Date())
 
+        val sliceReceipt = if (isSuccess) buildSliceReceipt(lastSliceOffer, lastSliceIsIslamic) else null
+
         val args = PaymentResultArgs(
             isSuccess = isSuccess,
             formattedAmount = formattedAmount,
@@ -647,6 +654,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             dateTime = dateTime,
             supportedCards = supportedCards,
             orderItems = authorizedState?.orderItems ?: emptyList(),
+            sliceReceipt = sliceReceipt,
         )
 
         viewModel.showPaymentResult(
@@ -663,5 +671,31 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
         }
         setResult(Activity.RESULT_OK, intent)
         finish()
+    }
+
+    private fun buildSliceReceipt(
+        offer: payment.sdk.android.core.SliceOffer?,
+        isIslamic: Boolean,
+    ): payment.sdk.android.payments.model.SliceReceipt? {
+        if (offer == null) return null
+        val currency = offer.installmentAmount.currencyCode
+        val feeString = if (offer.feeType == "P") {
+            "${offer.fee}%"
+        } else {
+            val feeMinor = ((offer.fee.toDoubleOrNull() ?: 0.0) * 100).toInt()
+            formatSliceAmount(feeMinor, currency)
+        }
+        return payment.sdk.android.payments.model.SliceReceipt(
+            tenor = "${offer.period} Months",
+            interestRate = "${offer.rate}%",
+            fees = feeString,
+            installmentAmount = formatSliceAmount(offer.installmentAmount.value, currency),
+            isIslamic = isIslamic,
+        )
+    }
+
+    private fun formatSliceAmount(minorUnits: Int, currencyCode: String): String {
+        val amount = minorUnits / 100.0
+        return "$currencyCode ${String.format(java.util.Locale.US, "%,.2f", amount)}"
     }
 }

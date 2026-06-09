@@ -71,7 +71,7 @@ internal fun SavedCardViewBottomBar(
             shape = RoundedCornerShape(percent = 15),
         ) {
             if (!orderAmount.isRiyalCurrency()) {
-                Text(
+                payment.sdk.android.payments.view.AedAmountText(
                     text = stringResource(
                         id = R.string.pay_button_title,
                         orderAmount.formattedCurrencyString2Decimal(isLTR)

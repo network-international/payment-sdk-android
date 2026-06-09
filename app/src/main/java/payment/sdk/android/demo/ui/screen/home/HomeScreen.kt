@@ -99,10 +99,8 @@ fun HomeScreen(
                     HomeBottomBar(
                         modifier = Modifier,
                         total = state.total,
-                        isSamsungPayAvailable = state.isSamsungPayAvailable,
                         currency = state.currency,
                         onClickPayByCard = onClickPayByCard,
-                        onClickSamsungPay = onClickSamsungPay,
                     )
                 }
 

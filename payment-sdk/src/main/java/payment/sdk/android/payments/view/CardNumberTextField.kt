@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import payment.sdk.android.cardpayment.card.PaymentCard
@@ -32,17 +33,24 @@ fun CardNumberTextField(
         value = pan,
         onValueChange = onValueChanged,
         label = stringResource(R.string.card_number_label_title),
-        placeholder = "0000 0000 0000 0000",
-        trailingIcon = if (paymentCard != null) {
-            {
+        placeholder = stringResource(R.string.enter_card_number),
+        trailingIcon = {
+            if (paymentCard != null) {
                 Image(
                     modifier = Modifier.size(PgSize.optionLogoSize * 0.7f),
                     painter = getCardImage(paymentCard.type, isWhiteBackground = true),
                     contentDescription = paymentCard.type?.name,
                     contentScale = ContentScale.Fit
                 )
+            } else {
+                Image(
+                    modifier = Modifier.size(PgSize.optionLogoSize * 0.7f),
+                    painter = painterResource(R.drawable.ic_card_input),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit
+                )
             }
-        } else null,
+        },
         statusLine = { SliceEligibilityRow(state = sliceCheckState) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
         visualTransformation = CreditCardVisualTransformation(
@@ -51,6 +59,7 @@ fun CardNumberTextField(
         isError = isError,
         errorText = errorText,
         onFocusChanged = onFocusChanged,
+        forceLtrInput = true,
         testTag = "sdk_cardinput_field_pan"
     )
 }

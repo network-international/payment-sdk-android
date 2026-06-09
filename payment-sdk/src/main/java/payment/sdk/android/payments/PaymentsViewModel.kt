@@ -27,6 +27,7 @@ import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.core.getQPayUrl
 import payment.sdk.android.core.interactor.ClickToPayConfig
+import payment.sdk.android.core.interactor.ClickToPayMerchantConfigInteractor
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.toIntent
@@ -89,6 +90,7 @@ internal class UnifiedPaymentPageViewModel(
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor,
     private val getOrderApiInteractor: GetOrderApiInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
+    private val clickToPayMerchantConfigInteractor: ClickToPayMerchantConfigInteractor,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -114,6 +116,10 @@ internal class UnifiedPaymentPageViewModel(
 
     private var visCheckJob: Job? = null
     private var lastVisCheckKey: String? = null
+
+    /// Cached when the order is authorized. Drives the initial Slice state (BannerOnly when
+    /// non-null, so the brand banner is visible before the user enters card details).
+    private var hasSliceEligibilityLink: Boolean = false
 
     var orderReference: String = ""
         private set
@@ -209,7 +215,26 @@ internal class UnifiedPaymentPageViewModel(
 
         // Configure Click to Pay if VISA_CLICK_TO_PAY is in the wallet array and merchant has configured it
         val clickToPayUrl = order.getVisaClickToPayUrl()
-        val merchantClickToPayConfig = cardPaymentsIntent.clickToPayConfig
+        val rawMerchantClickToPayConfig = cardPaymentsIntent.clickToPayConfig
+        // Resolve DPA credentials from `/config/merchants/{merchantId}/configs/vctp` once
+        // the order is authorized — the merchant only ever has to declare `merchantId`.
+        // Derives the api-gateway base from the order URL (strips `/transactions/...`).
+        val merchantClickToPayConfig = rawMerchantClickToPayConfig?.let { cfg ->
+            val merchantId = cfg.merchantId
+            if (cfg.dpaId.isNullOrEmpty() && !merchantId.isNullOrEmpty()) {
+                val baseUrl = orderUrl.substringBefore("/transactions/")
+                    .ifEmpty { orderUrl.substringBefore("/api/") }
+                val result = clickToPayMerchantConfigInteractor
+                    .fetch(merchantId, accessToken, baseUrl)
+                if (result is ClickToPayMerchantConfigInteractor.Result.Success) {
+                    cfg.copy(
+                        dpaId = result.resolved.dpaId,
+                        dpaClientId = result.resolved.dpaClientId,
+                        dpaName = result.resolved.dpaName
+                    )
+                } else cfg
+            } else cfg
+        }
         val isVisaClickToPayEnabled = supportedWallets.contains("VISA_CLICK_TO_PAY")
 
         val clickToPayConfig = takeIf {
@@ -273,6 +298,13 @@ internal class UnifiedPaymentPageViewModel(
         orderReference = order.reference.orEmpty()
 
         val isLTR = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+
+        // Slice brand banner is driven by the order, not by card entry: as soon as the
+        // create-order response advertises Slice, the banner becomes visible.
+        hasSliceEligibilityLink = order.getSliceEligibilityCheckUrl() != null
+        if (hasSliceEligibilityLink) {
+            _sliceCheckState.update { SliceCheckState.BannerOnly }
+        }
 
         _uiState.update {
             UnifiedPaymentPageVMUiState.Authorized(
@@ -563,20 +595,31 @@ internal class UnifiedPaymentPageViewModel(
         }
         sliceCheckJob = viewModelScope.launch(dispatcher) {
             _sliceCheckState.update { SliceCheckState.Checking }
+            // Slice link IS present on the order — empty/error responses fall through to
+            // BannerOnly so the brand banner stays visible (rules 4 & 5).
             when (val result = sliceEligibilityInteractor.checkEligibility(eligibilityCheckUrl, paymentCookie, pan, expiry, isSavedCardToken)) {
                 is SliceEligibilityResult.Success -> {
                     val offers = result.response.offers
-                    if (offers.isNotEmpty()) {
-                        _sliceCheckState.update { SliceCheckState.Available(offers) }
+                    val indicator = result.response.indicator
+                    // Backend "N" indicator = ineligible — treat as no offers regardless of body.
+                    val eligible = indicator != "N" && offers.isNotEmpty()
+                    if (eligible) {
+                        _sliceCheckState.update {
+                            SliceCheckState.Available(
+                                offers = offers,
+                                transactionAmount = result.response.transactionAmount,
+                                isIslamic = indicator == "I",
+                            )
+                        }
                         // Slice succeeded — clear any prior Vis state, Slice has priority.
                         resetVisCheck()
                     } else {
-                        _sliceCheckState.update { SliceCheckState.Unavailable }
+                        _sliceCheckState.update { SliceCheckState.BannerOnly }
                         checkVisEligibility(visEligibilityCheckUrl, selfUrl, paymentCookie, pan, cardScheme, isSavedCardToken)
                     }
                 }
                 is SliceEligibilityResult.Error -> {
-                    _sliceCheckState.update { SliceCheckState.Unavailable }
+                    _sliceCheckState.update { SliceCheckState.BannerOnly }
                     checkVisEligibility(visEligibilityCheckUrl, selfUrl, paymentCookie, pan, cardScheme, isSavedCardToken)
                 }
             }
@@ -585,7 +628,11 @@ internal class UnifiedPaymentPageViewModel(
 
     fun resetSliceCheck() {
         sliceCheckJob?.cancel()
-        _sliceCheckState.update { SliceCheckState.Idle }
+        // When Slice is enabled on the order, the banner is always visible regardless of
+        // card-entry state; clearing the form returns to BannerOnly, not Idle.
+        _sliceCheckState.update {
+            if (hasSliceEligibilityLink) SliceCheckState.BannerOnly else SliceCheckState.Idle
+        }
         resetVisCheck()
     }
 
@@ -628,6 +675,10 @@ internal class UnifiedPaymentPageViewModel(
                 is VisaPlansResponse.Success -> {
                     if (response.visaPlans.matchedPlans.isNotEmpty()) {
                         _visCheckState.update { VisCheckState.Available(response.visaPlans) }
+                        // Rule 5: VIS eligibility displaces the Slice banner.
+                        if (_sliceCheckState.value is SliceCheckState.BannerOnly) {
+                            _sliceCheckState.update { SliceCheckState.Unavailable }
+                        }
                     } else {
                         _visCheckState.update { VisCheckState.Unavailable }
                     }
@@ -681,7 +732,8 @@ internal class UnifiedPaymentPageViewModel(
                 ),
                 googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient, extras.requireApplication()),
                 getOrderApiInteractor = GetOrderApiInteractor(httpClient),
-                savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(httpClient, extras.requireApplication())
+                savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(httpClient, extras.requireApplication()),
+                clickToPayMerchantConfigInteractor = ClickToPayMerchantConfigInteractor(httpClient)
             ) as T
         }
     }

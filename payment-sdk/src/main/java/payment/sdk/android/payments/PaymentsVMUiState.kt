@@ -81,7 +81,16 @@ sealed class UnifiedPaymentPageVMEffects {
 sealed class SliceCheckState {
     data object Idle : SliceCheckState()
     data object Checking : SliceCheckState()
-    data class Available(val offers: List<SliceOffer>) : SliceCheckState()
+    data class Available(
+        val offers: List<SliceOffer>,
+        val transactionAmount: payment.sdk.android.core.SliceAmount,
+        /** Eligibility indicator "I" → show "Murabaha" instead of "Interest rate". */
+        val isIslamic: Boolean = false,
+    ) : SliceCheckState()
+    // Slice eligibility link present on the order, but the current card returned no matched
+    // offers. The brand banner is still shown (without the pill row / detail card) unless VIS
+    // installments displace it.
+    data object BannerOnly : SliceCheckState()
     data object Unavailable : SliceCheckState()
 }
 

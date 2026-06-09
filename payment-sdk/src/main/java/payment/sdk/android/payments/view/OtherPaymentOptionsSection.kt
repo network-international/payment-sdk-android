@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -104,7 +105,7 @@ fun OtherPaymentOptionsSection(
                     Image(
                         painter = painterResource(R.drawable.aani_logo),
                         contentDescription = null,
-                        modifier = Modifier.size(PgSize.providerLogoHeight),
+                        modifier = Modifier.height(40.dp),
                         contentScale = ContentScale.Fit
                     )
                 },
@@ -131,12 +132,13 @@ fun OtherPaymentOptionsSection(
         if (qpayConfig != null) {
             PaymentOptionRow(
                 selected = selectedOption == PaymentOption.QPAY,
-                label = "QPay",
+                label = stringResource(R.string.qpay),
                 trailingIcon = {
-                    Text(
-                        text = "QPay",
-                        style = PgType.bodyRowTitle,
-                        color = PgColors.textPrimary
+                    Image(
+                        painter = painterResource(R.drawable.qpay_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(PgSize.providerLogoHeight),
+                        contentScale = ContentScale.Fit
                     )
                 },
                 onSelect = { onOptionSelected(PaymentOption.QPAY) }
