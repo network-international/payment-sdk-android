@@ -365,11 +365,11 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                 aaniPayLauncher.launch(config)
                             },
                             onClickToPay = { config ->
-                                if (config.clickToPayConfig.dpaId.isNullOrEmpty()) {
-                                    finishWithData(UnifiedPaymentPageResult.Failed("Click to Pay dpaId is missing. If you constructed ClickToPayConfig with a merchantId, fetch the credentials via ClickToPayMerchantConfigInteractor before launching."))
-                                } else {
-                                    clickToPayLauncher.launch(config)
-                                }
+                                // Launch even when dpaId hasn't been resolved by the gateway
+                                // /config/merchants/{id}/configs/vctp call (e.g. it returned 406):
+                                // ClickToPayActivity fetches the paypage /vctp/config which carries
+                                // the DPA credentials as a fallback before initializing the Visa SDK.
+                                clickToPayLauncher.launch(config)
                             },
                             onClickQPay = { config ->
                                 qpayLauncher.launch(config)

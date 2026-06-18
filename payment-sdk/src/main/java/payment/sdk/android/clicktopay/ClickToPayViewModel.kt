@@ -95,8 +95,12 @@ internal class ClickToPayViewModel(
     fun getInitConfigJson(): String {
         return JSONObject().apply {
             put("sdkUrl", config.clickToPayConfig.getSdkUrl())
-            config.clickToPayConfig.dpaId?.let { put("dpaId", it) }
-            put("dpaClientId", config.clickToPayConfig.dpaClientId ?: JSONObject.NULL)
+            // Fall back to the DPA credentials from the paypage /vctp/config response when the
+            // gateway /config/merchants/{id}/configs/vctp call didn't resolve them (e.g. 406),
+            // otherwise the Visa SDK launches with dpaId=undefined and fails to load INO SRC SDKs.
+            (config.clickToPayConfig.dpaId?.takeIf { it.isNotEmpty() }
+                ?: vctpConfig?.dpaId?.takeIf { it.isNotEmpty() })?.let { put("dpaId", it) }
+            put("dpaClientId", config.clickToPayConfig.dpaClientId ?: vctpConfig?.dpaClientId ?: JSONObject.NULL)
             config.clickToPayConfig.dpaName?.let { put("dpaName", it) }
             put("cardBrands", config.clickToPayConfig.getCardBrandsParam())
             put("amount", config.amount)
