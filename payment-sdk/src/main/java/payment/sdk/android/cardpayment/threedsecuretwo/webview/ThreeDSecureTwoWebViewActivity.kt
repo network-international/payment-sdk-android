@@ -20,6 +20,7 @@ import androidx.appcompat.widget.Toolbar
 import com.google.gson.Gson
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.common.applySystemWindowInsetsAsPadding
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.ThreeDSAuthResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
@@ -92,6 +93,10 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_3d_secure)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // The CoordinatorLayout/AppBarLayout consumes the status-bar (top) inset via
+        // fitsSystemWindows; pad the WebView container for the navigation bar / cutout / IME
+        // so 3-D Secure content is not drawn under the system bars on Android 15+ (edge-to-edge).
+        content.applySystemWindowInsetsAsPadding()
 
         paymentApiInteractor = CardPaymentApiInteractor(
             CoroutinesGatewayHttpClient(),

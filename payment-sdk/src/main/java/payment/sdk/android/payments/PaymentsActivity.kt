@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -38,6 +39,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -114,6 +116,7 @@ class PaymentsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setOnBackPressed()
         args = runCatching {
             requireNotNull(PaymentsRequest.fromIntent(intent)) {
@@ -131,6 +134,7 @@ class PaymentsActivity : AppCompatActivity() {
                 backgroundColor = Color(0xFFD6D6D6),
                 topBar = {
                     TopAppBar(
+                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
                         title = {
                             Text(
                                 text = stringResource(id = state.title),

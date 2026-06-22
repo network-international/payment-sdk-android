@@ -5,11 +5,11 @@ apply plugin: 'maven-publish'
 group='com.github.network-international'
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
@@ -30,7 +30,7 @@ android {
     }
 
     // TODO add lint rules, and fix lint errors
-    lintOptions {
+    lint {
         quiet true
         abortOnError false
         warningsAsErrors true

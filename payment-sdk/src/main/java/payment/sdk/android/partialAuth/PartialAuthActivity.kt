@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
@@ -15,6 +16,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.sdk.R
@@ -26,6 +28,7 @@ class PartialAuthActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val args = runCatching {
             requireNotNull(inputArgs) {
                 "PartialAuthActivity input args not found"
@@ -39,6 +42,7 @@ class PartialAuthActivity : ComponentActivity() {
                 backgroundColor = Color.White,
                 topBar = {
                     TopAppBar(
+                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
                         title = {
                             Text(
                                 modifier = Modifier.fillMaxWidth(),

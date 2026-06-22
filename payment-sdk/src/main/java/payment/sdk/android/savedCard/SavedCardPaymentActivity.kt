@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
@@ -31,6 +32,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.payments.PaymentsResult
@@ -47,6 +49,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setOnBackPressed()
         val inputArgs = runCatching {
             requireNotNull(SavedCardPaymentRequest.fromIntent(intent)) {
@@ -67,6 +70,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
             Scaffold(
                 topBar = {
                     TopAppBar(
+                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
                         title = {
                             Text(
                                 text = stringResource(id = R.string.make_payment),

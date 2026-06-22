@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.sdk.R
 
@@ -27,6 +29,7 @@ class VisaInstallmentsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val args = runCatching {
             requireNotNull(inputArgs) {
                 "VisaInstalmentsActivity input arguments were not found"
@@ -41,6 +44,7 @@ class VisaInstallmentsActivity : ComponentActivity() {
                 backgroundColor = Color(0xFFD6D6D6),
                 topBar = {
                     TopAppBar(
+                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
                         title = {
                             Text(
                                 text = stringResource(id = R.string.title_activity_visa_instalments),

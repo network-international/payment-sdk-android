@@ -14,7 +14,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.widget.NestedScrollView
 import payment.sdk.android.SDKConfig
+import payment.sdk.android.common.applySystemWindowInsetsAsPadding
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureRequest
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
@@ -57,6 +59,9 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_card_payment)
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        // Keep the bottom-sheet content clear of the navigation bar / cutout / keyboard when
+        // the host app runs edge-to-edge (default for apps targeting Android 15 / API 35).
+        findViewById<NestedScrollView>(R.id.bottom_sheet).applySystemWindowInsetsAsPadding(top = true)
         onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (SDKConfig.showCancelAlert) {

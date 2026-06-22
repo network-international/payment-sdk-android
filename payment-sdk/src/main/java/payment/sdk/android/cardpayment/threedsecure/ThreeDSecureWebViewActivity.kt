@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
+import payment.sdk.android.common.applySystemWindowInsetsAsPadding
 
 
 import java.net.URLEncoder
@@ -37,6 +38,10 @@ open class ThreeDSecureWebViewActivity : AppCompatActivity() {
         setContentView(R.layout.activity_3d_secure)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        // The CoordinatorLayout/AppBarLayout consumes the status-bar (top) inset via
+        // fitsSystemWindows; pad the WebView container for the navigation bar / cutout / IME
+        // so 3-D Secure content is not drawn under the system bars on Android 15+ (edge-to-edge).
+        content.applySystemWindowInsetsAsPadding()
 
         val acsUrl = intent.getStringExtra(ThreeDSecureWebViewClient.ACS_URL_KEY)
         if (acsUrl == null) {

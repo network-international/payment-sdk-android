@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import payment.sdk.android.aaniPay.views.AaniPayScreen
 import payment.sdk.android.aaniPay.views.AaniPayTimerScreen
 import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
@@ -40,6 +42,7 @@ class AaniPayActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val args = runCatching {
             requireNotNull(inputArgs) {
@@ -60,7 +63,9 @@ class AaniPayActivity : AppCompatActivity() {
             val state by viewModel.state.collectAsState()
 
             Scaffold(topBar = {
-                TopAppBar(title = {
+                TopAppBar(
+                    modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
+                    title = {
                     Text(
                         text = stringResource(R.string.aani),
                         color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
@@ -139,7 +144,7 @@ class AaniPayActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
     }
