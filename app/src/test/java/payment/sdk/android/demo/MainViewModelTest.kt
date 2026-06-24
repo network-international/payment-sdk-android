@@ -30,6 +30,7 @@ import payment.sdk.android.demo.model.EnvironmentType
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 import payment.sdk.android.demo.model.Product
+import payment.sdk.android.demo.model.Region
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
@@ -51,7 +52,8 @@ class MainViewModelTest {
         name = "test",
         apiKey = "key",
         outletReference = "ref",
-        realm = "name"
+        realm = "name",
+        region = Region.UAE
     )
 
     private val savedCard = SavedCard(
