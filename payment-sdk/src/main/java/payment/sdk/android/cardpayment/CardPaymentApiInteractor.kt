@@ -161,7 +161,9 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient, cont
                 HEADER_COOKIE to paymentCookie,
                 HEADER_FINGERPRINT to deviceId
             ),
-            body = Body.Json(emptyMap()),
+            // Intentionally no request body for the 3DS2 challenge response. Body.Json now always
+            // serialises (even when empty), so use Body.Empty() to keep sending no body here.
+            body = Body.Empty(),
             success = { (_, response) ->
                 success(response.string("state")!!, response)
             },

@@ -117,6 +117,7 @@
 
     <string name="aani">Pay with AANI</string>
     <string name="qpay">Pay with QPay</string>
+    <string name="qpay_express_pay_with">Pay with</string>
     <string name="aani_mobile_number">Mobile number</string>
     <string name="aani_emirates_id">Emirates ID</string>
     <string name="aani_passport_id">Passport ID</string>

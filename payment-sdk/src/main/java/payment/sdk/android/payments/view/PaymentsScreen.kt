@@ -473,8 +473,20 @@ private fun PaymentSectionsContent(
         Spacer(Modifier.height(Spacing.rowGap))
     }
 
-    // ── Google Pay — first after order summary ───────────────────────────────
-    if (showGooglePay) {
+    // When QPay is enabled it takes the express slot at the very top, and the native
+    // wallets (Google/Samsung Pay) drop below the card into the other-options group.
+    val qpayExpress = qpayConfig != null
+
+    // ── QPay express button — above everything when enabled ───────────────────
+    if (qpayConfig != null) {
+        Spacer(Modifier.height(Spacing.sectionGap))
+        QPayExpressButton(onClick = { onClickQPay(qpayConfig) })
+        Spacer(Modifier.height(Spacing.rowGap))
+        TermsAgreementText(modifier = Modifier.padding(horizontal = Spacing.pageH))
+    }
+
+    // ── Google Pay — first after order summary, unless QPay owns the top slot ──
+    if (showGooglePay && !qpayExpress) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
             title = stringResource(R.string.pay_with_google_pay),
@@ -526,17 +538,26 @@ private fun PaymentSectionsContent(
         onSliceOfferSelected = onSliceOfferSelected
     )
 
-    // ── Other payment options (Samsung Pay, Aani, Click to Pay) ─────────────
-    val hasRemainingOptions = showSamsungPay || showAani || clickToPayConfig != null || qpayConfig != null
+    // ── Other payment options below the card ─────────────────────────────────
+    //    With QPay express, Google Pay joins this group; QPay itself is the top button.
+    val belowGooglePay = showGooglePay && qpayExpress
+    val hasRemainingOptions =
+        belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
+            (qpayConfig != null && !qpayExpress)
     if (hasRemainingOptions) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
+            title = if (qpayExpress) {
+                stringResource(R.string.select_other_payment_options)
+            } else {
+                stringResource(R.string.or_select_payment_options)
+            },
             selectedOption = selectedOption,
-            googlePayUiConfig = null,
+            googlePayUiConfig = if (belowGooglePay) googlePayUiConfig else null,
             isSamsungPayAvailable = showSamsungPay,
             aaniConfig = if (showAani) aaniConfig else null,
             clickToPayConfig = clickToPayConfig,
-            qpayConfig = qpayConfig,
+            qpayConfig = if (qpayExpress) null else qpayConfig,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,

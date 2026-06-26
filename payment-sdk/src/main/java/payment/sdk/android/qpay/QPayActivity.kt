@@ -5,9 +5,16 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.webkit.CookieManager
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
@@ -40,10 +47,17 @@ class QPayActivity : AppCompatActivity() {
     private lateinit var args: QPayLauncher.Config
     private lateinit var webView: WebView
     private lateinit var progressBar: ProgressBar
+    /// Opaque view above the WebView; while visible the user sees only white + spinner, never the
+    /// page being loaded mid-redirect (incl. the brief broken-link/error page).
+    private lateinit var coverView: FrameLayout
 
     private var sawAcceptCallback = false
     private var didStartRefetch = false
     private var didDispatchResult = false
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    /// Pending "reveal the WebView" work. Each navigation hop cancels it and re-shows the cover.
+    private var revealRunnable: Runnable? = null
 
     private val httpClient by lazy { CoroutinesGatewayHttpClient() }
 
@@ -92,9 +106,20 @@ class QPayActivity : AppCompatActivity() {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
-            ).apply { gravity = android.view.Gravity.CENTER }
+            ).apply { gravity = Gravity.CENTER }
         }
-        container.addView(progressBar)
+
+        // Cover sits above the WebView and hides intermediate redirect pages. Added after the
+        // WebView so it's drawn on top; opaque white so nothing behind it shows through.
+        coverView = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(android.graphics.Color.WHITE)
+        }
+        coverView.addView(progressBar)
+        container.addView(coverView)
         setContentView(container)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -103,11 +128,39 @@ class QPayActivity : AppCompatActivity() {
             }
         })
 
+        resetWebSession()
         startCheckout()
     }
 
+    /**
+     * Start every QPay payment from a clean web session.
+     *
+     * The paypage keeps `paypage_browser_session_id` and `paypage_used_auth_codes` in localStorage,
+     * and the gateway sets session cookies. Android's WebView storage is process-global and
+     * persistent, so without this a failed payment leaves stale state behind and the *next* order
+     * reuses the dead session → "your session has expired or marked as invalid". Clearing cookies +
+     * web storage here guarantees each order gets a fresh session.
+     *
+     * Note: this clears WebView cookies/localStorage for the whole app, which is acceptable — the
+     * SDK's WebView flows (QPay, 3DS) all expect to start from a clean session.
+     */
+    private fun resetWebSession() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        // QCB <-> paypage is a cross-origin POST; allow third-party cookies so the session survives
+        // *within* this single flow.
+        cookieManager.setAcceptThirdPartyCookies(webView, true)
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
+        WebStorage.getInstance().deleteAllData()
+        webView.clearCache(true)
+        webView.clearFormData()
+        webView.clearHistory()
+        debug("web session reset (cookies + web storage cleared)")
+    }
+
     private fun startCheckout() {
-        progressBar.visibility = View.VISIBLE
+        showCover()
         lifecycleScope.launch {
             val response = QPayApiInteractor(httpClient).initQPay(args.qpayUrl, args.accessToken)
             when (response) {
@@ -143,7 +196,7 @@ class QPayActivity : AppCompatActivity() {
     private val qpayWebViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
             val url = request?.url?.toString() ?: return false
-            Log.d(TAG, "shouldOverride method=${request.method} url=$url")
+            debug("shouldOverride method=${request.method} url=$url")
             // Backend's QPay accept callback — process the redirect (so the server records the
             // payment) but mark a flag so we refetch the order on the next page load.
             if (url.contains("/qpay/accept")) {
@@ -153,22 +206,90 @@ class QPayActivity : AppCompatActivity() {
             return false
         }
 
+        override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            debug("onPageStarted url=$url")
+            // A new hop began — re-cover so the page being loaded is never shown until it settles.
+            showCover()
+        }
+
+        // KEY for finding the broken-link page: a 4xx/5xx response on the main frame is almost
+        // certainly the page that briefly flashes. Logs the offending URL = the page origin.
+        override fun onReceivedHttpError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            errorResponse: WebResourceResponse?
+        ) {
+            super.onReceivedHttpError(view, request, errorResponse)
+            val mainFrame = request?.isForMainFrame == true
+            debug("onReceivedHttpError mainFrame=$mainFrame status=${errorResponse?.statusCode} " +
+                    "reason=${errorResponse?.reasonPhrase} url=${request?.url}" +
+                    if (mainFrame) "  <-- NON-OK (likely the flash page)" else "")
+        }
+
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
+            super.onReceivedError(view, request, error)
+            val mainFrame = request?.isForMainFrame == true
+            debug("onReceivedError mainFrame=$mainFrame code=${error?.errorCode} " +
+                    "desc=${error?.description} url=${request?.url}" +
+                    if (mainFrame) "  <-- ERROR (likely the flash page)" else "")
+        }
+
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
-            Log.d(TAG, "onPageFinished url=$url")
-            progressBar.visibility = View.GONE
+            debug("onPageFinished url=$url")
             // Pin viewport + force input font-size so iOS-style focus zoom doesn't happen on Android either.
             view?.evaluateJavascript(VIEWPORT_PIN_JS, null)
+            // Snapshot what actually rendered, to fingerprint the flash page.
+            view?.evaluateJavascript("document.title") { debug("  document.title=$it url=$url") }
+            view?.evaluateJavascript(
+                "document.body ? document.body.innerText.substring(0, 300) : '<no body>'"
+            ) { debug("  bodyText[0:300]=$it") }
             if (sawAcceptCallback && !didStartRefetch) {
                 didStartRefetch = true
                 Log.d(TAG, "post-callback onPageFinished → refetching order")
                 refetchOrderAndDispatch()
+                return
             }
+            // Only reveal if no further navigation starts within the debounce window. A redirect
+            // hop calls onPageStarted → showCover() before this fires, keeping the cover up.
+            scheduleReveal()
         }
     }
 
-    private fun refetchOrderAndDispatch() {
+    // MARK: - Cover (hide intermediate redirect pages)
+
+    /** Re-cover the WebView and cancel any pending reveal. */
+    private fun showCover() {
+        revealRunnable?.let { mainHandler.removeCallbacks(it) }
+        revealRunnable = null
+        coverView.visibility = View.VISIBLE
         progressBar.visibility = View.VISIBLE
+    }
+
+    /** Reveal the WebView, but only if no new page load starts within [REVEAL_DEBOUNCE_MS]. */
+    private fun scheduleReveal() {
+        revealRunnable?.let { mainHandler.removeCallbacks(it) }
+        val r = Runnable {
+            progressBar.visibility = View.GONE
+            coverView.visibility = View.GONE
+            debug("revealed settled page url=${webView.url}")
+        }
+        revealRunnable = r
+        mainHandler.postDelayed(r, REVEAL_DEBOUNCE_MS)
+    }
+
+    /** Timestamped trace so the exact sequence + origin of the brief flash page is captured. */
+    private fun debug(msg: String) {
+        Log.d(TAG, "[DEBUG ${System.currentTimeMillis()}] $msg")
+    }
+
+    private fun refetchOrderAndDispatch() {
+        showCover()
         lifecycleScope.launch {
             val order = GetOrderApiInteractor(httpClient).getOrder(args.orderUrl, args.accessToken)
             val state = order?.embedded?.payment?.firstOrNull()?.state.orEmpty()
@@ -195,8 +316,16 @@ class QPayActivity : AppCompatActivity() {
         }.getOrNull()
     }
 
+    override fun onDestroy() {
+        revealRunnable?.let { mainHandler.removeCallbacks(it) }
+        super.onDestroy()
+    }
+
     companion object {
         private const val TAG = "QPayActivity"
+        /** A page must stay put this long (no new load) before we reveal it; a redirect hop fires
+         * onPageStarted well within this window, so intermediate pages stay covered. */
+        private const val REVEAL_DEBOUNCE_MS = 450L
         private val TERMINAL_SUCCESS_STATES = setOf(
             "CAPTURED", "AUTHORISED", "PURCHASED", "VERIFIED", "POST_AUTH_REVIEW"
         )
