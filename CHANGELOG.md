@@ -40,9 +40,14 @@ Landscape / large-screen robustness and 3-D Secure reliability follow-up to 5.1.
   payment / loading-order dialog (and the demo app's create-order dialog) stretched edge-to-edge
   and slid under the side system navigation bar. The card is now width-capped (max 400 dp) and
   centered.
-- **3DS OTP could not be typed in landscape.** The 3DS WebViews now disable fullscreen/extract IME
-  mode (`IME_FLAG_NO_EXTRACT_UI | IME_FLAG_NO_FULLSCREEN`), so keystrokes reliably reach the OTP
-  field instead of being dropped by the fullscreen keyboard editor.
+- **3DS OTP could not be typed in landscape.** Three causes were addressed: (1) the 3DS WebViews
+  disable fullscreen/extract IME mode (`IME_FLAG_NO_EXTRACT_UI | IME_FLAG_NO_FULLSCREEN`); (2) ACS
+  pages that open the OTP field in a popup window had that popup WebView created with the
+  application context instead of the Activity context, so its IME was not bound to the window and
+  fell back to the fullscreen extract editor (text only committed on the keyboard's "Go" action);
+  the popup now uses the Activity context; (3) the 3DS activities now set
+  `windowSoftInputMode="adjustResize"` so the WebView shrinks when the keyboard shows and scrolls
+  the OTP field into view instead of leaving it hidden behind the keyboard.
 - **Screen bodies were clipped in landscape / with the keyboard open.** Saved-card, partial-auth
   and Aani Pay screens are now vertically scrollable, and payment screen bodies are inset from the
   side navigation bar and cutout, so fields and buttons stay reachable.

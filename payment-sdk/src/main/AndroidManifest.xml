@@ -39,10 +39,12 @@
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.savedCard.SavedCardPaymentActivity"
