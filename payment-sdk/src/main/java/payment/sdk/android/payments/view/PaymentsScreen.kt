@@ -108,7 +108,10 @@ fun PaymentsScreen(
         )
     }
 
-    Column(modifier.background(Color(0xFFF1F1F1))) {
+    Column(
+        modifier
+            .background(Color(0xFFF1F1F1))
+    ) {
         Column(
             modifier = Modifier
                 .weight(1f)

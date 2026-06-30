@@ -19,18 +19,20 @@ class ThreeDSecureTwoWebViewClient(
 
     override fun onPageFinished(view: WebView?, url: String?) {
         view?.title?.let { activity.setWebViewToolbarTitle(AUTHENTICATING_3DS_TRANSACTION) }
+        // Cancel the ACS challenge load watchdog once the page has rendered.
+        activity.onChallengeRendered()
     }
 
     @Deprecated("Deprecated in Java")
     override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
         view?.stopLoading()
-        activity.finishWithResult()
+        activity.onChallengeNavigationFailed()
     }
 
     override fun onReceivedSslError(view: WebView?, sslErrorHandler: SslErrorHandler?, error: SslError?) {
         sslErrorHandler?.cancel()
         view?.stopLoading()
-        activity.finishWithResult()
+        activity.onChallengeNavigationFailed()
     }
 
     companion object {

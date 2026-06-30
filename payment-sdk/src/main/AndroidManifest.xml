@@ -28,11 +28,21 @@
             android:name="payment.sdk.android.cardpayment.CardPaymentActivity"
             android:theme="@style/SdkTheme.Translucent"
             android:windowSoftInputMode="adjustResize|stateUnchanged" />
+        <!--
+            configChanges: these activities host the 3-D Secure ACS page (incl. the OTP
+            challenge) in a WebView whose form state lives only in memory. Without this,
+            an orientation/size change recreates the activity, rebuilds the WebView and
+            restarts the 3DS flow, so any OTP the user has typed is lost (notably in
+            landscape). Handling the config change ourselves keeps the same WebView alive.
+            This is NOT screenOrientation, so orientation stays unlocked for foldables/tablets.
+        -->
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
             android:name="payment.sdk.android.savedCard.SavedCardPaymentActivity"

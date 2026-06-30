@@ -16,6 +16,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import payment.sdk.android.cardpayment.CardPaymentData
+import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
@@ -56,7 +57,9 @@ class PartialAuthActivity : ComponentActivity() {
                 },
             ) { contentPadding ->
                 PartialAuthView(
-                    modifier = Modifier.padding(contentPadding),
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .screenContentInsets(),
                     args = args,
                     onResult = { result ->
                         finishWithData(result)

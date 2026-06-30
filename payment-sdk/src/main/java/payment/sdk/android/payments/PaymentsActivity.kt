@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
+import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
@@ -162,7 +163,9 @@ class PaymentsActivity : AppCompatActivity() {
                     is PaymentsVMUiState.Authorized -> {
                         val authState = (state as PaymentsVMUiState.Authorized)
                         PaymentsScreen(
-                            modifier = Modifier.padding(contentPadding),
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .screenContentInsets(),
                             supportedCards = authState.supportedCards.toMutableSet().apply {
                                 add(CardType.Visa)
                             },
@@ -296,7 +299,8 @@ class PaymentsActivity : AppCompatActivity() {
                                 outletRef = response.outletRef,
                                 orderRef = response.orderRef,
                                 orderUrl = response.orderUrl,
-                                paymentRef = response.paymentReference
+                                paymentRef = response.paymentReference,
+                                sessionTimeoutMs = args.threeDSSessionTimeoutMs
                             ),
                             THREE_D_SECURE_TWO_REQUEST_KEY
                         )

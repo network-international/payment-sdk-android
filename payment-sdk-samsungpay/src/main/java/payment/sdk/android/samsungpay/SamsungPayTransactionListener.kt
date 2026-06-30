@@ -20,7 +20,16 @@ class SamsungPayTransactionListener(
     }
 
     override fun onFailure(code: Int, bundle: Bundle?) {
-        samsungPayResponse.onFailure("Samsung Pay authorization failed with code $code")
+        val reason = bundle?.getInt(com.samsung.android.sdk.samsungpay.v2.SpaySdk.EXTRA_ERROR_REASON)
+        val reasonMessage = bundle?.getString(com.samsung.android.sdk.samsungpay.v2.SpaySdk.EXTRA_ERROR_REASON_MESSAGE)
+        android.util.Log.e(
+            "SamsungPayTxnListener",
+            "onFailure code=$code reason=$reason reasonMessage=$reasonMessage bundle=$bundle"
+        )
+        samsungPayResponse.onFailure(
+            "Samsung Pay authorization failed with code $code" +
+                (reasonMessage?.let { " ($it)" } ?: "")
+        )
     }
 
     override fun onSuccess(customSheetPaymentInfo: CustomSheetPaymentInfo?, encryptedObject: String?, bundle: Bundle?) {

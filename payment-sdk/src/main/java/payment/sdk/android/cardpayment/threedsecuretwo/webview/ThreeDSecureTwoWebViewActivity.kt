@@ -87,6 +87,25 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private var orderUrl: String? = null
     private val handler = Handler(Looper.getMainLooper())
     private var onFingerPrintTimeout: Runnable? = null
+    // ACS (Cardinal) challenge load tracking. If the challenge page does not
+    // render within CHALLENGE_LOAD_TIMEOUT_MS the flow is terminated fast with
+    // THREE_DS_ACS_LOAD_TIMEOUT instead of letting the customer wait for the
+    // server-side 3DS timeout (~11 min).
+    private var challengeStarted: Boolean = false
+    private var challengeRendered: Boolean = false
+    // Retained only for masked diagnostic logging; never surfaced to the customer.
+    private var challengeAcsUrl: String? = null
+    private var onChallengeLoadTimeout: Runnable? = null
+    // Overall wall-clock backstop for the whole 3DS session. Unlike the challenge
+    // load watchdog (which only guards the ACS page's first render), this runs for
+    // the entire flow and guarantees a merchant result even if a network coroutine
+    // never returns or the customer stalls on the challenge — the "no callback /
+    // ~10 min" hang. Configurable via getIntent(); defaults to SESSION_TIMEOUT_MS.
+    private var sessionTimeoutMs: Long = SESSION_TIMEOUT_MS
+    private var onSessionTimeout: Runnable? = null
+    // Ensures the activity delivers exactly one result to the merchant; the
+    // backstop must never override a result that has already been sent.
+    private var hasFinished: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +116,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         // fitsSystemWindows; pad the WebView container for the navigation bar / cutout / IME
         // so 3-D Secure content is not drawn under the system bars on Android 15+ (edge-to-edge).
         content.applySystemWindowInsetsAsPadding()
+
+        sessionTimeoutMs = intent.getLongExtra(THREE_DS_SESSION_TIMEOUT_MS, SESSION_TIMEOUT_MS)
+        startSessionBackstop()
 
         paymentApiInteractor = CardPaymentApiInteractor(
             CoroutinesGatewayHttpClient(),
@@ -169,13 +191,37 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
     }
 
+    // Guarantees the merchant always receives a result: if the whole 3DS flow
+    // stalls (hung network coroutine, or the customer never finishes the
+    // challenge), this fires and terminates with THREE_DS_TIMEOUT instead of
+    // leaving the integration without a result until the server-side timeout.
+    private fun startSessionBackstop() {
+        if (sessionTimeoutMs <= 0) return
+        onSessionTimeout?.let { handler.removeCallbacks(it) }
+        val runnable = Runnable {
+            Log.e(TAG, "3DS session - exceeded ${sessionTimeoutMs}ms wall-clock cap, terminating ($THREE_DS_TIMEOUT)")
+            finishWithChallengeError(THREE_DS_TIMEOUT)
+        }
+        onSessionTimeout = runnable
+        handler.postDelayed(runnable, sessionTimeoutMs)
+    }
+
     private fun finishWithError(message: String) {
+        if (hasFinished) return
+        hasFinished = true
+        cancelTimeouts()
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
             putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
         }
         setResult(Activity.RESULT_OK, intent)
         finish()
+    }
+
+    private fun cancelTimeouts() {
+        onSessionTimeout?.let { handler.removeCallbacks(it) }
+        onChallengeLoadTimeout?.let { handler.removeCallbacks(it) }
+        onFingerPrintTimeout?.let { handler.removeCallbacks(it) }
     }
 
     fun pushNewWebView(webView: ThreeDSecureTwoWebView) {
@@ -205,9 +251,77 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             append("creq=")
             append(URLEncoder.encode(base64EncodedCReq, "UTF-8"))
         }
+        challengeStarted = true
+        challengeRendered = false
+        challengeAcsUrl = acsURL
+        Log.i(TAG, "3DS challenge - loading ACS page: ${maskAcsUrl(acsURL)} (timeout ${CHALLENGE_LOAD_TIMEOUT_MS}ms)")
         webView.postUrl(acsURL, params.toString().toByteArray())
         pushNewWebView(webView)
         showProgress(false, null)
+        startChallengeLoadWatchdog()
+    }
+
+    private fun startChallengeLoadWatchdog() {
+        onChallengeLoadTimeout?.let { handler.removeCallbacks(it) }
+        val runnable = Runnable {
+            if (!challengeRendered) {
+                // ACS challenge page never rendered within the timeout window —
+                // fail fast instead of waiting for the server-side 3DS timeout.
+                Log.e(TAG, "3DS challenge - ACS page did not render within ${CHALLENGE_LOAD_TIMEOUT_MS}ms, terminating ($THREE_DS_ACS_LOAD_TIMEOUT). ACS: ${maskAcsUrl(challengeAcsUrl)}")
+                finishWithChallengeError(THREE_DS_ACS_LOAD_TIMEOUT)
+            }
+        }
+        onChallengeLoadTimeout = runnable
+        handler.postDelayed(runnable, CHALLENGE_LOAD_TIMEOUT_MS)
+    }
+
+    // Called by the WebViewClient when a page finishes rendering. Once the ACS
+    // challenge page has rendered its first content, cancel the load watchdog and
+    // let the customer complete the challenge at their own pace.
+    fun onChallengeRendered() {
+        if (challengeStarted && !challengeRendered) {
+            challengeRendered = true
+            onChallengeLoadTimeout?.let { handler.removeCallbacks(it) }
+        }
+    }
+
+    // Called by the WebViewClient on a navigation error (HTTP error, SSL error).
+    // During the challenge load phase this is surfaced as THREE_DS_ACS_LOAD_FAILED;
+    // otherwise it falls back to the existing generic failure handling.
+    fun onChallengeNavigationFailed() {
+        if (challengeStarted && !challengeRendered) {
+            Log.e(TAG, "3DS challenge - ACS navigation failed ($THREE_DS_ACS_LOAD_FAILED). ACS: ${maskAcsUrl(challengeAcsUrl)}")
+            finishWithChallengeError(THREE_DS_ACS_LOAD_FAILED)
+        } else {
+            finishWithResult()
+        }
+    }
+
+    private fun finishWithChallengeError(code: String) {
+        if (hasFinished) return
+        hasFinished = true
+        cancelTimeouts()
+        val intent = Intent().apply {
+            putExtra(INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED, code))
+            putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
+        }
+        setResult(Activity.RESULT_OK, intent)
+        showProgress(false, null)
+        finish()
+    }
+
+    // Redacts the ACS URL for logging: keeps scheme + host but strips the path and
+    // query, which carry the CReq token and other sensitive challenge parameters.
+    private fun maskAcsUrl(url: String?): String {
+        if (url.isNullOrBlank()) return "<none>"
+        return try {
+            val uri = java.net.URI(url)
+            val host = uri.host ?: return "<redacted>"
+            val scheme = uri.scheme ?: "https"
+            "$scheme://$host/<redacted>"
+        } catch (e: Exception) {
+            "<redacted>"
+        }
     }
 
     private fun postAuthentications(browserData: BrowserData, threeDSCompInd: String) {
@@ -353,6 +467,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     fun finishWithResult(state: String? = null, partialAuthIntent: PartialAuthIntent? = null) {
+        if (hasFinished) return
+        hasFinished = true
+        cancelTimeouts()
         if(state != null) {
             val intent = Intent().apply {
                 putExtra(KEY_3DS_STATE, state)
@@ -421,11 +538,28 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        cancelTimeouts()
         dismissProgressDialog()
         super.onDestroy()
     }
 
     companion object {
+        private const val TAG = "ThreeDSTwoWebActivity"
+        // Max time to wait for the ACS challenge page to render its first content.
+        private const val CHALLENGE_LOAD_TIMEOUT_MS = 30000L
+        // Overall wall-clock cap on a single 3DS session (default 5 min). Generous
+        // enough not to cut off a slow-but-legitimate OTP entry, but well below the
+        // server-side 3DS timeout (~10 min). Overridable per-launch via getIntent()
+        // (e.g. from PaymentClient.threeDSSessionTimeoutMs).
+        internal const val SESSION_TIMEOUT_MS = 300000L
+        internal const val THREE_DS_SESSION_TIMEOUT_MS = "threeDSSessionTimeoutMs"
+        // Stable, machine-readable failure reasons surfaced to the merchant via
+        // CardPaymentData.reason -> PaymentsResult.Failed(reason). They never
+        // contain customer data or full ACS URLs.
+        const val THREE_DS_ACS_LOAD_TIMEOUT = "THREE_DS_ACS_LOAD_TIMEOUT"
+        const val THREE_DS_ACS_LOAD_FAILED = "THREE_DS_ACS_LOAD_FAILED"
+        const val THREE_DS_TIMEOUT = "THREE_DS_TIMEOUT"
+
         const val KEY_3DS_STATE = "3ds-state"
 
         internal const val THREE_DS_METHOD_URL = "threeDSMethodURL"
@@ -458,9 +592,11 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             outletRef: String?,
             orderRef: String?,
             orderUrl: String,
-            paymentRef: String?
+            paymentRef: String?,
+            sessionTimeoutMs: Long = SESSION_TIMEOUT_MS
         ) =
             Intent(context, ThreeDSecureTwoWebViewActivity::class.java).apply {
+                putExtra(THREE_DS_SESSION_TIMEOUT_MS, sessionTimeoutMs)
                 putExtra(THREE_DS_METHOD_URL, threeDSMethodURL)
                 putExtra(THREE_DS_SERVER_TRANS_ID, threeDSServerTransID)
                 putExtra(THREE_DS_METHOD_DATA, threeDSMethodData)

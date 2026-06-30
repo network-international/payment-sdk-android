@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Parcelable
 import androidx.core.os.bundleOf
 import kotlinx.parcelize.Parcelize
+import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.googlepay.GooglePayConfig
 
 /**
@@ -23,12 +24,16 @@ import payment.sdk.android.googlepay.GooglePayConfig
  * @property authorizationUrl The authorization URL for gateway authentication.
  * @property paymentUrl The URL for the payment page.
  * @property googlePayConfig Optional configuration for Google Pay.
+ * @property threeDSSessionTimeoutMs Overall wall-clock cap (ms) on a single 3DS
+ *   session; on expiry the SDK returns a failure with reason `THREE_DS_TIMEOUT`
+ *   so the merchant always gets a result. Defaults to 5 minutes; 0 disables it.
  */
 @Parcelize
 class PaymentsRequest private constructor(
     val authorizationUrl: String,
     val paymentUrl: String,
-    val googlePayConfig: GooglePayConfig?
+    val googlePayConfig: GooglePayConfig?,
+    val threeDSSessionTimeoutMs: Long
 ) : Parcelable {
 
     /**
@@ -38,6 +43,7 @@ class PaymentsRequest private constructor(
         private lateinit var _authorizationUrl: String
         private lateinit var _paymentUrl: String
         private var _googlePayConfig: GooglePayConfig? = null
+        private var _threeDSSessionTimeoutMs: Long = ThreeDSecureTwoWebViewActivity.SESSION_TIMEOUT_MS
 
         /**
          * Sets the authorization URL for gateway authentication.
@@ -70,6 +76,19 @@ class PaymentsRequest private constructor(
         }
 
         /**
+         * Sets the overall 3-D Secure session timeout (in milliseconds). If the 3DS
+         * flow does not complete within this window the SDK returns a failure with
+         * reason `THREE_DS_TIMEOUT`, guaranteeing the merchant always gets a result.
+         * Defaults to 5 minutes; pass 0 to disable the backstop.
+         *
+         * @param timeoutMs The timeout in milliseconds.
+         * @return The builder instance.
+         */
+        fun setThreeDSSessionTimeout(timeoutMs: Long) = apply {
+            this._threeDSSessionTimeoutMs = timeoutMs
+        }
+
+        /**
          * Builds the `PaymentsRequest` instance.
          *
          * @return An instance of `PaymentsRequest`.
@@ -81,7 +100,8 @@ class PaymentsRequest private constructor(
             return PaymentsRequest(
                 authorizationUrl = _authorizationUrl,
                 paymentUrl = _paymentUrl,
-                googlePayConfig = _googlePayConfig
+                googlePayConfig = _googlePayConfig,
+                threeDSSessionTimeoutMs = _threeDSSessionTimeoutMs
             )
         }
     }

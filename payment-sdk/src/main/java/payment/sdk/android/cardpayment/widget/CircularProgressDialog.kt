@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Surface
@@ -42,24 +44,36 @@ fun CircularProgressDialog(message: LoadingMessage) {
             LoadingMessage.LOADING_ORDER -> R.string.message_loading_order_details
             LoadingMessage.THREE_DS -> R.string.launching_3d_secure
         })
-        Surface(
+        // Center the card and keep it clear of the system bars. The dialog window
+        // is full-bleed (usePlatformDefaultWidth = false); without this the card
+        // stretches edge-to-edge and, in landscape, slides under the system
+        // navigation bar so the loader overlaps the back/nav button.
+        Box(
             modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth()
-                .height(80.dp)
-                .background(Color.White),
-            elevation = 16.dp,
-            shape = RoundedCornerShape(4.dp)
+                .fillMaxSize()
+                .systemBarsPadding(),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(24.dp)
+                    .fillMaxWidth()
+                    .widthIn(max = 400.dp)
+                    .height(80.dp)
+                    .background(Color.White),
+                elevation = 16.dp,
+                shape = RoundedCornerShape(4.dp)
             ) {
-                Spacer(modifier = Modifier.width(16.dp))
-                CircularProgressIndicator(color = colorResource(id = R.color.payment_sdk_progress_loader_color))
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = messageText, color = Color.Gray)
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    CircularProgressIndicator(color = colorResource(id = R.color.payment_sdk_progress_loader_color))
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = messageText, color = Color.Gray)
+                }
             }
         }
     }

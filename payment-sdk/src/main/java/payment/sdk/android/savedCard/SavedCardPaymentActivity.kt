@@ -32,6 +32,7 @@ import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.ThreeDSecureTwoWebViewActivity.Companion.INTENT_CHALLENGE_RESPONSE
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
@@ -101,7 +102,9 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     is SavedCardPaymentState.CaptureCvv -> {
                         val capturedState = (state as SavedCardPaymentState.CaptureCvv)
                         SavedCardPaymentView(
-                            modifier = Modifier.padding(contentPadding),
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .screenContentInsets(),
                             savedCard = capturedState.savedCardPaymentRequest.savedCard,
                             orderAmount = capturedState.orderAmount
                         ) { cvv ->
@@ -126,6 +129,9 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     is SavedCardPaymentState.InitiatePartialAuth -> {
                         val partialAuthState = (state as SavedCardPaymentState.InitiatePartialAuth)
                         PartialAuthView(
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .screenContentInsets(),
                             args = PartialAuthActivityArgs.getArgs(
                                 partialAuthState.partialAuthIntent
                             )
@@ -138,6 +144,9 @@ class SavedCardPaymentActivity : ComponentActivity() {
                     is SavedCardPaymentState.ShowVisaPlans -> {
                         val response = (state as SavedCardPaymentState.ShowVisaPlans)
                         VisaInstalmentsView(
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .screenContentInsets(),
                             instalmentPlans = InstallmentPlan.fromVisaPlans(
                                 response.visaPlans,
                                 response.orderAmount

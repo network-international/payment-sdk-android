@@ -29,6 +29,7 @@ import payment.sdk.android.aaniPay.views.AaniPayScreen
 import payment.sdk.android.aaniPay.views.AaniPayTimerScreen
 import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
+import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.sdk.R
 
@@ -85,7 +86,9 @@ class AaniPayActivity : AppCompatActivity() {
                     })
             }) { contentPadding ->
                 Column(
-                    modifier = Modifier.padding(contentPadding)
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .screenContentInsets()
                 ) {
                     when (state) {
                         is AaniPayVMState.Init -> {

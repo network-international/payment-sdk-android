@@ -6,13 +6,17 @@ import android.os.Build
 import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -95,6 +99,7 @@ fun EnvironmentScreen(
             Column(
                 modifier = Modifier
                     .padding(contentPadding)
+                    .verticalScroll(rememberScrollState())
                     .padding(10.dp)
             ) {
                 HorizontalDivider()
@@ -209,22 +214,23 @@ fun EnvironmentScreen(
                     onExpand = { isExpandedMerchantAttributes = it },
                     showDialog = { showMerchantAttributeDialog = true }
                 ) {
-                    LazyVerticalGrid(columns = GridCells.Fixed(if (isTablet()) 2 else 1)) {
-                        items(state.merchantAttributes) { merchantAttribute ->
-                            MerchantAttributeItem(
-                                merchantAttribute = merchantAttribute,
-                                deleteMerchantAttribute = {
-                                    viewModel.deleteMerchantAttribute(merchantAttribute)
-                                },
-                                onChecked = {
-                                    viewModel.updateMerchantAttribute(
-                                        merchantAttribute.copy(
-                                            isActive = it
-                                        )
+                    NonLazyGrid(
+                        columns = if (isTablet()) 2 else 1,
+                        items = state.merchantAttributes
+                    ) { merchantAttribute ->
+                        MerchantAttributeItem(
+                            merchantAttribute = merchantAttribute,
+                            deleteMerchantAttribute = {
+                                viewModel.deleteMerchantAttribute(merchantAttribute)
+                            },
+                            onChecked = {
+                                viewModel.updateMerchantAttribute(
+                                    merchantAttribute.copy(
+                                        isActive = it
                                     )
-                                }
-                            )
-                        }
+                                )
+                            }
+                        )
                     }
                 }
 
@@ -235,22 +241,50 @@ fun EnvironmentScreen(
                     onExpand = { isExpandedEnvironments = it },
                     showDialog = { showAddEnvironmentDialog = true }
                 ) {
-                    LazyVerticalGrid(columns = GridCells.Fixed(if (isTablet()) 2 else 1)) {
-                        items(state.environments) { environment ->
-                            val isSelected = state.selectedEnvironment?.id == environment.id
-                            EnvironmentViewItem(
-                                environment = environment,
-                                isSelected,
-                                onClick = {
-                                    viewModel.onSelectEnvironment(environment)
-                                },
-                                onDelete = {
-                                    viewModel.onDeleteEnvironment(environment)
-                                })
-                        }
+                    NonLazyGrid(
+                        columns = if (isTablet()) 2 else 1,
+                        items = state.environments
+                    ) { environment ->
+                        val isSelected = state.selectedEnvironment?.id == environment.id
+                        EnvironmentViewItem(
+                            environment = environment,
+                            isSelected,
+                            onClick = {
+                                viewModel.onSelectEnvironment(environment)
+                            },
+                            onDelete = {
+                                viewModel.onDeleteEnvironment(environment)
+                            })
                     }
                 }
             }
         }
     )
+}
+
+/**
+ * A non-scrolling grid used inside a vertically scrolling parent, where a
+ * [LazyVerticalGrid] cannot be nested (it would be measured with an infinite
+ * height constraint and crash). Lays items out row by row in [columns] columns.
+ */
+@Composable
+private fun <T> NonLazyGrid(
+    columns: Int,
+    items: List<T>,
+    itemContent: @Composable (T) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        items.chunked(columns).forEach { rowItems ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                rowItems.forEach { item ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        itemContent(item)
+                    }
+                }
+                repeat(columns - rowItems.size) {
+                    Box(modifier = Modifier.weight(1f)) {}
+                }
+            }
+        }
+    }
 }

@@ -28,6 +28,20 @@ class PaymentClient(
         val serviceId: String
 ) {
 
+    /**
+     * Overall wall-clock cap (in milliseconds) on a single 3-D Secure session
+     * started via [executeThreeDS]. If the flow (fingerprint, authentication
+     * calls, ACS challenge render, customer challenge, challenge response) has not
+     * completed within this window, the SDK terminates it and returns a failure
+     * result with reason `THREE_DS_TIMEOUT`, so the merchant is never left without
+     * a callback (e.g. an ACS page that renders then stalls).
+     *
+     * Defaults to 5 minutes — generous enough not to cut off a slow-but-legitimate
+     * OTP entry, but well below the server-side 3DS timeout (~10 min). Set to 0 to
+     * disable the backstop.
+     */
+    var threeDSSessionTimeoutMs: Long = ThreeDSecureTwoWebViewActivity.SESSION_TIMEOUT_MS
+
     private val samsungPayClient: SamsungPayClient by lazy {
         SamsungPayClient(context, serviceId, CoroutinesGatewayHttpClient())
     }
@@ -203,7 +217,8 @@ class PaymentClient(
                             outletRef = outletRef,
                             orderRef = orderRef,
                             orderUrl = orderUrl,
-                            paymentRef = paymentReference
+                            paymentRef = paymentReference,
+                            sessionTimeoutMs = threeDSSessionTimeoutMs
                         ),
                         requestCode
                     )

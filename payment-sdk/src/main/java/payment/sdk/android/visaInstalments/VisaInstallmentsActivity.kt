@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.sdk.R
@@ -67,7 +68,9 @@ class VisaInstallmentsActivity : ComponentActivity() {
                 }
             ) { contentPadding ->
                 VisaInstalmentsView(
-                    modifier = Modifier.padding(contentPadding),
+                    modifier = Modifier
+                        .padding(contentPadding)
+                        .screenContentInsets(),
                     instalmentPlans = args.installmentPlans,
                     cardNumber = args.cardNumber
                 ) { plan ->
