@@ -2,6 +2,62 @@
 
 All notable changes to the Network International Payment SDK for Android are documented in this file.
 
+## [5.2.0] - 2026-06-30
+
+Landscape / large-screen robustness and 3-D Secure reliability follow-up to 5.1.0.
+
+### Added
+- **Configurable 3-D Secure session timeout (new API).** `PaymentClient.threeDSSessionTimeoutMs`
+  and `PaymentsRequest.Builder.setThreeDSSessionTimeout(timeoutMs)` set an overall wall-clock
+  cap on a 3DS session. If the flow (fingerprint, authentication, ACS challenge render,
+  customer challenge, challenge response) does not complete in time, the SDK returns a failure
+  with reason `THREE_DS_TIMEOUT` so the merchant always gets a callback. Defaults to 5 minutes
+  (well below the ~10 min server-side timeout); pass `0` to disable.
+- **ACS challenge load watchdog.** If the ACS (Cardinal) challenge page does not render within
+  the load window, the flow fails fast with `THREE_DS_ACS_LOAD_TIMEOUT` instead of leaving the
+  customer waiting for the server-side timeout. ACS navigation errors during the load phase now
+  surface `THREE_DS_ACS_LOAD_FAILED`. ACS URLs are masked (scheme + host only) in logs.
+- **`Modifier.screenContentInsets()`** Compose helper that insets a screen body from the side
+  navigation bar, display cutout and IME — needed because the Material 2 `Scaffold` does not
+  propagate window insets through its `contentPadding`.
+- **Samsung Pay troubleshooting guide** (`SAMSUNG_PAY_TROUBLESHOOTING.md`).
+
+### Changed
+- **3DS WebView activities survive rotation.** `ThreeDSecureWebViewActivity` and
+  `ThreeDSecureTwoWebViewActivity` now declare `configChanges` for orientation/size, so rotating
+  during the OTP challenge no longer recreates the WebView and discards a partially-entered OTP.
+  Orientation remains unlocked (no `screenOrientation`), preserving foldable/tablet support.
+- **3DS result delivery is now idempotent** (`hasFinished` guard) so a timeout can never override
+  a result that has already been returned to the merchant.
+- **Samsung Pay keep rules are shipped to consumers** via `consumerProguardFiles`, so a consuming
+  app's R8/minify pass no longer obfuscates `com.samsung.android.sdk.**` (obfuscation broke
+  Parcelable unmarshalling and failed with `REMOTE_EXCEPTION -103`).
+- **Samsung Pay failures are more diagnosable** — the failure message now includes Samsung's
+  `EXTRA_ERROR_REASON_MESSAGE` and the reason code is logged.
+
+### Fixed
+- **Loading dialogs overlapped the navigation bar in landscape.** The authorizing / submitting-
+  payment / loading-order dialog (and the demo app's create-order dialog) stretched edge-to-edge
+  and slid under the side system navigation bar. The card is now width-capped (max 400 dp) and
+  centered.
+- **3DS OTP could not be typed in landscape.** The 3DS WebViews now disable fullscreen/extract IME
+  mode (`IME_FLAG_NO_EXTRACT_UI | IME_FLAG_NO_FULLSCREEN`), so keystrokes reliably reach the OTP
+  field instead of being dropped by the fullscreen keyboard editor.
+- **Screen bodies were clipped in landscape / with the keyboard open.** Saved-card, partial-auth
+  and Aani Pay screens are now vertically scrollable, and payment screen bodies are inset from the
+  side navigation bar and cutout, so fields and buttons stay reachable.
+
+### Upgrade notes
+- The new 3DS session timeout is opt-in via configuration; default behaviour is unchanged for
+  integrators who do not set it (5-minute backstop applied).
+- No breaking API changes — additive only.
+- Integrators are advised to verify 3DS OTP entry in landscape and the loading dialogs on a
+  foldable/tablet.
+
+### Affected screens
+PaymentsActivity, SavedCardPaymentActivity, VisaInstallmentsActivity, AaniPayActivity,
+PartialAuthActivity, ThreeDSecureWebViewActivity, ThreeDSecureTwoWebViewActivity.
+
 ## [5.1.0] - 2026-06-22
 
 Android 15 (API 35) and Android 16 large-screen compatibility.
@@ -39,4 +95,5 @@ PaymentsActivity, SavedCardPaymentActivity, VisaInstallmentsActivity, AaniPayAct
 PartialAuthActivity, CardPaymentActivity, ThreeDSecureWebViewActivity,
 ThreeDSecureTwoWebViewActivity.
 
+[5.2.0]: https://github.com/network-international/payment-sdk-android/releases/tag/5.2.0
 [5.1.0]: https://github.com/network-international/payment-sdk-android/releases/tag/5.1.0

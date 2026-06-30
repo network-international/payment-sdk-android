@@ -1,6 +1,7 @@
 package payment.sdk.android.demo.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
@@ -30,23 +32,34 @@ fun CircularProgressDialog(message: String) {
             usePlatformDefaultWidth = false
         )
     ) {
-        Surface(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth()
-                .height(80.dp)
-                .background(Color.White),
-            shape = RoundedCornerShape(4.dp)
+        // Center the card and cap its width so the full-bleed dialog window
+        // (usePlatformDefaultWidth = false) doesn't stretch the loader edge-to-edge
+        // and under the side navigation bar in landscape. widthIn must precede
+        // fillMaxWidth, otherwise fillMaxWidth forces a tight full-width constraint
+        // the cap can't shrink.
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(24.dp)
+                    .widthIn(max = 400.dp)
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .background(Color.White),
+                shape = RoundedCornerShape(4.dp)
             ) {
-                Spacer(modifier = Modifier.width(16.dp))
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = message)
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = message)
+                }
             }
         }
     }
