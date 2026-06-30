@@ -57,8 +57,12 @@ fun CircularProgressDialog(message: LoadingMessage) {
             Surface(
                 modifier = Modifier
                     .padding(24.dp)
-                    .fillMaxWidth()
+                    // widthIn must come BEFORE fillMaxWidth: fillMaxWidth forces a
+                    // tight full-width constraint, so an inner widthIn can't shrink
+                    // it. With this order the card caps at 400.dp and the Box centers
+                    // it, keeping it clear of the side navigation bar in landscape.
                     .widthIn(max = 400.dp)
+                    .fillMaxWidth()
                     .height(80.dp)
                     .background(Color.White),
                 elevation = 16.dp,
