@@ -15,9 +15,10 @@ class ThreeDSecureFactory {
         return ThreeDSecureTwoDto(
             paymentCookie = paymentCookie,
             orderUrl = orderUrl,
-            directoryServerID = requireNotNull(paymentResponse.threeDSTwo?.directoryServerID) {
-                "directoryServerID not found"
-            },
+            // Nullable: the Jaywan scheme does not always return a directoryServerID in
+            // the 3DS2 payment response, so we no longer require it (NINGG-12979).
+            // Downstream (ThreeDSecureTwoWebViewActivity.getIntent) already accepts null.
+            directoryServerID = paymentResponse.threeDSTwo?.directoryServerID,
             orderRef = requireNotNull(paymentResponse.orderReference) {
                 "order ref not found"
             },
@@ -75,7 +76,8 @@ data class ThreeDSecureTwoDto(
     val threeDSServerTransID: String?,
     val paymentCookie: String,
     val threeDSTwoAuthenticationURL: String,
-    val directoryServerID: String,
+    // Nullable to support schemes (e.g. Jaywan) that omit it in the 3DS2 response.
+    val directoryServerID: String?,
     val threeDSMessageVersion: String,
     val threeDSTwoChallengeResponseURL: String,
     val outletRef: String,

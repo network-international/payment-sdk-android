@@ -189,6 +189,18 @@ class CardDetector(private val supportedCards: Set<CardType>) {
                                 BinRange(start = 65.toBigInteger(), end = 65.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4))
                         )
 
+                ),
+                // Jaywan — UAE domestic card scheme (NINGG-12979).
+                // Recognised by IINs 6690 and 9784. 16-digit PAN, 3-digit CVV on the
+                // back, grouped 4-4-4-4 like Visa/Mastercard.
+                CardModel(
+                        CardType.Jaywan,
+                        Cvv(3, CardFace.BACK),
+                        listOf(
+                                BinRange(start = 6690.toBigInteger(), end = 6690.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4)),
+                                BinRange(start = 9784.toBigInteger(), end = 9784.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4))
+                        )
+
                 )
         )
     }
