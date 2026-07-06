@@ -20,12 +20,20 @@ class CardDetector(private val supportedCards: Set<CardType>) {
                 findMatchingCard = PaymentCard(CardType.Visa, firstSix, findMatchingCard.binRange,
                         findMatchingCard.cvv, findMatchingCard.certainty)
         }
+        // Jaywan shares its short 6690/9784 prefix with a wider space; only commit to
+        // it once 8 digits are entered so it isn't surfaced prematurely.
+        if (findMatchingCard?.type === CardType.Jaywan && bin.length < JAYWAN_MIN_DIGITS) {
+            return null
+        }
         return findMatchingCard
     }
 
     companion object {
 
         private const val LONGEST_AVAILABLE_BIN_DIGITS = 8
+
+        // Jaywan is only detected once this many digits have been entered.
+        private const val JAYWAN_MIN_DIGITS = 8
 
         private fun findMatchingCard(pan: String, acceptedCards: List<CardModel>): PaymentCard? {
             val binValue = pan.toBigInteger()
