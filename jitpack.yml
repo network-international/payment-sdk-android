@@ -1,2 +1,7 @@
 jdk:
   - openjdk17
+# Only build/publish the library modules. Building the whole project pulls in the
+# :app demo module, whose release signingConfig references a local keystore that
+# does not exist on JitPack — that failed the build with "No build artifacts found".
+install:
+  - ./gradlew :payment-sdk-core:publishToMavenLocal :payment-sdk:publishToMavenLocal :payment-sdk-samsungpay:publishToMavenLocal -x test

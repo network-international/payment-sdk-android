@@ -8,8 +8,8 @@ android {
         applicationId "payment.sdk.android.demo"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "113")
-        versionName System.getenv("VERSION_NAME") ?: "4.0.9-rc2"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "150")
+        versionName System.getenv("VERSION_NAME") ?: "7.0.12"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
@@ -17,7 +17,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("/Users/yahyaaadmin/Documents/AndroidKeys/release.keystore")
+            // Use SIGNING_KEYSTORE_PATH if provided, else a repo-relative keystore.
+            // Must not be a hardcoded absolute path — that broke CI/JitPack builds
+            // ("Keystore file '/Users/.../release.keystore' not found").
+            storeFile file(System.getenv("SIGNING_KEYSTORE_PATH") ?: "release.keystore")
             storePassword System.getenv("SIGNING_KEYSTORE_PASSWORD") ?: "Test@1234"
             keyAlias System.getenv("SIGNING_KEY_ALIAS") ?: "key0"
             keyPassword System.getenv("SIGNING_KEY_PASSWORD") ?: "Test@1234"
