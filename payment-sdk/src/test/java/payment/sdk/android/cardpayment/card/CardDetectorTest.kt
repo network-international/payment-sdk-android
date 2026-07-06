@@ -45,6 +45,26 @@ class CardDetectorTest {
     }
 
     @Test
+    fun `detect jaywan only from the 8th digit`() {
+        val d = CardDetector(setOf(Visa, MasterCard, Jaywan))
+        // Fewer than 8 digits: not yet resolved to Jaywan.
+        assertNull(d.detect("6690"))
+        assertNull(d.detect("6690123"))
+        assertNull(d.detect("9784"))
+        // 8th digit onwards: Jaywan.
+        assertEquals(Jaywan, d.detect("66901234")?.type)
+        assertEquals(Jaywan, d.detect("6690123456789012")?.type)
+        assertEquals(Jaywan, d.detect("9784000000000000")?.type)
+    }
+
+    @Test
+    fun `jaywan not detected when not in supported cards`() {
+        val d = CardDetector(setOf(Visa, MasterCard))
+        assertNull(d.detect("6690123456789012"))
+        assertNull(d.detect("9784000000000000"))
+    }
+
+    @Test
     fun `detect invalid pans`() {
         assertNull(detector.detect("1111111111111111"))
         assertNull(detector.detect("0000000000000000"))
