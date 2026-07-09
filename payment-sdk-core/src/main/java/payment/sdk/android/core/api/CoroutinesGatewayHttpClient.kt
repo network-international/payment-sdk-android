@@ -7,7 +7,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import android.util.Log
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.HttpURLConnection
@@ -131,9 +130,6 @@ class CoroutinesGatewayHttpClient : HttpClient {
         var writer: BufferedWriter? = null
         var reader: BufferedReader? = null
 
-        val bodyStr = if (body.isNotEmpty()) body.encode() else null
-        logCurl(method, url, headers, bodyStr)
-
         try {
             connection = (withContext(Dispatchers.IO) {
                 URL(url).openConnection()
@@ -145,7 +141,7 @@ class CoroutinesGatewayHttpClient : HttpClient {
             if (doOutput && body.isNotEmpty()) {
                 writer = connection.outputStream.bufferedWriter()
                 withContext(Dispatchers.IO) {
-                    writer.write(bodyStr)
+                    writer.write(body.encode())
                     writer.flush()
                 }
             }
@@ -156,9 +152,7 @@ class CoroutinesGatewayHttpClient : HttpClient {
                 // Success
                 HttpURLConnection.HTTP_OK, HttpURLConnection.HTTP_CREATED -> {
                     reader = connection.inputStream.bufferedReader()
-                    val responseBody = reader.readText()
-                    logResponse(responseCode, url, responseBody)
-                    return Pair(connection.headerFields, JSONObject(responseBody))
+                    return Pair(connection.headerFields, JSONObject(reader.readText()))
                 }
                 // Not Discerned
                 -1 -> throw IllegalStateException("Http response code can't be discerned: -1")
@@ -169,7 +163,6 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     } catch (e: Exception) {
                         "Failed to read error body: ${e.message}"
                     }
-                    logResponse(responseCode, url, errorBody)
                     throw IllegalStateException("HTTP: $responseCode - $errorBody")
                 }
             }
@@ -182,31 +175,6 @@ class CoroutinesGatewayHttpClient : HttpClient {
             }
             connection?.disconnect()
         }
-    }
-
-    private fun logCurl(method: String, url: String, headers: Map<String, String>, body: String?) {
-        val parts = StringBuilder("curl -X $method")
-        headers.toSortedMap().forEach { (key, value) ->
-            parts.append(" \\\n  -H '${key}: ${value.replace("'", "'\\''")}'")
-        }
-        if (body != null) {
-            parts.append(" \\\n  -d '${body.replace("'", "'\\''")}'")
-        }
-        parts.append(" \\\n  '$url'")
-        Log.d(TAG, "🔗 cURL:\n$parts")
-    }
-
-    private fun logResponse(code: Int, url: String, body: String) {
-        val prettyBody = try {
-            JSONObject(body).toString(2)
-        } catch (e: Exception) {
-            body
-        }
-        Log.d(TAG, "⬅️ RESPONSE: $code $url\n$prettyBody")
-    }
-
-    companion object {
-        private const val TAG = "NI-SDK-HTTP"
     }
 
     private fun initConnection(
