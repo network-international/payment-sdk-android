@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +36,9 @@ import payment.sdk.android.core.testId
 import payment.sdk.android.payments.model.PaymentResultArgs
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.sdk.R
+import kotlinx.coroutines.delay
+
+private const val AUTO_DISMISS_DELAY_MS = 1000L
 
 private val SuccessGreen = Color(0xFF2EB852)
 private val FailureRed = Color(0xFFE63835)
@@ -50,6 +51,13 @@ fun PaymentResultScreen(
     onDone: () -> Unit
 ) {
     val accent = if (args.isSuccess) SuccessGreen else FailureRed
+
+    // Show the result for a moment, then hand control back to the merchant app — the merchant
+    // confirms/cancels the order off our result, so we must not block on a tap.
+    LaunchedEffect(Unit) {
+        delay(AUTO_DISMISS_DELAY_MS)
+        onDone()
+    }
 
     Column(
         modifier = Modifier
@@ -143,28 +151,7 @@ fun PaymentResultScreen(
         ) {
             PaymentFooterView(supportedCards = args.supportedCards)
 
-            Spacer(Modifier.height(16.dp))
-
-            Button(
-                onClick = onDone,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .testId("sdk_result_button_done"),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = accent,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.payment_result_done),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
@@ -261,7 +248,12 @@ private fun MerchantHeader(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(text = item.name, fontSize = 13.sp, color = PrimaryText)
-                        Text(text = item.amount, fontSize = 13.sp, color = PrimaryText, fontWeight = FontWeight.Medium)
+                        AedAmountText(
+                            text = item.amount,
+                            style = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                            color = PrimaryText,
+                            fontWeight = FontWeight.Medium,
+                        )
                     }
                 }
                 Spacer(Modifier.height(8.dp))
