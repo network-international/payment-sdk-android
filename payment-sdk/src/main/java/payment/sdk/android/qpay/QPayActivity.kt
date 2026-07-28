@@ -52,6 +52,7 @@ class QPayActivity : AppCompatActivity() {
     private lateinit var coverView: FrameLayout
 
     private var sawAcceptCallback = false
+    private var sawCancelCallback = false
     private var didStartRefetch = false
     private var didDispatchResult = false
 
@@ -199,6 +200,8 @@ class QPayActivity : AppCompatActivity() {
             debug("shouldOverride method=${request.method} url=$url")
             // Backend's QPay accept callback — process the redirect (so the server records the
             // payment) but mark a flag so we refetch the order on the next page load.
+            // (User-cancel is detected in onPageStarted instead: it arrives via a POST, and Android
+            // does not call shouldOverrideUrlLoading for POST navigations.)
             if (url.contains("/qpay/accept")) {
                 Log.d(TAG, "callback URL seen — letting it through; will refetch order on next page load")
                 sawAcceptCallback = true
@@ -209,6 +212,14 @@ class QPayActivity : AppCompatActivity() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
             super.onPageStarted(view, url, favicon)
             debug("onPageStarted url=$url")
+            // QCB's user-cancel endpoint. Detected here (not in shouldOverrideUrlLoading) because
+            // the payer reaches it via a POST, and Android does NOT call shouldOverrideUrlLoading
+            // for POST navigations — but onPageStarted/onPageFinished do fire. onPageFinished then
+            // reports Canceled so the host app returns to the order page.
+            if (url != null && url.contains("/d3gw/cancel")) {
+                Log.d(TAG, "QCB cancel URL seen — user canceled at gateway")
+                sawCancelCallback = true
+            }
             // A new hop began — re-cover so the page being loaded is never shown until it settles.
             showCover()
         }
@@ -249,6 +260,14 @@ class QPayActivity : AppCompatActivity() {
             view?.evaluateJavascript(
                 "document.body ? document.body.innerText.substring(0, 300) : '<no body>'"
             ) { debug("  bodyText[0:300]=$it") }
+            // User canceled at the QCB gateway — report Canceled so the host app returns to the
+            // order page instead of the payment-failed page. Checked before the accept branch: a
+            // cancel that still reached /qpay/accept must not be refetched into a Failed result.
+            if (sawCancelCallback) {
+                Log.d(TAG, "post-cancel onPageFinished → reporting Canceled")
+                finishWith(QPayLauncher.Result.Canceled)
+                return
+            }
             if (sawAcceptCallback && !didStartRefetch) {
                 didStartRefetch = true
                 Log.d(TAG, "post-callback onPageFinished → refetching order")

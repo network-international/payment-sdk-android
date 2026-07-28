@@ -27,3 +27,10 @@
 -keep class com.bumptech.glide.integration.okhttp.OkHttpGlideModule
 
 -keep public class * implements com.bumptech.glide.module.GlideModule
+
+# Samsung Pay SDK — its Parcelable model classes must not be obfuscated/stripped, or the Binder IPC
+# to the Samsung Pay service fails to unmarshal in release builds:
+# "BadParcelableException: ClassNotFoundException" → REMOTE_EXCEPTION / -103 ERROR_INITIATION_FAIL.
+-dontwarn com.samsung.android.sdk.samsungpay.**
+-keep class com.samsung.android.sdk.** { *; }
+-keep interface com.samsung.android.sdk.** { *; }

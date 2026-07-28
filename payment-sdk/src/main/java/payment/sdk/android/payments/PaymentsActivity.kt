@@ -27,6 +27,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import android.util.Log
+import android.widget.Toast
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import payment.sdk.android.SDKConfig
@@ -337,23 +338,43 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                 val order = viewModel.fetchedOrder
                                 val merchantName = args.samsungPayConfig?.merchantName
                                 if (client != null && order != null && merchantName != null) {
-                                    viewModel.startGooglePayProcess()
+                                    viewModel.startProcessing()
+                                    // The page already authorized the order on load (consuming the
+                                    // single-use auth code), so hand Samsung Pay the payment-token
+                                    // we already hold instead of letting it re-authorize (which fails).
+                                    val paymentToken = authState.paymentCookie
+                                        .substringAfter("payment-token=", "")
+                                        .substringBefore(";")
+                                        .ifBlank { null }
                                     client.startSamsungPay(
                                         order = order,
                                         merchantName = merchantName,
+                                        paymentToken = paymentToken,
                                         samsungPayResponse = object : SamsungPayResponse {
                                             override fun onSuccess() {
                                                 finishWithData(UnifiedPaymentPageResult.Success)
                                             }
                                             override fun onFailure(error: String) {
+                                                Log.e(TAG, "Samsung Pay failed: $error")
+                                                Toast.makeText(
+                                                    this@UnifiedPaymentPageActivity,
+                                                    "Samsung Pay: $error",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
                                                 viewModel.setProcessingFinished()
                                             }
                                             override fun onCancelled() {
+                                                Log.d(TAG, "Samsung Pay cancelled by user")
                                                 viewModel.setProcessingFinished()
                                             }
                                         }
                                     )
                                 } else {
+                                    Log.w(
+                                        TAG,
+                                        "Samsung Pay preconditions missing — client=${client != null}, " +
+                                            "order=${order != null}, merchantName=${merchantName != null}"
+                                    )
                                     finishWithData(UnifiedPaymentPageResult.SamsungPayRequested)
                                 }
                             },
@@ -365,11 +386,11 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                 aaniPayLauncher.launch(config)
                             },
                             onClickToPay = { config ->
-                                // Launch even when dpaId hasn't been resolved by the gateway
-                                // /config/merchants/{id}/configs/vctp call (e.g. it returned 406):
-                                // ClickToPayActivity fetches the paypage /vctp/config which carries
-                                // the DPA credentials as a fallback before initializing the Visa SDK.
-                                clickToPayLauncher.launch(config)
+                                // Resolve the gateway DPA credentials lazily (only now, on tap) and
+                                // then launch via the LaunchClickToPay effect. If the resolve fails,
+                                // ClickToPayActivity's paypage /vctp/config fallback still supplies
+                                // the DPA credentials before initializing the Visa SDK.
+                                viewModel.onClickToPaySelected(config)
                             },
                             onClickQPay = { config ->
                                 qpayLauncher.launch(config)
@@ -461,6 +482,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                 it.error
                             )
                         )
+                    }
+
+                    is UnifiedPaymentPageVMEffects.LaunchClickToPay -> {
+                        clickToPayLauncher.launch(it.config)
                     }
 
                     is UnifiedPaymentPageVMEffects.InitiateThreeDS -> {

@@ -70,6 +70,7 @@ fun CardPaymentSection(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     supportedCards: Set<CardType>,
+    showNapsLogo: Boolean = false,
     savedCards: List<SavedCard> = emptyList(),
     selectedSavedCard: SavedCard? = null,
     savedCardCvv: String = "",
@@ -139,6 +140,17 @@ fun CardPaymentSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // NAPS leads the accepted-brand strip when QPay is enabled.
+            if (showNapsLogo) {
+                Image(
+                    modifier = Modifier
+                        .height(18.dp)
+                        .widthIn(max = 44.dp),
+                    painter = painterResource(R.drawable.naps_card_logo),
+                    contentDescription = "NAPS",
+                    contentScale = ContentScale.Fit
+                )
+            }
             supportedCards.forEach { card ->
                 Image(
                     modifier = Modifier

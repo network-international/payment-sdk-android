@@ -70,6 +70,9 @@ sealed class UnifiedPaymentPageVMEffects {
     data class InitiateThreeDS(val threeDSecureDto: ThreeDSecureDto) : UnifiedPaymentPageVMEffects()
     data class InitiateThreeDSTwo(val threeDSecureTwoDto: ThreeDSecureTwoDto) : UnifiedPaymentPageVMEffects()
 
+    /** Launch Click to Pay after its DPA credentials have been resolved lazily (on tap). */
+    data class LaunchClickToPay(val config: ClickToPayLauncher.Config) : UnifiedPaymentPageVMEffects()
+
     data object Captured : UnifiedPaymentPageVMEffects()
     data object PaymentAuthorised : UnifiedPaymentPageVMEffects()
     data object Purchased : UnifiedPaymentPageVMEffects()
@@ -84,7 +87,7 @@ sealed class SliceCheckState {
     data class Available(
         val offers: List<SliceOffer>,
         val transactionAmount: payment.sdk.android.core.SliceAmount,
-        /** Eligibility indicator "I" → show "Murabaha" instead of "Interest rate". */
+        /** Eligibility indicator "I" → show "Profit rate" instead of "Interest rate". */
         val isIslamic: Boolean = false,
     ) : SliceCheckState()
     // Slice eligibility link present on the order, but the current card returned no matched

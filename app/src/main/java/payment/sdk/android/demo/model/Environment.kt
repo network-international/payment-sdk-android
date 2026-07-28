@@ -65,7 +65,7 @@ data class Environment(
         } else {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
-                EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
+                EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
             }
         }
@@ -86,7 +86,7 @@ data class Environment(
         }
         return when (type) {
             EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com"
-            EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com"
+            EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com"
             EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com"
         }
     }
@@ -101,7 +101,7 @@ data class Environment(
         } else {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/identity/auth/access-token"
-                EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/identity/auth/access-token"
+                EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/identity/auth/access-token"
             }
         }

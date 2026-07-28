@@ -507,6 +507,7 @@ private fun PaymentSectionsContent(
     Spacer(Modifier.height(Spacing.sectionGap))
     CardPaymentSection(
         supportedCards = supportedCards,
+        showNapsLogo = qpayExpress,
         isExpanded = selectedOption == PaymentOption.CARD,
         savedCards = savedCards,
         selectedSavedCard = selectedSavedCard,

@@ -12,6 +12,13 @@ android {
         targetSdkVersion 36
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+
+        // Propagate the Samsung Pay SDK keep rules to any app that consumes this module. Without
+        // this, an app built with minifyEnabled=true (e.g. the demoRelease variant) obfuscates the
+        // bundled Samsung SDK Parcelable classes, breaking Binder IPC to the Samsung Pay service
+        // with "BadParcelableException: ClassNotFoundException" → REMOTE_EXCEPTION
+        // (-103 ERROR_INITIATION_FAIL).
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {

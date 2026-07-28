@@ -132,9 +132,52 @@ internal class UnifiedPaymentPageViewModel(
         _isProcessing.value = true
     }
 
+    /** Marks the page as processing without implying a specific wallet (used by Samsung Pay). */
+    fun startProcessing() {
+        Log.d(TAG, "startProcessing: _isProcessing → true")
+        _isProcessing.value = true
+    }
+
     fun setProcessingFinished() {
         Log.d(TAG, "setProcessingFinished: _isProcessing → false")
         _isProcessing.value = false
+    }
+
+    /**
+     * Resolve Click to Pay's DPA credentials (`/config/merchants/{merchantId}/configs/vctp`) lazily
+     * — only when the user actually taps Click to Pay — then launch. Mirrors the iOS SDK: the gateway
+     * config call no longer fires for every authorized order, just for the Click to Pay flow.
+     *
+     * No-op resolve (launches as-is) when `dpaId` is already supplied by the merchant or there's no
+     * `merchantId` to resolve with; if the resolve fails the config is launched unchanged and
+     * ClickToPayActivity's paypage `/vctp/config` fallback still supplies the DPA credentials.
+     */
+    fun onClickToPaySelected(config: ClickToPayLauncher.Config) {
+        val cfg = config.clickToPayConfig
+        val merchantId = cfg.merchantId
+        if (!cfg.dpaId.isNullOrEmpty() || merchantId.isNullOrEmpty()) {
+            viewModelScope.launch { _effects.emit(UnifiedPaymentPageVMEffects.LaunchClickToPay(config)) }
+            return
+        }
+        _isProcessing.value = true
+        viewModelScope.launch(dispatcher) {
+            val orderUrl = config.orderUrl.orEmpty()
+            val baseUrl = orderUrl.substringBefore("/transactions/")
+                .ifEmpty { orderUrl.substringBefore("/api/") }
+            val result = clickToPayMerchantConfigInteractor.fetch(merchantId, config.accessToken, baseUrl)
+            val resolvedConfig = if (result is ClickToPayMerchantConfigInteractor.Result.Success) {
+                config.copy(
+                    clickToPayConfig = cfg.copy(
+                        dpaId = result.resolved.dpaId,
+                        dpaClientId = result.resolved.dpaClientId,
+                        dpaName = result.resolved.dpaName
+                    ),
+                    merchantName = result.resolved.dpaName ?: config.merchantName
+                )
+            } else config
+            _isProcessing.value = false
+            _effects.emit(UnifiedPaymentPageVMEffects.LaunchClickToPay(resolvedConfig))
+        }
     }
 
     fun showPaymentResult(state: UnifiedPaymentPageVMUiState.ShowPaymentResult) {
@@ -215,26 +258,10 @@ internal class UnifiedPaymentPageViewModel(
 
         // Configure Click to Pay if VISA_CLICK_TO_PAY is in the wallet array and merchant has configured it
         val clickToPayUrl = order.getVisaClickToPayUrl()
-        val rawMerchantClickToPayConfig = cardPaymentsIntent.clickToPayConfig
-        // Resolve DPA credentials from `/config/merchants/{merchantId}/configs/vctp` once
-        // the order is authorized — the merchant only ever has to declare `merchantId`.
-        // Derives the api-gateway base from the order URL (strips `/transactions/...`).
-        val merchantClickToPayConfig = rawMerchantClickToPayConfig?.let { cfg ->
-            val merchantId = cfg.merchantId
-            if (cfg.dpaId.isNullOrEmpty() && !merchantId.isNullOrEmpty()) {
-                val baseUrl = orderUrl.substringBefore("/transactions/")
-                    .ifEmpty { orderUrl.substringBefore("/api/") }
-                val result = clickToPayMerchantConfigInteractor
-                    .fetch(merchantId, accessToken, baseUrl)
-                if (result is ClickToPayMerchantConfigInteractor.Result.Success) {
-                    cfg.copy(
-                        dpaId = result.resolved.dpaId,
-                        dpaClientId = result.resolved.dpaClientId,
-                        dpaName = result.resolved.dpaName
-                    )
-                } else cfg
-            } else cfg
-        }
+        // Click to Pay's DPA credentials (`/config/merchants/{merchantId}/configs/vctp`) are now
+        // resolved lazily — only when the user actually taps Click to Pay (see onClickToPaySelected).
+        // This stops non-CtP flows (QPay, card, Google Pay, Aani) from firing the gateway config call.
+        val merchantClickToPayConfig = cardPaymentsIntent.clickToPayConfig
         val isVisaClickToPayEnabled = supportedWallets.contains("VISA_CLICK_TO_PAY")
 
         val clickToPayConfig = takeIf {

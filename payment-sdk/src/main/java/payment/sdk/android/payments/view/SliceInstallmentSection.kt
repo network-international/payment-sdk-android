@@ -238,7 +238,7 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (isZeroInterest) {
-                    SliceBadge(label = "Zero interest")
+                    SliceBadge(label = if (isIslamic) "Zero profit" else "Zero interest")
                 }
                 if (isZeroFee) {
                     SliceBadge(label = "Zero fees")
@@ -250,7 +250,7 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
         Divider(color = PgColors.dividerSlice)
         Spacer(Modifier.height(8.dp))
 
-        SliceDetailRow(label = if (isIslamic) "Murabaha:" else "Interest rate:", value = "${offer.rate}%", bold = true)
+        SliceDetailRow(label = if (isIslamic) "Profit rate:" else "Interest rate:", value = "${offer.rate}%", bold = true)
         Spacer(Modifier.height(8.dp))
         SliceDetailRow(label = "Processing fees:", value = feeDisplay, bold = true)
         Spacer(Modifier.height(8.dp))

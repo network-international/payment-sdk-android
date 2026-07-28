@@ -74,7 +74,7 @@ class CreateOrderApiInteractorTest {
         )
 
         coEvery { apiService.getAccessToken(any(), any(), any()) } returns "accessToken"
-        coEvery { apiService.createOrder(any(), any(), any()) } returns orderResponse
+        coEvery { apiService.createOrder(any(), any(), any()) } returns Result.Success(orderResponse)
 
         val result = sut.createOrder(environment, orderRequest)
 
@@ -91,12 +91,12 @@ class CreateOrderApiInteractorTest {
     }
 
     @Test
-    fun `createOrder gets access token but fails to create order`() = runTest {
+    fun `createOrder gets access token but fails to create order propagates api message`() = runTest {
         coEvery { apiService.getAccessToken(any(), any(), any()) } returns "accessToken"
-        coEvery { apiService.createOrder(any(), any(), any()) } returns null
+        coEvery { apiService.createOrder(any(), any(), any()) } returns Result.Error("Invalid currency")
 
         val result = sut.createOrder(environment, orderRequest)
 
-        assertEquals(result, Result.Error<Any>("Failed to create order"))
+        assertEquals(result, Result.Error<Any>("Invalid currency"))
     }
 }

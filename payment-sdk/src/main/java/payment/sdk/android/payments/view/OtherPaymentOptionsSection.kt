@@ -180,7 +180,7 @@ fun QPayExpressButton(
             contentDescription = "NAPS",
             // NAPS wordmark is ~4.63:1; size by height and let width follow the aspect ratio.
             modifier = Modifier
-                .height(28.dp)
+                .height(16.dp)
                 .aspectRatio(2224f / 480f),
             contentScale = ContentScale.Fit
         )

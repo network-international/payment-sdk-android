@@ -2,6 +2,7 @@ package payment.sdk.android.samsungpay
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import com.samsung.android.sdk.samsungpay.v2.SpaySdk
 import com.samsung.android.sdk.samsungpay.v2.payment.CardInfo
 import com.samsung.android.sdk.samsungpay.v2.payment.CustomSheetPaymentInfo
@@ -24,7 +25,19 @@ class SamsungPayTransactionListener(
         if (code == SpaySdk.ERROR_USER_CANCELED) {
             samsungPayResponse.onCancelled()
         } else {
-            samsungPayResponse.onFailure("Samsung Pay authorization failed with code $code")
+            // Samsung often reports the real cause via bundle extras (e.g. invalid service id,
+            // merchant not registered, signing-cert mismatch, no eligible card) rather than `code`.
+            val reasonMessage = bundle?.getString(SpaySdk.EXTRA_ERROR_REASON_MESSAGE)
+            val reasonCode = bundle?.get(SpaySdk.EXTRA_ERROR_REASON)
+            val allExtras = bundle?.keySet()?.joinToString(", ") { key ->
+                "$key=${bundle.get(key)}"
+            }
+            Log.e(
+                "SamsungPayTxnListener",
+                "onFailure code=$code reasonCode=$reasonCode reasonMessage=$reasonMessage extras=[$allExtras]"
+            )
+            val detail = reasonMessage ?: reasonCode?.let { "reason $it" } ?: "code $code"
+            samsungPayResponse.onFailure("Samsung Pay authorization failed: $detail")
         }
     }
 
@@ -35,10 +48,17 @@ class SamsungPayTransactionListener(
                     encryptedObject,
                     samsungPayAcceptLink,
                     paymentToken) { status: Boolean, error: Exception? ->
-                if (status || (error != null)) {
+                // Only a genuinely successful accept call is a success. The previous condition
+                // `status || (error != null)` reported success whenever the call ERRORED, masking
+                // real failures (e.g. the gateway returning 400 "Padding error in decryption" on a
+                // Samsung Pay certificate mismatch) as completed payments.
+                if (status) {
                     samsungPayResponse.onSuccess()
                 } else {
-                    samsungPayResponse.onFailure("Samsung Pay decryption failed")
+                    Log.e("SamsungPayTxnListener", "acceptSamsungPay failed", error)
+                    samsungPayResponse.onFailure(
+                        "Samsung Pay accept failed: ${error?.message ?: "unknown error"}"
+                    )
                 }
             }
         } else {

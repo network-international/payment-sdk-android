@@ -1,6 +1,7 @@
 package payment.sdk.android.demo.http
 
 import android.util.Log
+import payment.sdk.android.demo.Result
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.toMap
 import com.google.gson.Gson
@@ -113,7 +114,7 @@ class ApiServiceAdapter(
         url: String,
         accessToken: String,
         orderRequest: OrderRequest
-    ): Order? {
+    ): Result<Order> {
         var createOrderUrl = url
         var contentType = "application/vnd.ni-payment.v2+json"
         if (orderRequest.type == "RECURRING" || orderRequest.type == "INSTALLMENT") {
@@ -151,25 +152,60 @@ class ApiServiceAdapter(
         )
         return when (response) {
             is SDKHttpResponse.Failed -> {
+                val message = extractErrorMessage(response.error)
                 Log.e(TAG, "───────────────────────────────────────────────────────────")
                 Log.e(TAG, "createOrder FAILED")
                 Log.e(TAG, "Error: ${response.error.message}", response.error)
                 Log.e(TAG, "───────────────────────────────────────────────────────────")
-                null
+                Result.Error(message = message)
             }
             is SDKHttpResponse.Success -> {
                 Log.d(TAG, "───────────────────────────────────────────────────────────")
                 Log.d(TAG, "createOrder SUCCESS")
                 Log.d(TAG, "Response: ${response.body}")
                 Log.d(TAG, "───────────────────────────────────────────────────────────")
-                return Gson().fromJson(response.body, Order::class.java)
+                Result.Success(Gson().fromJson(response.body, Order::class.java))
             }
         }
+    }
+
+    /**
+     * Extracts the API's error message from a failed response. The HTTP client throws an
+     * exception whose message embeds the raw error body (e.g. `HTTP: 422 - {"message":"...","errors":[...]}`),
+     * so we pull the JSON out of it. The detailed text lives in `errors[0].message`, so we
+     * prefer that and fall back to the top-level `message`, then to a generic message.
+     */
+    private fun extractErrorMessage(error: Throwable): String {
+        val raw = error.message ?: return DEFAULT_ORDER_ERROR
+        val start = raw.indexOf('{')
+        val end = raw.lastIndexOf('}')
+        if (start in 0 until end) {
+            try {
+                val json = JsonParser.parseString(raw.substring(start, end + 1)).asJsonObject
+
+                val errors = json.getAsJsonArray("errors")
+                if (errors != null && errors.size() > 0) {
+                    val nestedMessage = errors[0].asJsonObject.get("message")?.asString
+                    if (!nestedMessage.isNullOrBlank()) {
+                        return nestedMessage
+                    }
+                }
+
+                val message = json.get("message")?.asString
+                if (!message.isNullOrBlank()) {
+                    return message
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to parse error message from response", e)
+            }
+        }
+        return DEFAULT_ORDER_ERROR
     }
 
     companion object {
         const val HEADER_AUTH = "Authorization"
         const val HEADER_ACCEPT = "Content-Type"
         const val HEADER_CONTENT_TYPE = "Content-Type"
+        private const val DEFAULT_ORDER_ERROR = "Failed to create order"
     }
 }
