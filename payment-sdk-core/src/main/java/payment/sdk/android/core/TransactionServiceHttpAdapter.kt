@@ -94,11 +94,15 @@ class TransactionServiceHttpAdapter(private val context: Context) : TransactionS
         val body = HashMap<String, String>()
         body["encryptedObj"] = encryptedObject
 
+        // Native in-app Samsung Pay always uses the V1 accept endpoint and media type.
+        // payment:samsung_pay_v2 / .../samsung-pay/accept is web-only (v3+json).
+        val acceptUrl = normalizeSamsungPayV1AcceptUrl(samsungPayLink)
+
         httpClient.put(
-                url = samsungPayLink,
+                url = acceptUrl,
                 headers = mapOf(
-                        HEADER_CONTENT_TYPE to "application/vnd.ni-payment.v2+json",
-                        HEADER_ACCEPT to "application/vnd.ni-payment.v2+json",
+                        HEADER_CONTENT_TYPE to SAMSUNG_PAY_V1_MEDIA_TYPE,
+                        HEADER_ACCEPT to SAMSUNG_PAY_V1_MEDIA_TYPE,
                         HEADER_AUTHORIZATION to "Bearer $paymentToken",
                         HEADER_FINGERPRINT to deviceId
                 ),
@@ -118,6 +122,8 @@ class TransactionServiceHttpAdapter(private val context: Context) : TransactionS
         internal const val HEADER_CONTENT_TYPE = "Content-Type"
         internal const val HEADER_SET_COOKIE = "Set-Cookie"
         internal const val HEADER_AUTHORIZATION = "Authorization"
+
+        internal const val SAMSUNG_PAY_V1_MEDIA_TYPE = "application/vnd.ni-payment.v2+json"
     }
 
 }
