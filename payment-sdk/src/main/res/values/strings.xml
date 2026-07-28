@@ -1,5 +1,6 @@
 <resources>
     <string name="placeholder_card_number" translatable="false">0000 0000 0000 0000</string>
+    <string name="enter_card_number">Enter card number</string>
     <string name="placeholder_expire_date" translatable="false">MM/YY</string>
     <string name="placeholder_cvv" translatable="false">000</string>
     <string name="placeholder_long_cvv" translatable="false">0000</string>
@@ -115,6 +116,8 @@
 
 
     <string name="aani">Pay with AANI</string>
+    <string name="qpay">Pay with QPay</string>
+    <string name="qpay_express_pay_with">Pay with</string>
     <string name="aani_mobile_number">Mobile number</string>
     <string name="aani_emirates_id">Emirates ID</string>
     <string name="aani_passport_id">Passport ID</string>
@@ -166,7 +169,7 @@
     <string name="pay_with_google_pay">Pay with Google Pay</string>
     <string name="pay_with_samsung_pay">Pay with Samsung Pay</string>
     <string name="pay_with_aani">Request to Pay</string>
-    <string name="or_select_payment_options">Or select your payment options</string>
+    <string name="or_select_payment_options">Other Payment Options</string>
     <string name="expiration_date_label">Expiration date</string>
     <string name="security_code_label">Security code</string>
     <string name="name_on_card_label">Name on card</string>
@@ -190,5 +193,7 @@
     <string name="payment_result_reference_number">Reference Number</string>
     <string name="payment_result_date_time">Transaction Date</string>
     <string name="payment_result_done">Done</string>
+    <string name="select_payment_option_validation">Please select a payment option to proceed</string>
+    <string name="card_already_saved">This card is already saved</string>
 
 </resources>

@@ -21,6 +21,7 @@ import payment.sdk.android.core.Order
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
+import payment.sdk.android.demo.Result
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.demo.model.PaymentOrderAmount
 
@@ -106,11 +107,51 @@ class ApiServiceAdapterTest {
 
         val result = sut.createOrder(any(), any(), orderRequest)
 
-        assertEquals(result?.reference, Gson().fromJson(response, Order::class.java).reference)
+        val success = result as Result.Success
+        assertEquals(success.data.reference, Gson().fromJson(response, Order::class.java).reference)
     }
 
     @Test
-    fun `http create order fails`() = runTest {
+    fun `http create order fails returns api error message`() = runTest {
+        coEvery {
+            httpClient.post(
+                any(),
+                any(),
+                any()
+            )
+        } returns SDKHttpResponse.Failed(
+            IllegalStateException(
+                "HTTP: 422 - {\"message\":\"Unprocessable Entity\",\"code\":422," +
+                    "\"errors\":[{\"message\":\"Order action is not purchase\"," +
+                    "\"localizedMessage\":\"{error.processing.invalidAction}\"," +
+                    "\"errorCode\":\"invalidAction\",\"domain\":\"processing\"}]}"
+            )
+        )
+
+        val result = sut.createOrder(any(), any(), orderRequest)
+
+        assertEquals(Result.Error<Order>("Order action is not purchase"), result)
+    }
+
+    @Test
+    fun `http create order fails with only top level message`() = runTest {
+        coEvery {
+            httpClient.post(
+                any(),
+                any(),
+                any()
+            )
+        } returns SDKHttpResponse.Failed(
+            IllegalStateException("HTTP: 400 - {\"message\":\"Invalid currency\"}")
+        )
+
+        val result = sut.createOrder(any(), any(), orderRequest)
+
+        assertEquals(Result.Error<Order>("Invalid currency"), result)
+    }
+
+    @Test
+    fun `http create order fails without message falls back to generic error`() = runTest {
         coEvery {
             httpClient.post(
                 any(),
@@ -121,7 +162,7 @@ class ApiServiceAdapterTest {
 
         val result = sut.createOrder(any(), any(), orderRequest)
 
-        assertEquals(result, null)
+        assertEquals(Result.Error<Order>("Failed to create order"), result)
     }
 
     @Test

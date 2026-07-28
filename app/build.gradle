@@ -8,8 +8,8 @@ android {
         applicationId "payment.sdk.android.demo"
         minSdkVersion 21
         targetSdkVersion 36
-        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "140")
-        versionName System.getenv("VERSION_NAME") ?: "7.0.3"
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "155")
+        versionName System.getenv("VERSION_NAME") ?: "7.0.17"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
@@ -65,6 +65,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 
     // TODO add lint rules, and fix lint errors

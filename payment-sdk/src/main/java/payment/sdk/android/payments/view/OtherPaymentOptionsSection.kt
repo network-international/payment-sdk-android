@@ -6,9 +6,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -104,7 +107,7 @@ fun OtherPaymentOptionsSection(
                     Image(
                         painter = painterResource(R.drawable.aani_logo),
                         contentDescription = null,
-                        modifier = Modifier.size(PgSize.providerLogoHeight),
+                        modifier = Modifier.height(40.dp),
                         contentScale = ContentScale.Fit
                     )
                 },
@@ -131,17 +134,56 @@ fun OtherPaymentOptionsSection(
         if (qpayConfig != null) {
             PaymentOptionRow(
                 selected = selectedOption == PaymentOption.QPAY,
-                label = "QPay",
+                label = stringResource(R.string.qpay),
                 trailingIcon = {
-                    Text(
-                        text = "QPay",
-                        style = PgType.bodyRowTitle,
-                        color = PgColors.textPrimary
+                    Image(
+                        painter = painterResource(R.drawable.qpay_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(PgSize.providerLogoHeight),
+                        contentScale = ContentScale.Fit
                     )
                 },
                 onSelect = { onOptionSelected(PaymentOption.QPAY) }
             )
         }
+    }
+}
+
+// QPay express button — a prominent full-width black CTA pinned above all other
+// payment options. Shown (in place of the QPay radio row) only when QPay is enabled.
+// Tapping it launches QPay directly, mirroring the web express button.
+@Composable
+fun QPayExpressButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.pageH)
+            .clip(RoundedCornerShape(Radius.button))
+            .background(Color.Black)
+            .clickable { onClick() }
+            .padding(vertical = 16.dp)
+            .testId("sdk_paymentpage_qpay_express"),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.qpay_express_pay_with),
+            style = PgType.buttonPrimary,
+            color = Color.White
+        )
+        Spacer(Modifier.width(8.dp))
+        Image(
+            painter = painterResource(R.drawable.naps_logo),
+            contentDescription = "NAPS",
+            // NAPS wordmark is ~4.63:1; size by height and let width follow the aspect ratio.
+            modifier = Modifier
+                .height(16.dp)
+                .aspectRatio(2224f / 480f),
+            contentScale = ContentScale.Fit
+        )
     }
 }
 

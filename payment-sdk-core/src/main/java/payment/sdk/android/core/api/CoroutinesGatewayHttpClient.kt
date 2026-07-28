@@ -131,14 +131,17 @@ class CoroutinesGatewayHttpClient : HttpClient {
             }
         }
 
+    // The whole body runs on Dispatchers.IO so callers can safely invoke this from any dispatcher
+    // (incl. Main). `connection.responseCode` and the stream reads do blocking network I/O; doing
+    // them on the caller's thread previously threw NetworkOnMainThreadException when a caller
+    // launched on Main (its message is null → opaque "failed: null" errors).
     private suspend fun call(
         method: String,
         url: String,
         headers: Map<String, String>,
         body: Body,
         doOutput: Boolean
-    )
-            : Pair<Map<String, List<String>>, JSONObject> {
+    ): Pair<Map<String, List<String>>, JSONObject> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         var writer: BufferedWriter? = null
         var reader: BufferedReader? = null
@@ -147,19 +150,15 @@ class CoroutinesGatewayHttpClient : HttpClient {
         logCurl(method, url, headers, bodyStr)
 
         try {
-            connection = (withContext(Dispatchers.IO) {
-                URL(url).openConnection()
-            } as HttpURLConnection).apply {
+            connection = (URL(url).openConnection() as HttpURLConnection).apply {
                 initConnection(this, headers, doOutput).requestMethod = method
             }
 
             // Write content body
             if (doOutput && body.isNotEmpty()) {
                 writer = connection.outputStream.bufferedWriter()
-                withContext(Dispatchers.IO) {
-                    writer.write(bodyStr)
-                    writer.flush()
-                }
+                writer.write(bodyStr)
+                writer.flush()
             }
 
             val responseCode = connection.responseCode
@@ -170,12 +169,12 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     reader = connection.inputStream.bufferedReader()
                     val responseBody = reader.readText()
                     logResponse(responseCode, url, connection.headerFields, responseBody)
-                    return Pair(connection.headerFields, JSONObject(responseBody))
+                    Pair(connection.headerFields, JSONObject(responseBody))
                 }
                 // No Content (common DELETE response)
                 HttpURLConnection.HTTP_NO_CONTENT -> {
                     logResponse(responseCode, url, connection.headerFields, "")
-                    return Pair(connection.headerFields, JSONObject("{}"))
+                    Pair(connection.headerFields, JSONObject("{}"))
                 }
                 // Not Discerned
                 -1 -> throw IllegalStateException("Http response code can't be discerned: -1")
@@ -197,10 +196,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
         } catch (e: Exception) {
             throw e
         } finally {
-            withContext(Dispatchers.IO) {
-                writer?.close()
-                reader?.close()
-            }
+            writer?.close()
+            reader?.close()
             connection?.disconnect()
         }
     }

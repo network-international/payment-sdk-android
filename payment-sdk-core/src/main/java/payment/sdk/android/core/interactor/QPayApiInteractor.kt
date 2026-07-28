@@ -19,6 +19,9 @@ class QPayApiInteractor(private val httpClient: HttpClient) {
                 "Content-Type" to "application/vnd.ni-payment.v2+json",
                 "Authorization" to "Bearer $accessToken"
             ),
+            // Sends `{}` (Body.Json always serialises). The backend rejects a missing body with
+            // "initiatePaymentRequest is null"; the gateway derives payerIp from the request,
+            // matching the web which also posts `{}`.
             Body.Json(emptyMap())
         )
         return when (response) {

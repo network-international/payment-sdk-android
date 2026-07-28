@@ -1,5 +1,6 @@
 package payment.sdk.android.demo.http
 
+import payment.sdk.android.demo.Result
 import payment.sdk.android.demo.model.OrderRequest
 import payment.sdk.android.core.Order
 
@@ -13,5 +14,5 @@ interface ApiService {
         url: String,
         accessToken: String,
         orderRequest: OrderRequest
-    ): Order?
+    ): Result<Order>
 }

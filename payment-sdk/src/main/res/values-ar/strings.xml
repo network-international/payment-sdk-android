@@ -1,5 +1,7 @@
 <resources>
 
+    <string name="enter_card_number">أدخل رقم البطاقة</string>
+
     <!-- Dialog text to notify 3d secure page is opening -->
     <string name="launching_3d_secure">إطلاق 3D الآمنة&#8230;</string>
 
@@ -100,6 +102,8 @@
     <string name="visa_pay_in_full">الدفع بالكامل</string>
 
     <string name="aani">الدفع عبر آني</string>
+    <string name="qpay">ادفع باستخدام كيو باي</string>
+    <string name="qpay_express_pay_with">ادفع باستخدام</string>
     <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>
     <string name="aani_passport_id">رقم جواز السفر</string>
@@ -146,7 +150,7 @@
     <string name="pay_with_google_pay">الدفع عبر Google Pay</string>
     <string name="pay_with_samsung_pay">الدفع عبر Samsung Pay</string>
     <string name="pay_with_aani">طلب دفع</string>
-    <string name="or_select_payment_options">أو اختر خيارات الدفع الخاصة بك</string>
+    <string name="or_select_payment_options">خيارات الدفع الأخرى</string>
     <string name="expiration_date_label">تاريخ الانتهاء</string>
     <string name="security_code_label">رمز الأمان</string>
     <string name="name_on_card_label">الاسم على البطاقة</string>
@@ -170,4 +174,6 @@
     <string name="payment_result_reference_number">الرقم المرجعي</string>
     <string name="payment_result_date_time">تاريخ المعاملة</string>
     <string name="payment_result_done">تم</string>
+    <string name="select_payment_option_validation">يرجى اختيار خيار الدفع للمتابعة</string>
+    <string name="card_already_saved">هذه البطاقة محفوظة بالفعل</string>
 </resources>

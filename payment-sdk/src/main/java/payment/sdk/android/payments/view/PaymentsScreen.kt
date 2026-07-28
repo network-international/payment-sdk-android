@@ -72,6 +72,8 @@ import androidx.compose.ui.unit.dp
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.card.CardValidator
+import payment.sdk.android.cardpayment.validation.Luhn
+import payment.sdk.android.cardpayment.widget.ExpireDateEditText
 import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.clicktopay.ClickToPayLauncher
@@ -130,12 +132,10 @@ fun UnifiedPaymentPageScreen(
     onClose: () -> Unit
 ) {
     // ── Selection state ──────────────────────────────────────────────────────
-    // Start with no payment option pre-selected. Auto-selecting "Pay by Card"
-    // when saved cards exist surfaced as "previously selected items remain
-    // highlighted" when the user re-entered the page after a payment attempt —
-    // each fresh launch resurrected the same default check. Force an explicit
-    // selection so the page is clean on every entry.
-    var selectedOption by remember { mutableStateOf<PaymentOption?>(null) }
+    // Pay-by-Card is preselected on every fresh page load. `remember` reseeds
+    // this on each entry into composition, so navigating away and back gets a
+    // clean default rather than a leaked prior selection.
+    var selectedOption by remember { mutableStateOf<PaymentOption?>(PaymentOption.CARD) }
     var selectedSavedCard by remember { mutableStateOf<SavedCard?>(null) }
     var savedCardCvv by remember { mutableStateOf("") }
     var isOrderSummaryExpanded by remember { mutableStateOf(true) }
@@ -148,17 +148,29 @@ fun UnifiedPaymentPageScreen(
     var cardPaymentCard by remember { mutableStateOf<PaymentCard?>(null) }
     var isCardFormValid by remember { mutableStateOf(false) }
     var cardSelectedSliceOffer by remember { mutableStateOf<SliceOffer?>(null) }
+    var cardSliceSelectionMade by remember { mutableStateOf(false) }
     var lastSliceKey by remember { mutableStateOf("") }
     var cardSelectedVisaPlan by remember { mutableStateOf<InstallmentPlan?>(null) }
     var visTermsAccepted by remember { mutableStateOf(false) }
+    var paymentOptionError by remember { mutableStateOf(false) }
 
-    // When Vis becomes Available, default the selection to "Pay in full" (the first synthesized plan).
     val visAvailablePlans = (visCheckState as? VisCheckState.Available)?.plans
     LaunchedEffect(visAvailablePlans) {
-        if (visAvailablePlans == null) {
-            cardSelectedVisaPlan = null
-            visTermsAccepted = false
-        }
+        // Any change in the available plans wipes prior selection. Never preselect: a stale
+        // selection from a previous card would silently bypass the "pick a plan" error gate.
+        cardSelectedVisaPlan = null
+        visTermsAccepted = false
+        paymentOptionError = false
+    }
+
+    // Reset slice selection state when offers change (new eligibility result). Pay in Full
+    // is preselected inside the slice section, so the user has a valid default selection
+    // the moment offers appear — flip the validation gate to "made" as soon as we have a
+    // non-empty offer list.
+    val sliceAvailableOffers = (sliceCheckState as? SliceCheckState.Available)?.offers
+    LaunchedEffect(sliceAvailableOffers) {
+        cardSliceSelectionMade = !sliceAvailableOffers.isNullOrEmpty()
+        paymentOptionError = false
     }
 
     LaunchedEffect(cardPan, cardCvv, cardExpiry.text, cardholderName) {
@@ -171,19 +183,28 @@ fun UnifiedPaymentPageScreen(
         )
     }
 
-    LaunchedEffect(cardPan, cardExpiry.text) {
+    // Re-run when the Card option is (re-)selected too, not only on PAN/expiry edits — the
+    // user can leave Pay-by-Card with valid data and come back; without this trigger the
+    // slice/visa state would stay cleared until the user retyped the card details.
+    // Slice / VIS offers are hidden the moment either field becomes invalid (incomplete length,
+    // failed Luhn, malformed expiry) and only reappear when BOTH PAN and expiry are valid.
+    LaunchedEffect(cardPan, cardExpiry.text, selectedOption) {
+        if (selectedOption != PaymentOption.CARD) return@LaunchedEffect
         val maxLength = cardPaymentCard?.binRange?.length?.value ?: 16
-        val expiryComplete = cardExpiry.text.length == 5
-        val panComplete = cardPan.length == maxLength
-        if (panComplete && expiryComplete) {
+        val panValid = cardPan.length == maxLength && Luhn.isValidPan(cardPan)
+        val expiryValid = cardExpiry.text.length == 5 &&
+                ExpireDateEditText.isValidExpire(cardExpiry.text)
+        if (panValid && expiryValid) {
             val key = "$cardPan|${cardExpiry.text}"
             if (key != lastSliceKey) {
                 lastSliceKey = key
                 cardSelectedSliceOffer = null
                 onCheckSliceEligibility(cardPan, cardExpiry.text.filter { it.isDigit() }, cardPaymentCard?.type?.name)
             }
-        } else if (lastSliceKey.isNotEmpty()) {
-            lastSliceKey = ""
+        } else {
+            // Hide any visible Slice offers / VIS plans the moment PAN or expiry stops being
+            // valid. The brand banner (driven by the order, not the card) stays.
+            if (lastSliceKey.isNotEmpty()) lastSliceKey = ""
             cardSelectedSliceOffer = null
             onResetSliceCheck()
         }
@@ -271,7 +292,7 @@ fun UnifiedPaymentPageScreen(
                     aaniConfig = aaniConfig,
                     clickToPayConfig = clickToPayConfig,
                     qpayConfig = qpayConfig,
-                    savedCards = savedCards,
+                    savedCards = savedCards.takeLast(3),
                     orderItems = orderItems,
                     sliceCheckState = sliceCheckState,
                     selectedOption = selectedOption,
@@ -289,7 +310,11 @@ fun UnifiedPaymentPageScreen(
                     visTermsAccepted = visTermsAccepted,
                     visOrderValue = orderValue,
                     visCurrencyCode = currencyCode,
-                    onVisPlanSelected = { cardSelectedVisaPlan = it },
+                    showPaymentOptionError = paymentOptionError,
+                    onVisPlanSelected = {
+                        cardSelectedVisaPlan = it
+                        paymentOptionError = false
+                    },
                     onVisTermsToggled = { visTermsAccepted = it },
                     onToggleOrderSummary = { isOrderSummaryExpanded = !isOrderSummaryExpanded },
                     onOptionSelected = { option ->
@@ -302,6 +327,11 @@ fun UnifiedPaymentPageScreen(
                         cardSelectedVisaPlan = null
                         visTermsAccepted = false
                         onResetSliceCheck()
+                        // Reset the dedupe key so re-selecting Pay-by-Card with valid PAN/expiry
+                        // already populated re-fires eligibility (LaunchedEffect only re-runs on
+                        // pan/expiry changes; without this the slice options would never come
+                        // back after the user navigates away and returns).
+                        lastSliceKey = ""
                     },
                     onSavedCardSelected = { card ->
                         // Avoid re-firing eligibility (and clearing the user's CVV input) when
@@ -330,7 +360,11 @@ fun UnifiedPaymentPageScreen(
                     onCvvChanged = { cardCvv = it },
                     onExpiryChanged = { cardExpiry = it },
                     onCardholderNameChanged = { cardholderName = it },
-                    onSliceOfferSelected = { cardSelectedSliceOffer = it },
+                    onSliceOfferSelected = {
+                        cardSelectedSliceOffer = it
+                        cardSliceSelectionMade = true
+                        paymentOptionError = false
+                    },
                     onGooglePay = onGooglePay,
                     onSamsungPay = onSamsungPay,
                     onClickAaniPay = onClickAaniPay,
@@ -360,6 +394,11 @@ fun UnifiedPaymentPageScreen(
             cardSelectedSliceOffer = cardSelectedSliceOffer,
             cardSelectedVisaPlan = cardSelectedVisaPlan,
             visTermsAccepted = visTermsAccepted,
+            sliceCheckState = sliceCheckState,
+            visCheckState = visCheckState,
+            cardSliceSelectionMade = cardSliceSelectionMade,
+            paymentOptionError = paymentOptionError,
+            onPaymentOptionErrorChange = { paymentOptionError = it },
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -405,6 +444,7 @@ private fun PaymentSectionsContent(
     visTermsAccepted: Boolean,
     visOrderValue: Double,
     visCurrencyCode: String,
+    showPaymentOptionError: Boolean = false,
     onVisPlanSelected: (InstallmentPlan?) -> Unit,
     onVisTermsToggled: (Boolean) -> Unit,
     onToggleOrderSummary: () -> Unit,
@@ -433,8 +473,20 @@ private fun PaymentSectionsContent(
         Spacer(Modifier.height(Spacing.rowGap))
     }
 
-    // ── Google Pay — first after order summary ───────────────────────────────
-    if (showGooglePay) {
+    // When QPay is enabled it takes the express slot at the very top, and the native
+    // wallets (Google/Samsung Pay) drop below the card into the other-options group.
+    val qpayExpress = qpayConfig != null
+
+    // ── QPay express button — above everything when enabled ───────────────────
+    if (qpayConfig != null) {
+        Spacer(Modifier.height(Spacing.sectionGap))
+        QPayExpressButton(onClick = { onClickQPay(qpayConfig) })
+        Spacer(Modifier.height(Spacing.rowGap))
+        TermsAgreementText(modifier = Modifier.padding(horizontal = Spacing.pageH))
+    }
+
+    // ── Google Pay — first after order summary, unless QPay owns the top slot ──
+    if (showGooglePay && !qpayExpress) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
             title = stringResource(R.string.pay_with_google_pay),
@@ -455,6 +507,7 @@ private fun PaymentSectionsContent(
     Spacer(Modifier.height(Spacing.sectionGap))
     CardPaymentSection(
         supportedCards = supportedCards,
+        showNapsLogo = qpayExpress,
         isExpanded = selectedOption == PaymentOption.CARD,
         savedCards = savedCards,
         selectedSavedCard = selectedSavedCard,
@@ -473,6 +526,7 @@ private fun PaymentSectionsContent(
         visTermsAccepted = visTermsAccepted,
         visOrderValue = visOrderValue,
         visCurrencyCode = visCurrencyCode,
+        showPaymentOptionError = showPaymentOptionError,
         onVisPlanSelected = onVisPlanSelected,
         onVisTermsToggled = onVisTermsToggled,
         onToggle = {
@@ -485,17 +539,26 @@ private fun PaymentSectionsContent(
         onSliceOfferSelected = onSliceOfferSelected
     )
 
-    // ── Other payment options (Samsung Pay, Aani, Click to Pay) ─────────────
-    val hasRemainingOptions = showSamsungPay || showAani || clickToPayConfig != null || qpayConfig != null
+    // ── Other payment options below the card ─────────────────────────────────
+    //    With QPay express, Google Pay joins this group; QPay itself is the top button.
+    val belowGooglePay = showGooglePay && qpayExpress
+    val hasRemainingOptions =
+        belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
+            (qpayConfig != null && !qpayExpress)
     if (hasRemainingOptions) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
+            title = if (qpayExpress) {
+                stringResource(R.string.select_other_payment_options)
+            } else {
+                stringResource(R.string.or_select_payment_options)
+            },
             selectedOption = selectedOption,
-            googlePayUiConfig = null,
+            googlePayUiConfig = if (belowGooglePay) googlePayUiConfig else null,
             isSamsungPayAvailable = showSamsungPay,
             aaniConfig = if (showAani) aaniConfig else null,
             clickToPayConfig = clickToPayConfig,
-            qpayConfig = qpayConfig,
+            qpayConfig = if (qpayExpress) null else qpayConfig,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -550,7 +613,7 @@ private fun OrderSummarySection(
                     )
                 }
             }
-            Text(
+            AedAmountText(
                 text = formattedAmount,
                 style = PgType.amountSummary,
                 color = PgColors.textPrimary,
@@ -593,7 +656,7 @@ private fun OrderSummarySection(
                             style = PgType.bodyRowSubtitle,
                             color = PgColors.textSecondary
                         )
-                        Text(
+                        AedAmountText(
                             text = item.amount,
                             style = PgType.amountRow,
                             color = PgColors.textPrimary
@@ -753,6 +816,11 @@ internal fun BottomPayBar(
     cardSelectedSliceOffer: SliceOffer?,
     cardSelectedVisaPlan: InstallmentPlan?,
     visTermsAccepted: Boolean,
+    sliceCheckState: SliceCheckState = SliceCheckState.Idle,
+    visCheckState: VisCheckState = VisCheckState.Idle,
+    cardSliceSelectionMade: Boolean = false,
+    paymentOptionError: Boolean = false,
+    onPaymentOptionErrorChange: (Boolean) -> Unit = {},
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
@@ -768,6 +836,13 @@ internal fun BottomPayBar(
     val visPlanGate = cardSelectedVisaPlan == null ||
             cardSelectedVisaPlan.frequency == payment.sdk.android.visaInstalments.model.PlanFrequency.PayInFull ||
             visTermsAccepted
+
+    val sliceRequiresPick = sliceCheckState is SliceCheckState.Available &&
+            sliceCheckState.offers.isNotEmpty() &&
+            !cardSliceSelectionMade
+    val visRequiresPick = visCheckState is VisCheckState.Available &&
+            visCheckState.plans.matchedPlans.isNotEmpty() &&
+            cardSelectedVisaPlan == null
 
     val isStandardButtonEnabled = when (selectedOption) {
         PaymentOption.CARD -> isCardFormValid && !isProcessing && visPlanGate
@@ -845,6 +920,12 @@ internal fun BottomPayBar(
                         shape = RoundedCornerShape(Radius.button)
                     ),
                 onClick = {
+                    val cardNeedsPick = selectedOption == PaymentOption.CARD && (sliceRequiresPick || visRequiresPick)
+                    val savedCardNeedsPick = selectedOption == PaymentOption.SAVED_CARD && (sliceRequiresPick || visRequiresPick)
+                    if (cardNeedsPick || savedCardNeedsPick) {
+                        onPaymentOptionErrorChange(true)
+                        return@TextButton
+                    }
                     when (selectedOption) {
                         PaymentOption.CARD -> onMakePayment(
                             cardPan,
@@ -866,7 +947,7 @@ internal fun BottomPayBar(
                 enabled = isStandardButtonEnabled,
                 shape = RoundedCornerShape(Radius.button)
             ) {
-                Text(
+                AedAmountText(
                     text = payLabel,
                     style = PgType.buttonPrimary,
                     color = if (isStandardButtonEnabled)

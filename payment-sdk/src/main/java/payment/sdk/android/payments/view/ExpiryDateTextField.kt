@@ -69,7 +69,8 @@ fun ExpiryDateTextField(
         visualTransformation = ExpiryMaskVisualTransformation,
         isError = isError,
         errorText = errorText,
-        onFocusChanged = onFocusChanged
+        onFocusChanged = onFocusChanged,
+        forceLtrInput = true
     )
 }
 

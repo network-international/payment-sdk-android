@@ -25,6 +25,10 @@ class Order {
     @SerializedName(value = "_embedded")
     var embedded: Embedded? = null
 
+    /** True when the order is provisioned for the Samsung Pay V2 accept flow (payment:samsung_pay_v2). */
+    @SerializedName(value = "isSamsungPayV2")
+    var isSamsungPayV2: Boolean? = null
+
     // Other classes
     @Keep
     class Amount {
@@ -67,6 +71,9 @@ class Order {
     class PaymentLinks {
         @SerializedName(value = "payment:samsung_pay")
         var samsungPayLink: Href? = null
+
+        @SerializedName(value = "payment:samsung_pay_v2")
+        var samsungPayV2Link: Href? = null
 
         @SerializedName(value = "payment:saved-card")
         var savedCard: Href? = null
@@ -177,3 +184,22 @@ fun Order.getQPayUrl() = embedded?.payment?.firstOrNull()?.links?.qpay?.href
 fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
 
 fun Order.getVisEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.visEligibilityCheck?.href
+
+/**
+ * V1 in-app Samsung Pay accept URL (.../samsung-pay). Prefer [Order.PaymentLinks.samsungPayLink];
+ * if only [Order.PaymentLinks.samsungPayV2Link] is present, derive V1 by stripping `/accept`.
+ * The V2 web endpoint (.../samsung-pay/accept) must not be used by the native SDK.
+ */
+fun Order.getSamsungPayV1AcceptUrl(): String? {
+    val links = embedded?.payment?.firstOrNull()?.links ?: return null
+    links.samsungPayLink?.href?.takeIf { it.isNotBlank() }?.let { return normalizeSamsungPayV1AcceptUrl(it) }
+    links.samsungPayV2Link?.href?.takeIf { it.isNotBlank() }?.let { return normalizeSamsungPayV1AcceptUrl(it) }
+    return null
+}
+
+fun normalizeSamsungPayV1AcceptUrl(url: String): String =
+    if (url.contains("/samsung-pay/accept")) {
+        url.replace("/samsung-pay/accept", "/samsung-pay")
+    } else {
+        url
+    }

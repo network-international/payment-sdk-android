@@ -106,7 +106,7 @@ fun PartialAuthView(
                 fullAmount
             )
         }
-        Text(
+        payment.sdk.android.payments.view.AedAmountText(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
             text = titleText,
             textAlign = TextAlign.Center,

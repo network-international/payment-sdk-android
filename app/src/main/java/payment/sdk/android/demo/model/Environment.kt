@@ -19,7 +19,12 @@ data class Environment(
     val apiKey: String,
     val outletReference: String,
     val realm: String,
-    val region: Region
+    val region: Region,
+    /**
+     * Merchant identifier used by the Click to Pay config endpoint
+     * (`/config/merchants/{merchantId}/configs/vctp`). Distinct from [outletReference].
+     */
+    val clickToPayMerchantId: String? = null
 ) {
     companion object {
         private const val KEY_SAVED_ENVIRONMENT_ID = "saved_env_id"
@@ -60,9 +65,29 @@ data class Environment(
         } else {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
-                EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
+                EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/transactions/outlets/$outletReference/orders"
             }
+        }
+    }
+
+    /**
+     * Bare API gateway host (no trailing path), used by the Click to Pay merchant config
+     * endpoint among other host-level calls. Derived from the same region/env logic as
+     * [getGatewayUrl].
+     */
+    fun getApiGatewayBaseUrl(): String {
+        if (region == Region.UAE) {
+            return when (type) {
+                EnvironmentType.DEV -> "https://api-gateway-dev.ngenius-payments.com"
+                EnvironmentType.UAT -> "https://api-gateway.sandbox.ngenius-payments.com"
+                EnvironmentType.PROD -> "https://api-gateway.ngenius-payments.com"
+            }
+        }
+        return when (type) {
+            EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com"
+            EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com"
+            EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com"
         }
     }
 
@@ -76,7 +101,7 @@ data class Environment(
         } else {
             return when (type) {
                 EnvironmentType.DEV -> "https://api-gateway.dev.ksa.ngenius-payments.com/identity/auth/access-token"
-                EnvironmentType.UAT -> "https://api-gateway.sandbox.ksa.ngenius-payments.com/identity/auth/access-token"
+                EnvironmentType.UAT -> "https://api-gateway.uat.ksa.ngenius-payments.com/identity/auth/access-token"
                 EnvironmentType.PROD -> "https://api-gateway.ksa.ngenius-payments.com/identity/auth/access-token"
             }
         }

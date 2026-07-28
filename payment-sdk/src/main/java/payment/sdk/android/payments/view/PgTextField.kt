@@ -21,13 +21,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.core.testId
 import payment.sdk.android.payments.theme.PgColors
@@ -52,6 +56,7 @@ fun PgTextField(
     isError: Boolean = false,
     errorText: String? = null,
     onFocusChanged: (Boolean) -> Unit = {},
+    forceLtrInput: Boolean = false,
     testTag: String = ""
 ) {
     // Preserve cursor across recompositions. A fresh TextFieldValue(value) on every recompose
@@ -81,6 +86,7 @@ fun PgTextField(
         isError = isError,
         errorText = errorText,
         onFocusChanged = onFocusChanged,
+        forceLtrInput = forceLtrInput,
         testTag = testTag
     )
 }
@@ -101,6 +107,7 @@ fun PgTextField(
     isError: Boolean = false,
     errorText: String? = null,
     onFocusChanged: (Boolean) -> Unit = {},
+    forceLtrInput: Boolean = false,
     testTag: String = ""
 ) {
     PgTextFieldImpl(
@@ -116,6 +123,7 @@ fun PgTextField(
         isError = isError,
         errorText = errorText,
         onFocusChanged = onFocusChanged,
+        forceLtrInput = forceLtrInput,
         testTag = testTag
     )
 }
@@ -136,6 +144,7 @@ private fun PgTextFieldImpl(
     isError: Boolean,
     errorText: String?,
     onFocusChanged: (Boolean) -> Unit,
+    forceLtrInput: Boolean,
     testTag: String
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -156,45 +165,58 @@ private fun PgTextFieldImpl(
             color = PgColors.textPrimary
         )
         Spacer(Modifier.height(Spacing.fieldLabelGap))
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = PgSize.inputMinHeight)
-                .border(1.dp, borderColor, shape)
-                .background(Color.White, shape)
-                .onFocusChanged { state -> onFocusChanged(state.isFocused) }
-                .let { if (testTag.isNotEmpty()) it.testId(testTag) else it },
-            textStyle = PgType.bodyInput.copy(color = PgColors.textPrimary),
-            keyboardOptions = keyboardOptions,
-            visualTransformation = visualTransformation,
-            interactionSource = interactionSource,
-            singleLine = true,
-            decorationBox = { innerTextField ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        if (value.text.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                style = PgType.bodyPlaceholder,
-                                color = PgColors.textMuted
-                            )
+        val inputTextStyle = PgType.bodyInput.copy(
+            color = PgColors.textPrimary,
+            textDirection = if (forceLtrInput) TextDirection.Ltr else PgType.bodyInput.textDirection
+        )
+        val basicTextField = @Composable {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = PgSize.inputMinHeight)
+                    .border(1.dp, borderColor, shape)
+                    .background(Color.White, shape)
+                    .onFocusChanged { state -> onFocusChanged(state.isFocused) }
+                    .let { if (testTag.isNotEmpty()) it.testId(testTag) else it },
+                textStyle = inputTextStyle,
+                keyboardOptions = keyboardOptions,
+                visualTransformation = visualTransformation,
+                interactionSource = interactionSource,
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (value.text.isEmpty()) {
+                                Text(
+                                    text = placeholder,
+                                    style = PgType.bodyPlaceholder,
+                                    color = PgColors.textMuted
+                                )
+                            }
+                            innerTextField()
                         }
-                        innerTextField()
-                    }
-                    if (trailingIcon != null) {
-                        Spacer(Modifier.width(8.dp))
-                        trailingIcon()
+                        if (trailingIcon != null) {
+                            Spacer(Modifier.width(8.dp))
+                            trailingIcon()
+                        }
                     }
                 }
+            )
+        }
+        if (forceLtrInput) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                basicTextField()
             }
-        )
+        } else {
+            basicTextField()
+        }
         if (isError && !errorText.isNullOrEmpty()) {
             Spacer(Modifier.height(Spacing.fieldLabelGap))
             Text(

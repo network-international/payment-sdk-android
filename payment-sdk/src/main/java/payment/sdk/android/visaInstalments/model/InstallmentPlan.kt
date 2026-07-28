@@ -8,7 +8,6 @@ import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.TermsAndCondition
 import payment.sdk.android.core.VisaPlans
 import java.util.Locale
-import java.util.UUID
 
 @Parcelize
 data class InstallmentPlan(
@@ -61,9 +60,15 @@ data class InstallmentPlan(
             }
         }
 
+        // Pay-in-full needs a STABLE id so equality holds across recompositions. A random UUID
+        // was being regenerated every time `fromVisaPlans` re-ran (which happens on every
+        // recomposition because `OrderAmount` is not a data class), making the selected pill
+        // never match the previously-selected plan and appear unselected.
+        const val PAY_IN_FULL_ID = "pay-in-full"
+
         private fun payInFull(amount: String): InstallmentPlan {
             return InstallmentPlan(
-                id = UUID.randomUUID().toString(),
+                id = PAY_IN_FULL_ID,
                 amount = amount,
                 currency = "",
                 totalUpFrontFees = "",

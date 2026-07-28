@@ -16,6 +16,7 @@ import com.samsung.android.sdk.samsungpay.v2.payment.sheet.AmountConstants
 import com.samsung.android.sdk.samsungpay.v2.payment.sheet.CustomSheet
 import payment.sdk.android.core.Order
 import payment.sdk.android.core.TransactionServiceHttpAdapter
+import payment.sdk.android.core.getSamsungPayV1AcceptUrl
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.samsungpay.mapper.SamsungPayCardMapper
 import kotlin.coroutines.resume
@@ -67,9 +68,17 @@ class SamsungPayClient(
         samsungPay.getSamsungPayStatus(statusListener)
     }
 
+    /**
+     * @param paymentToken An already-obtained `payment-token` (cookie value). Pass this when the
+     *   host has already authorized the order (e.g. the Unified Payment Page authorizes on load,
+     *   consuming the single-use auth code). When non-null, the redundant re-authorization is
+     *   skipped — re-authorizing would fail because the auth code has already been consumed. When
+     *   null, this falls back to authorizing the order itself (legacy standalone Samsung Pay flow).
+     */
     fun startSamsungPay(
         order: Order,
         merchantName: String,
+        paymentToken: String? = null,
         samsungPayResponse: SamsungPayResponse
     ) {
         val outletId = order.outletId ?: order.embedded?.payment?.firstOrNull()?.outletId
@@ -93,66 +102,88 @@ class SamsungPayClient(
             return
         }
 
-        if (order.embedded?.payment?.get(0)?.links?.samsungPayLink?.href == null) {
+        // Native in-app flow uses the V1 accept endpoint (.../samsung-pay), not payment:samsung_pay_v2.
+        val samsungPaylink = order.getSamsungPayV1AcceptUrl()
+        if (samsungPaylink == null) {
             samsungPayResponse.onFailure("Samsung Pay is not enabled")
             return
         }
-
-        val samsungPaylink = order.embedded!!.payment[0].links!!.samsungPayLink!!.href!!
+        Log.d("SamsungPayClient", "Using V1 accept URL: $samsungPaylink")
 
         val customSheet = CustomSheet()
         customSheet.addControl(makeAmountControl(order.amount!!)!!)
 
+        if (!paymentToken.isNullOrBlank()) {
+            // Host already authorized the order — reuse its payment-token, skip re-authorization.
+            launchPaymentSheet(order, merchantName, outletId, samsungPaylink, paymentToken, customSheet, samsungPayResponse)
+            return
+        }
+
         val transactionServiceHttpAdapter = TransactionServiceHttpAdapter(context.applicationContext)
-        transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, _: Exception? ->
-            if (authTokens?.get("payment-token") == null) {
-                samsungPayResponse.onFailure("Could not authorize payment")
+        transactionServiceHttpAdapter.authorizePayment(order) { authTokens: HashMap<String, String>?, error: Exception? ->
+            val token = authTokens?.get("payment-token")
+            if (token == null) {
+                val reason = error?.message
+                    ?: "no 'payment-token' cookie returned (cookies=${authTokens?.keys})"
+                Log.e("SamsungPayClient", "authorizePayment failed: $reason", error)
+                samsungPayResponse.onFailure("Could not authorize payment: $reason")
             } else {
-                val paymentToken = authTokens["payment-token"]!!
-                val samsungPayTransactionListener = SamsungPayTransactionListener(
-                    context,
-                    samsungPayResponse,
-                    samsungPaylink,
-                    paymentToken
-                ) { _: CardInfo?, customSheet: CustomSheet? ->
-                    val amountBoxControl: AmountBoxControl =
-                        customSheet?.getSheetControl(AMOUNT_CONTROL_ID) as AmountBoxControl
-                    amountBoxControl.setAmountTotal(
-                        order.amount!!.value!!.toDouble() / 100,
-                        AmountConstants.FORMAT_TOTAL_PRICE_ONLY
-                    ) // grand total
-
-                    customSheet.updateControl(amountBoxControl)
-                    try {
-                        paymentManager.updateSheet(customSheet)
-                    } catch (e: IllegalStateException) {
-                        e.printStackTrace()
-                    } catch (e: NullPointerException) {
-                        e.printStackTrace()
-                    }
-                }
-
-                // Notice that some cards are not supported by Samsung Pay that are already supported by Payment Gateway
-                val allowedCards = order.paymentMethods!!.card!!.mapNotNull { cardType ->
-                    SamsungPayCardMapper.stringToSamsungPaySdk(cardType)
-                }
-
-                val paymentInfo = CustomSheetPaymentInfo.Builder()
-                    .setMerchantId(outletId)
-                    .setMerchantName(merchantName)
-                    .setOrderNumber(order.reference)
-                    .setAllowedCardBrands(allowedCards)
-                    .setCardHolderNameEnabled(true)
-                    .setRecurringEnabled(false)
-                    .setCustomSheet(customSheet)
-                    .build()
-
-                paymentManager.startInAppPayWithCustomSheet(
-                    paymentInfo,
-                    samsungPayTransactionListener
-                )
+                launchPaymentSheet(order, merchantName, outletId, samsungPaylink, token, customSheet, samsungPayResponse)
             }
         }
+    }
+
+    private fun launchPaymentSheet(
+        order: Order,
+        merchantName: String,
+        outletId: String,
+        samsungPaylink: String,
+        paymentToken: String,
+        customSheet: CustomSheet,
+        samsungPayResponse: SamsungPayResponse
+    ) {
+        val samsungPayTransactionListener = SamsungPayTransactionListener(
+            context,
+            samsungPayResponse,
+            samsungPaylink,
+            paymentToken
+        ) { _: CardInfo?, sheet: CustomSheet? ->
+            val amountBoxControl: AmountBoxControl =
+                sheet?.getSheetControl(AMOUNT_CONTROL_ID) as AmountBoxControl
+            amountBoxControl.setAmountTotal(
+                order.amount!!.value!!.toDouble() / 100,
+                AmountConstants.FORMAT_TOTAL_PRICE_ONLY
+            ) // grand total
+
+            sheet.updateControl(amountBoxControl)
+            try {
+                paymentManager.updateSheet(sheet)
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+            } catch (e: NullPointerException) {
+                e.printStackTrace()
+            }
+        }
+
+        // Notice that some cards are not supported by Samsung Pay that are already supported by Payment Gateway
+        val allowedCards = order.paymentMethods!!.card!!.mapNotNull { cardType ->
+            SamsungPayCardMapper.stringToSamsungPaySdk(cardType)
+        }
+
+        val paymentInfo = CustomSheetPaymentInfo.Builder()
+            .setMerchantId(outletId)
+            .setMerchantName(merchantName)
+            .setOrderNumber(order.reference)
+            .setAllowedCardBrands(allowedCards)
+            .setCardHolderNameEnabled(true)
+            .setRecurringEnabled(false)
+            .setCustomSheet(customSheet)
+            .build()
+
+        paymentManager.startInAppPayWithCustomSheet(
+            paymentInfo,
+            samsungPayTransactionListener
+        )
     }
 
     private fun makeAmountControl(amount: Order.Amount): AmountBoxControl? {

@@ -24,10 +24,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +42,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -72,6 +70,7 @@ fun CardPaymentSection(
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     supportedCards: Set<CardType>,
+    showNapsLogo: Boolean = false,
     savedCards: List<SavedCard> = emptyList(),
     selectedSavedCard: SavedCard? = null,
     savedCardCvv: String = "",
@@ -89,6 +88,7 @@ fun CardPaymentSection(
     visTermsAccepted: Boolean = false,
     visOrderValue: Double = 0.0,
     visCurrencyCode: String = "",
+    showPaymentOptionError: Boolean = false,
     onVisPlanSelected: (InstallmentPlan?) -> Unit = {},
     onVisTermsToggled: (Boolean) -> Unit = {},
     onToggle: () -> Unit,
@@ -140,6 +140,17 @@ fun CardPaymentSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // NAPS leads the accepted-brand strip when QPay is enabled.
+            if (showNapsLogo) {
+                Image(
+                    modifier = Modifier
+                        .height(18.dp)
+                        .widthIn(max = 44.dp),
+                    painter = painterResource(R.drawable.naps_card_logo),
+                    contentDescription = "NAPS",
+                    contentScale = ContentScale.Fit
+                )
+            }
             supportedCards.forEach { card ->
                 Image(
                     modifier = Modifier
@@ -152,8 +163,8 @@ fun CardPaymentSection(
             }
         }
 
-        // Saved cards — between brand icons and "Pay by card" toggle (no horizontal padding so
-        // the selection background goes edge-to-edge within the card section)
+        // Saved cards — between brand icons and "Pay by card" toggle. Each row has its own
+        // pageH outer margin (inside SavedCardRow), matching the Aani tile alignment.
         if (savedCards.isNotEmpty()) {
             savedCards.forEach { card ->
                 SavedCardRow(
@@ -163,25 +174,36 @@ fun CardPaymentSection(
                     onSelect = { onSavedCardSelected(card) },
                     onCvvChanged = onSavedCardCvvChanged
                 )
+                Spacer(Modifier.height(Spacing.rowGap))
             }
         }
 
-        // Radio toggle row
+        // "Pay by Card" header tile — matches the Pay-with-Aani / Samsung Pay / Click-to-Pay
+        // tile styling exactly (same outer pageH margin, border, surfaceRow background,
+        // inner padding). Selection is shown by the radio dot, not by tile chrome.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = Spacing.pageH)
+                .clip(RoundedCornerShape(Radius.row))
+                .border(1.dp, PgColors.borderRow, RoundedCornerShape(Radius.row))
+                .background(PgColors.surfaceRow)
                 .clickable { onToggle() }
-                .padding(horizontal = Spacing.pageH, vertical = Spacing.rowPaddingV),
+                .padding(horizontal = Spacing.rowPaddingH, vertical = Spacing.rowPaddingV),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(Modifier.width(Spacing.rowPaddingH))
             PaymentRadioButton(selected = isExpanded)
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(Spacing.rowGap))
             Text(
                 text = stringResource(R.string.pay_by_card),
                 style = PgType.bodyRowTitle,
-                color = PgColors.textPrimary
+                color = PgColors.textPrimary,
+                modifier = Modifier.weight(1f)
             )
+            // Invisible spacer matching the trailing-logo height so this tile's
+            // intrinsic height matches the Aani / Samsung Pay / Click-to-Pay tiles
+            // (which have a 24dp logo on the right).
+            Spacer(Modifier.size(PgSize.providerLogoHeight))
         }
 
         AnimatedVisibility(
@@ -244,7 +266,8 @@ fun CardPaymentSection(
                 .clip(RectangleShape)
                 .padding(
                     start = Spacing.pageH + PgSize.radioOuter + 12.dp,
-                    end = Spacing.pageH
+                    end = Spacing.pageH,
+                    top = Spacing.rowGap
                 )) {
                 CardNumberTextField(
                     pan = pan,
@@ -345,6 +368,7 @@ fun CardPaymentSection(
                                 cvvDirty = true
                             }
                         },
+                        forceLtrInput = true,
                         testTag = "sdk_card_field_cvv"
                     )
                 }
@@ -408,11 +432,11 @@ fun CardPaymentSection(
                     label = stringResource(R.string.name_on_card_label),
                     placeholder = stringResource(R.string.name_on_card_placeholder),
                     trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
+                        Image(
+                            painter = painterResource(R.drawable.ic_user_input),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = PgColors.textMuted
+                            contentScale = ContentScale.Fit
                         )
                     },
                     testTag = "sdk_card_field_cardholderName"
@@ -424,6 +448,8 @@ fun CardPaymentSection(
                         onOfferSelected = { onSliceOfferSelected(it) },
                         pillBleedStart = Spacing.pageH + PgSize.radioOuter + 12.dp,
                         pillBleedEnd = Spacing.pageH,
+                        showSelectionError = showPaymentOptionError,
+                        isIslamic = sliceCheckState.isIslamic,
                     )
                 }
 
@@ -443,7 +469,8 @@ fun CardPaymentSection(
                     selectedPlan = visSelectedPlan,
                     termsAccepted = visTermsAccepted,
                     onPlanSelected = onVisPlanSelected,
-                    onTermsToggled = onVisTermsToggled
+                    onTermsToggled = onVisTermsToggled,
+                    showSelectionError = showPaymentOptionError,
                 )
                 Spacer(Modifier.height(Spacing.sectionGap))
             }

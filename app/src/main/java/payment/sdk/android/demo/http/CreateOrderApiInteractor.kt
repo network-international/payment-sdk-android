@@ -17,15 +17,11 @@ class CreateOrderApiInteractor(private val apiService: ApiService) {
             return Result.Error(message = "Failed to get access token")
         }
 
-        val order = apiService.createOrder(
+        // Propagate the API's actual error message (the "message" field) on failure.
+        return apiService.createOrder(
             url = environment.getGatewayUrl(),
             accessToken = accessToken,
             orderRequest = orderRequest
         )
-
-        if (order == null) {
-            return Result.Error(message = "Failed to create order")
-        }
-        return Result.Success(data = order)
     }
 }

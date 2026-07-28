@@ -31,6 +31,7 @@ import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.screen.whatyouneed.WhatYouNeedScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.core.interactor.ClickToPayConfig
+import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.googlepay.GooglePayConfig
 import payment.sdk.android.payments.SamsungPayConfig
 import payment.sdk.android.payments.UnifiedPaymentPageLauncher
@@ -224,11 +225,11 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
             environment = GooglePayConfig.Environment.Test,
             merchantGatewayId = "BCR2DN4T27NJW2Y"
         )
-        // Click to Pay configuration - enable Visa Unified Click to Pay
+        // Click to Pay configuration — the merchant only declares merchantId; the SDK
+        // resolves dpaId / dpaClientId / dpaName from
+        // `/config/merchants/{merchantId}/configs/vctp` right after the order is authorized.
         val clickToPayConfig = ClickToPayConfig(
-            dpaId = "6BDAU1LI2WBPBQR665ED212rYO7vsj9wje83XQxlwzACNikj8",
-            dpaClientId = "10c4cb74-3493-4515-ab72-2b303f790241",
-            dpaName = "Demo Merchant",
+            merchantId = Environment.getSelectedEnvironment(this)?.clickToPayMerchantId,
             cardBrands = listOf("visa", "mastercard"),
             isSandbox = true,
             testOtpMode = false

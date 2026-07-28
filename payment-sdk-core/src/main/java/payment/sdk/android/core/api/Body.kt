@@ -13,6 +13,10 @@ abstract class Body(protected val parameters: Map<String, Any>) {
     class Json(parameters: Map<String, Any>) : Body(parameters) {
         override fun encode() =
                 JSONObject(parameters).toString()
+
+        // A JSON body is always sent, even when empty: the encoded form is a valid `{}` and some
+        // endpoints (e.g. QPay init) reject a missing body. Use Body.Empty() to send no body.
+        override fun isNotEmpty(): Boolean = true
     }
 
     class Form(parameters: Map<String, Any>) : Body(parameters) {

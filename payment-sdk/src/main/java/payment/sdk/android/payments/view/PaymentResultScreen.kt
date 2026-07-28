@@ -2,6 +2,8 @@ package payment.sdk.android.payments.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +16,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +36,9 @@ import payment.sdk.android.core.testId
 import payment.sdk.android.payments.model.PaymentResultArgs
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.sdk.R
+import kotlinx.coroutines.delay
+
+private const val AUTO_DISMISS_DELAY_MS = 1000L
 
 private val SuccessGreen = Color(0xFF2EB852)
 private val FailureRed = Color(0xFFE63835)
@@ -48,11 +52,22 @@ fun PaymentResultScreen(
 ) {
     val accent = if (args.isSuccess) SuccessGreen else FailureRed
 
+    // Show the result for a moment, then hand control back to the merchant app — the merchant
+    // confirms/cancels the order off our result, so we must not block on a tap.
+    LaunchedEffect(Unit) {
+        delay(AUTO_DISMISS_DELAY_MS)
+        onDone()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .navigationBarsPadding()
+            // The whole page scrolls — header, status block, footer, and the Done button —
+            // so nothing gets clipped when the slice receipt section makes the page taller
+            // than the viewport.
+            .verticalScroll(rememberScrollState())
     ) {
         // ── Merchant header (shop logo + order summary) — same style as the unified payment page
         MerchantHeader(
@@ -60,15 +75,14 @@ fun PaymentResultScreen(
             orderItems = args.orderItems
         )
 
-        // ── Centered status block ───────────────────────────────────────────────
+        // ── Status block ────────────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
                 .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
+            Spacer(Modifier.height(24.dp))
             Icon(
                 painter = painterResource(
                     id = if (args.isSuccess) R.drawable.ic_payment_success else R.drawable.ic_payment_failure
@@ -82,7 +96,7 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text(
+            AedAmountText(
                 text = if (args.isSuccess) {
                     if (args.formattedAmount != null) {
                         stringResource(R.string.payment_result_success_title, args.formattedAmount)
@@ -92,7 +106,7 @@ fun PaymentResultScreen(
                 } else {
                     stringResource(R.string.payment_result_failure_title)
                 },
-                fontSize = 22.sp,
+                style = androidx.compose.ui.text.TextStyle(fontSize = 22.sp),
                 fontWeight = FontWeight.SemiBold,
                 color = accent,
                 textAlign = TextAlign.Center,
@@ -126,6 +140,7 @@ fun PaymentResultScreen(
                 label = stringResource(R.string.payment_result_date_time),
                 value = args.dateTime
             )
+            Spacer(Modifier.height(24.dp))
         }
 
         // ── Footer + done button ────────────────────────────────────────────────
@@ -136,28 +151,7 @@ fun PaymentResultScreen(
         ) {
             PaymentFooterView(supportedCards = args.supportedCards)
 
-            Spacer(Modifier.height(16.dp))
-
-            Button(
-                onClick = onDone,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .testId("sdk_result_button_done"),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = accent,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.payment_result_done),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
@@ -223,9 +217,9 @@ private fun MerchantHeader(
                     fontSize = 13.sp,
                     color = MutedGrey
                 )
-                Text(
+                AedAmountText(
                     text = formattedAmount,
-                    fontSize = 18.sp,
+                    style = androidx.compose.ui.text.TextStyle(fontSize = 18.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryText
                 )
@@ -254,7 +248,12 @@ private fun MerchantHeader(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(text = item.name, fontSize = 13.sp, color = PrimaryText)
-                        Text(text = item.amount, fontSize = 13.sp, color = PrimaryText, fontWeight = FontWeight.Medium)
+                        AedAmountText(
+                            text = item.amount,
+                            style = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                            color = PrimaryText,
+                            fontWeight = FontWeight.Medium,
+                        )
                     }
                 }
                 Spacer(Modifier.height(8.dp))

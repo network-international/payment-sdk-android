@@ -20,7 +20,6 @@ import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import payment.sdk.android.sdk.R
 import payment.sdk.android.core.VisaPlans
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.payments.theme.PgColors
@@ -52,16 +52,10 @@ internal fun VisaInstallmentSection(
     termsAccepted: Boolean,
     onPlanSelected: (InstallmentPlan?) -> Unit,
     onTermsToggled: (Boolean) -> Unit,
+    showSelectionError: Boolean = false,
 ) {
     val installmentPlans = remember(plans, orderAmount) {
         InstallmentPlan.fromVisaPlans(plans, orderAmount)
-    }
-
-    // Default selection = "Pay in full" (the synthesized first item) when nothing is chosen yet.
-    LaunchedEffect(installmentPlans) {
-        if (selectedPlan == null && installmentPlans.isNotEmpty()) {
-            onPlanSelected(installmentPlans.first())
-        }
     }
 
     val brandBlue = Color(0xFF2E6FF2)
@@ -70,11 +64,14 @@ internal fun VisaInstallmentSection(
 
     Spacer(Modifier.height(Spacing.rowGap))
 
-    // Header — megaphone glyph + "Eligible for instalments"
+    // Header — megaphone icon + "Eligible for instalments". Icon shape mirrors the iOS
+    // SF Symbol `megaphone.fill` used in VisaInstallmentInlineView.
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = "📢",
-            fontSize = 16.sp
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_megaphone_fill),
+            contentDescription = null,
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(brandBlue),
+            modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(6.dp))
         Text(
@@ -100,12 +97,12 @@ internal fun VisaInstallmentSection(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(Radius.row))
+                    .background(Color.White, RoundedCornerShape(Radius.row))
                     .border(
                         width = 1.dp,
                         color = if (selected) brandBlue else borderGrey,
                         shape = RoundedCornerShape(Radius.row)
                     )
-                    .background(Color.White, RoundedCornerShape(Radius.row))
                     .clickable { onPlanSelected(plan) }
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
@@ -117,6 +114,15 @@ internal fun VisaInstallmentSection(
                 )
             }
         }
+    }
+
+    if (showSelectionError) {
+        Spacer(Modifier.height(6.dp))
+        androidx.compose.material.Text(
+            text = androidx.compose.ui.res.stringResource(R.string.select_payment_option_validation),
+            color = Color(0xFFD32F2F),
+            fontSize = 13.sp
+        )
     }
 
     val activePlan = selectedPlan
@@ -199,7 +205,8 @@ internal fun VisaInstallmentSection(
 
     Spacer(Modifier.height(8.dp))
 
-    // Footer — "Instalment enabled by VISA"
+    // Footer — "Instalment enabled by [Visa logo]". Logo uses the official brand asset
+    // (ic_logo_visa) that ships with the rest of the SDK for visual consistency.
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = "Instalment enabled by ",
@@ -207,11 +214,10 @@ internal fun VisaInstallmentSection(
             fontWeight = FontWeight.Medium,
             color = brandBlue
         )
-        Text(
-            text = "VISA",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF1A1F71)
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.ic_logo_visa),
+            contentDescription = "Visa",
+            modifier = Modifier.height(14.dp)
         )
     }
 }

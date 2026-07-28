@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
+import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.ui.screen.AppDialog
 import payment.sdk.android.core.testId
 
@@ -38,8 +39,13 @@ fun EditEnvironmentDialog(
     var apiKey by remember { mutableStateOf(environment.apiKey) }
     var outletReference by remember { mutableStateOf(environment.outletReference) }
     var realm by remember { mutableStateOf(environment.realm) }
+    var clickToPayMerchantId by remember { mutableStateOf(environment.clickToPayMerchantId.orEmpty()) }
     val entries = EnvironmentType.values()
     var selectedEnvironment by remember { mutableIntStateOf(entries.indexOf(environment.type)) }
+    val regionEntries = Region.values()
+    var selectedRegion by remember {
+        mutableIntStateOf(regionEntries.indexOf(environment.region).coerceAtLeast(0))
+    }
 
     AppDialog(title = "Edit Environment", onCancel = onCancel) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -53,6 +59,23 @@ fun EditEnvironmentDialog(
                     )
                 ) {
                     Text(text = option.value)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Region")
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().testId("editenv_picker_region")) {
+            regionEntries.forEachIndexed { index, option ->
+                SegmentedButton(
+                    selected = selectedRegion == index,
+                    onClick = { selectedRegion = index },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = regionEntries.count()
+                    )
+                ) {
+                    Text(text = option.displayValue)
                 }
             }
         }
@@ -85,6 +108,13 @@ fun EditEnvironmentDialog(
             label = { Text("Outlet Reference") },
             modifier = Modifier.fillMaxWidth().testId("editenv_field_outletReference")
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = clickToPayMerchantId,
+            onValueChange = { clickToPayMerchantId = it },
+            label = { Text("Click to Pay Merchant ID (optional)") },
+            modifier = Modifier.fillMaxWidth().testId("editenv_field_clickToPayMerchantId")
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -99,7 +129,8 @@ fun EditEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = environment.region
+                            region = regionEntries[selectedRegion],
+                            clickToPayMerchantId = clickToPayMerchantId.takeIf { it.isNotBlank() }
                         )
                     )
                     onCancel()
