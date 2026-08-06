@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,8 @@ class SavedCardPaymentApiInteractorTest {
 
     private val httpClient: HttpClient = mockk(relaxed = true)
 
+    private val app: Application = mockk(relaxed = true)
+
     private lateinit var sut: SavedCardPaymentApiInteractor
 
     private val savedCardPaymentRequest = SavedCardPaymentApiRequest(
@@ -45,7 +48,7 @@ class SavedCardPaymentApiInteractorTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = SavedCardPaymentApiInteractor(httpClient)
+        sut = SavedCardPaymentApiInteractor(httpClient, app)
     }
 
     @After

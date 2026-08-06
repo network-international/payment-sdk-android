@@ -36,10 +36,13 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.ClickToPayMerchantConfigInteractor
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
+import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
+import payment.sdk.android.core.interactor.SliceEligibilityInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
@@ -71,6 +74,10 @@ class UnifiedPaymentPageViewModelTest {
     private val googlePayConfigFactory: GooglePayConfigFactory = mockk(relaxed = true)
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor = mockk(relaxed = true)
     private val getOrderApiInteractor: GetOrderApiInteractor = mockk(relaxed = true)
+    private val sliceEligibilityInteractor: SliceEligibilityInteractor = mockk(relaxed = true)
+    private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor = mockk(relaxed = true)
+    private val clickToPayMerchantConfigInteractor: ClickToPayMerchantConfigInteractor =
+        mockk(relaxed = true)
 
     private lateinit var sut: UnifiedPaymentPageViewModel
 
@@ -87,6 +94,9 @@ class UnifiedPaymentPageViewModelTest {
             googlePayConfigFactory = googlePayConfigFactory,
             googlePayAcceptInteractor = googlePayAcceptInteractor,
             getOrderApiInteractor = getOrderApiInteractor,
+            sliceEligibilityInteractor = sliceEligibilityInteractor,
+            savedCardPaymentApiInteractor = savedCardPaymentApiInteractor,
+            clickToPayMerchantConfigInteractor = clickToPayMerchantConfigInteractor,
             dispatcher = testDispatcher
         )
     }
@@ -165,9 +175,10 @@ class UnifiedPaymentPageViewModelTest {
                 )
             } returns GooglePayUiConfig(
                 allowedPaymentMethods = "",
-                task = mockk(),
                 canUseGooglePay = false,
-                googlePayAcceptUrl = ""
+                googlePayAcceptUrl = "",
+                paymentsClient = mockk(relaxed = true),
+                paymentDataRequest = mockk(relaxed = true)
             )
 
             sut.authorize()
@@ -389,9 +400,10 @@ class UnifiedPaymentPageViewModelTest {
             )
         } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
-            task = mockk(),
             canUseGooglePay = false,
-            googlePayAcceptUrl = ""
+            googlePayAcceptUrl = "",
+            paymentsClient = mockk(relaxed = true),
+            paymentDataRequest = mockk(relaxed = true)
         )
         val orderResponse = Gson().fromJson(
             ClassLoader.getSystemResource("orderResponse.json").readText(),
@@ -476,9 +488,10 @@ class UnifiedPaymentPageViewModelTest {
             )
         } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
-            task = mockk(),
             canUseGooglePay = false,
-            googlePayAcceptUrl = ""
+            googlePayAcceptUrl = "",
+            paymentsClient = mockk(relaxed = true),
+            paymentDataRequest = mockk(relaxed = true)
         )
 
         sut.authorize()
