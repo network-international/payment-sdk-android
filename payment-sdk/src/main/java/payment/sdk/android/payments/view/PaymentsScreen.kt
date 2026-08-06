@@ -78,6 +78,7 @@ import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
 import payment.sdk.android.core.CardMapping
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.SavedCard
@@ -114,6 +115,7 @@ fun UnifiedPaymentPageScreen(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
     savedCards: List<SavedCard> = emptyList(),
     orderItems: List<OrderItem> = emptyList(),
     sliceCheckState: SliceCheckState = SliceCheckState.Idle,
@@ -129,6 +131,7 @@ fun UnifiedPaymentPageScreen(
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
+    onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
     onClose: () -> Unit
 ) {
     // ── Selection state ──────────────────────────────────────────────────────
@@ -214,7 +217,8 @@ fun UnifiedPaymentPageScreen(
     val showGooglePay = showWallets && googlePayUiConfig != null
     val showSamsungPay = showWallets && isSamsungPayAvailable
     val showAani = showWallets && aaniConfig != null
-    val hasOtherOptions = showGooglePay || showSamsungPay || showAani || clickToPayConfig != null || qpayConfig != null
+    val hasOtherOptions = showGooglePay || showSamsungPay || showAani ||
+            clickToPayConfig != null || qpayConfig != null || benefitConfig != null
 
     val logoResId = if (SDKConfig.merchantLogoResId != 0) SDKConfig.merchantLogoResId
     else R.drawable.network_international_logo
@@ -292,6 +296,7 @@ fun UnifiedPaymentPageScreen(
                     aaniConfig = aaniConfig,
                     clickToPayConfig = clickToPayConfig,
                     qpayConfig = qpayConfig,
+                    benefitConfig = benefitConfig,
                     savedCards = savedCards.takeLast(3),
                     orderItems = orderItems,
                     sliceCheckState = sliceCheckState,
@@ -387,6 +392,7 @@ fun UnifiedPaymentPageScreen(
             aaniConfig = aaniConfig,
             clickToPayConfig = clickToPayConfig,
             qpayConfig = qpayConfig,
+            benefitConfig = benefitConfig,
             cardPan = cardPan,
             cardCvv = cardCvv,
             cardExpiry = cardExpiry,
@@ -404,6 +410,7 @@ fun UnifiedPaymentPageScreen(
             onClickAaniPay = onClickAaniPay,
             onClickToPay = onClickToPay,
             onClickQPay = onClickQPay,
+            onClickBenefit = onClickBenefit,
             onMakePayment = onMakePayment,
             onMakeSavedCardPayment = onMakeSavedCardPayment
         )
@@ -426,6 +433,7 @@ private fun PaymentSectionsContent(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
     savedCards: List<SavedCard>,
     orderItems: List<OrderItem>,
     sliceCheckState: SliceCheckState,
@@ -544,7 +552,7 @@ private fun PaymentSectionsContent(
     val belowGooglePay = showGooglePay && qpayExpress
     val hasRemainingOptions =
         belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
-            (qpayConfig != null && !qpayExpress)
+            benefitConfig != null || (qpayConfig != null && !qpayExpress)
     if (hasRemainingOptions) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
@@ -559,6 +567,7 @@ private fun PaymentSectionsContent(
             aaniConfig = if (showAani) aaniConfig else null,
             clickToPayConfig = clickToPayConfig,
             qpayConfig = if (qpayExpress) null else qpayConfig,
+            benefitConfig = benefitConfig,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -809,6 +818,7 @@ internal fun BottomPayBar(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
     cardPan: String,
     cardCvv: String,
     cardExpiry: TextFieldValue,
@@ -826,6 +836,7 @@ internal fun BottomPayBar(
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
+    onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String, sliceOffer: SliceOffer?, visaPlan: InstallmentPlan?) -> Unit,
     onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?) -> Unit
 ) {
@@ -849,7 +860,8 @@ internal fun BottomPayBar(
         PaymentOption.SAVED_CARD -> isSavedCardReady && !isProcessing
         PaymentOption.AANI,
         PaymentOption.CLICK_TO_PAY,
-        PaymentOption.QPAY -> !isProcessing
+        PaymentOption.QPAY,
+        PaymentOption.BENEFIT -> !isProcessing
         PaymentOption.GOOGLE_PAY,
         PaymentOption.SAMSUNG_PAY,
         null -> false
@@ -941,6 +953,7 @@ internal fun BottomPayBar(
                         PaymentOption.AANI -> aaniConfig?.let { onClickAaniPay(it) }
                         PaymentOption.CLICK_TO_PAY -> clickToPayConfig?.let { onClickToPay(it) }
                         PaymentOption.QPAY -> qpayConfig?.let { onClickQPay(it) }
+                        PaymentOption.BENEFIT -> benefitConfig?.let { onClickBenefit(it) }
                         else -> {}
                     }
                 },

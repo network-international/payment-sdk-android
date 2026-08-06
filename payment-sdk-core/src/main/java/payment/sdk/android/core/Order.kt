@@ -15,6 +15,9 @@ class Order {
     var paymentMethods: PaymentMethods? = null
     var language: String = "en"
 
+    /** PURCHASE, AUTH, SALE… Benefit is only offered on PURCHASE orders. */
+    var action: String? = null
+
     @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
 
@@ -180,6 +183,22 @@ fun Order.getOrderId() = embedded?.payment?.firstOrNull()?.reference?.substringB
 
 /** Backend QPay endpoint that returns the QCB form fields. */
 fun Order.getQPayUrl() = embedded?.payment?.firstOrNull()?.links?.qpay?.href
+
+/**
+ * Benefit initiation endpoint. The gateway publishes no `payment:benefit` rel, so it is derived
+ * from the payment's own `self` href — that keeps the gateway host authoritative rather than
+ * hard-coding one per environment.
+ */
+fun Order.getBenefitUrl() = getSelfUrl()?.trimEnd('/')?.let { "$it/benefit" }
+
+/**
+ * Benefit is only accepted for a BHD purchase on an outlet that lists BENEFIT among its card
+ * schemes. Anything else is rejected by the gateway, so the option must not be offered.
+ */
+fun Order.isBenefitSupported() =
+    paymentMethods?.card?.any { it.equals("BENEFIT", ignoreCase = true) } == true &&
+            action.equals("PURCHASE", ignoreCase = true) &&
+            amount?.currencyCode.equals("BHD", ignoreCase = true)
 
 fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
 

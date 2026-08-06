@@ -25,7 +25,10 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.core.getBenefitUrl
 import payment.sdk.android.core.getQPayUrl
+import payment.sdk.android.core.isBenefitSupported
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.core.interactor.ClickToPayMerchantConfigInteractor
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
@@ -313,6 +316,19 @@ internal class UnifiedPaymentPageViewModel(
             )
         }
 
+        // Configure Benefit if the order lists BENEFIT and is a BHD purchase. The gateway rejects
+        // anything else, so the row never shows for other currencies or order actions.
+        val benefitConfig = run {
+            if (!order.isBenefitSupported()) return@run null
+            val benefitUrl = order.getBenefitUrl() ?: return@run null
+            BenefitLauncher.Config(
+                benefitUrl = benefitUrl,
+                orderUrl = orderUrl,
+                accessToken = accessToken,
+                currencyCode = currencyCode
+            )
+        }
+
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
         if (supportedCards.isEmpty()) {
@@ -351,6 +367,7 @@ internal class UnifiedPaymentPageViewModel(
                 aaniConfig = aaniConfig,
                 clickToPayConfig = clickToPayConfig,
                 qpayConfig = qpayConfig,
+                benefitConfig = benefitConfig,
                 payerIp = payerIp,
                 orderReference = order.reference.orEmpty(),
                 savedCards = cardPaymentsIntent.savedCards,

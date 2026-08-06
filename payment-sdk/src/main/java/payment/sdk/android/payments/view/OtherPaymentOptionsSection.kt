@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
 import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.payments.theme.PgSize
@@ -48,6 +49,7 @@ fun OtherPaymentOptionsSection(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
@@ -146,6 +148,22 @@ fun OtherPaymentOptionsSection(
                 onSelect = { onOptionSelected(PaymentOption.QPAY) }
             )
         }
+
+        if (benefitConfig != null) {
+            PaymentOptionRow(
+                selected = selectedOption == PaymentOption.BENEFIT,
+                label = stringResource(R.string.benefit),
+                trailingIcon = {
+                    Image(
+                        painter = painterResource(R.drawable.benefit_logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(PgSize.providerLogoHeight),
+                        contentScale = ContentScale.Fit
+                    )
+                },
+                onSelect = { onOptionSelected(PaymentOption.BENEFIT) }
+            )
+        }
     }
 }
 
@@ -191,8 +209,8 @@ fun QPayExpressButton(
 private fun PaymentOptionRow(
     selected: Boolean,
     label: String,
-    trailingIcon: @Composable () -> Unit,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    trailingIcon: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = Modifier

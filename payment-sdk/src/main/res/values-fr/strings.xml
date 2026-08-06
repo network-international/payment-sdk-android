@@ -87,6 +87,7 @@
 
     <string name="aani">Payer avec AANI</string>
     <string name="qpay">Payer avec QPay</string>
+    <string name="benefit">Payer avec Benefit</string>
     <string name="qpay_express_pay_with">Payer avec</string>
     <string name="aani_mobile_number">Numéro de mobile</string>
     <string name="aani_emirates_id">Emirates ID</string>

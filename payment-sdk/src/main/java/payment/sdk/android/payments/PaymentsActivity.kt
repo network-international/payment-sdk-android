@@ -34,6 +34,7 @@ import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -161,6 +162,16 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             is QPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
             QPayLauncher.Result.Canceled -> {}
             QPayLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid QPay request"))
+        }
+    }
+
+    private val benefitLauncher = BenefitLauncher(this) { result ->
+        when (result) {
+            BenefitLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            BenefitLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+            is BenefitLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            BenefitLauncher.Result.Canceled -> {}
+            BenefitLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid Benefit request"))
         }
     }
 
@@ -381,6 +392,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             aaniConfig = authState.aaniConfig,
                             clickToPayConfig = authState.clickToPayConfig,
                             qpayConfig = authState.qpayConfig,
+                            benefitConfig = authState.benefitConfig,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
@@ -394,6 +406,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             onClickQPay = { config ->
                                 qpayLauncher.launch(config)
+                            },
+                            onClickBenefit = { config ->
+                                benefitLauncher.launch(config)
                             },
                             onClose = {
                                 finishWithData(UnifiedPaymentPageResult.Cancelled)
