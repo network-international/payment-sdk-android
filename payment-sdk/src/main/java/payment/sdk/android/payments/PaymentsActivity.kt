@@ -170,7 +170,12 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             BenefitLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
             BenefitLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
             is BenefitLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            // Nothing was recorded against the payment, so the order is still payable — stay put.
             BenefitLauncher.Result.Canceled -> {}
+            // Cancelling on Benefit's own page closes the order server-side, so every remaining
+            // option would fail; end the payment and let the merchant start a fresh order.
+            BenefitLauncher.Result.CanceledOnProvider ->
+                finishWithData(UnifiedPaymentPageResult.Cancelled)
             BenefitLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid Benefit request"))
         }
     }

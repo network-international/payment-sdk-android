@@ -47,7 +47,17 @@ class BenefitLauncher(
         /** Terminal, but not a decline — fulfilment must be held until the review clears. */
         @Parcelize data object PostAuthReview : Result()
         @Parcelize data class Failed(val error: String) : Result()
+        /**
+         * Backed out before Benefit recorded anything against the payment. The order is untouched
+         * and still payable, so the payer can go back and choose another method.
+         */
         @Parcelize data object Canceled : Result()
+        /**
+         * Cancelled on Benefit's own hosted page. By then the gateway has already marked the
+         * payment FAILED, which is a final state, so the order is closed and nothing can be paid
+         * on it — the payment has to end rather than return to the payment page.
+         */
+        @Parcelize data object CanceledOnProvider : Result()
         @Parcelize data object InvalidRequest : Result()
     }
 

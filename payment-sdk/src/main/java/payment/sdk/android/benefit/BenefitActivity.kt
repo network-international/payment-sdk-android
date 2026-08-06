@@ -52,6 +52,21 @@ class BenefitActivity : AppCompatActivity() {
     private var didStartPolling = false
     private var didDispatchResult = false
 
+    /**
+     * Set when the payer is seen hitting Benefit's cancel page. Distinguishes "the payer backed
+     * out" from "the payment was declined" — the order reports `FAILED` for both.
+     */
+    private var payerCancelled = false
+
+    /**
+     * Set once the WebView has actually reached Benefit's own site, so leaving it can be read as
+     * the payer returning rather than as the flow still starting up.
+     */
+    private var didReachBenefitHost = false
+
+    /** Host of the hosted page the gateway handed us, e.g. `test.benefit-gateway.bh`. */
+    private var benefitHost: String? = null
+
     private val mainHandler = Handler(Looper.getMainLooper())
     private var revealRunnable: Runnable? = null
 
@@ -121,7 +136,10 @@ class BenefitActivity : AppCompatActivity() {
                 // Backing out after the callback would discard a payment that already went through.
                 if (sawReturnCallback) {
                     startPollingIfNeeded()
+                } else if (payerCancelled) {
+                    finishWith(BenefitLauncher.Result.CanceledOnProvider)
                 } else {
+                    // Nothing recorded against the payment yet, so the order is still payable.
                     finishWith(BenefitLauncher.Result.Canceled)
                 }
             }
@@ -169,6 +187,7 @@ class BenefitActivity : AppCompatActivity() {
                         )
                         return@launch
                     }
+                    benefitHost = hostOf(paymentUrl)
                     webView.loadUrl(paymentUrl)
                 }
             }
@@ -178,9 +197,27 @@ class BenefitActivity : AppCompatActivity() {
     private val benefitWebViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
             val url = request?.url?.toString()
+            noteNavigation(url, "navigating to")
+
             if (isReturnCallback(url)) {
                 // Allowed through so the backend can process the Benefit result.
-                sawReturnCallback = true
+                return false
+            }
+
+            // Never suppress anything on the gateway itself. The accept callback is what tells the
+            // backend how the payment went, and its exact path is the gateway's to choose —
+            // cancelling it because it did not match the expected shape would strand it in PENDING.
+            if (isGatewayHost(url)) {
+                return false
+            }
+
+            if (sawReturnCallback || hasLeftBenefit(url)) {
+                suppressRedirectAndResolve(url)
+                return true
+            }
+
+            if (isBenefitHost(url)) {
+                didReachBenefitHost = true
             }
             return false
         }
@@ -189,16 +226,22 @@ class BenefitActivity : AppCompatActivity() {
             super.onPageStarted(view, url, favicon)
             // Benefit returns via a form POST, and Android does not call shouldOverrideUrlLoading
             // for POST navigations — onPageStarted does fire, so the callback is detected here too.
-            if (isReturnCallback(url)) {
+            noteNavigation(url, "page started")
+            if (isReturnCallback(url) || isGatewayHost(url)) {
                 sawReturnCallback = true
+            } else if (hasLeftBenefit(url)) {
+                // The paypage hop started loading without passing through shouldOverrideUrlLoading;
+                // stop it before it can render.
+                suppressRedirectAndResolve(url)
+                return
             }
             showCover()
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
-            if (sawReturnCallback) {
-                startPollingIfNeeded()
+            if (sawReturnCallback || hasLeftBenefit(url)) {
+                resolveAfterLeavingBenefit()
                 return
             }
             scheduleReveal()
@@ -212,6 +255,9 @@ class BenefitActivity : AppCompatActivity() {
             super.onReceivedError(view, request, error)
             if (request?.isForMainFrame != true) return
             Log.e(TAG, "main frame error code=${error?.errorCode} url=${request.url}")
+            // Stopping the paypage hop above surfaces here as a load error of our own making, and
+            // the payment is already being resolved, so it must not be treated as a failure.
+            if (didStartPolling) return
             // After the accept callback the payment is already decided server-side, so a failure
             // loading the redirect target must not be reported as a failed payment.
             if (sawReturnCallback) {
@@ -230,6 +276,103 @@ class BenefitActivity : AppCompatActivity() {
     private fun isReturnCallback(url: String?): Boolean {
         val path = url?.substringBefore('?')?.lowercase() ?: return false
         return path.contains("/benefit/") && path.endsWith("/accept")
+    }
+
+    private fun hostOf(url: String?): String? =
+        runCatching { android.net.Uri.parse(url).host }.getOrNull()?.lowercase()
+
+    /**
+     * The api-gateway host the order itself lives on. Every server-side callback — the accept
+     * endpoint included — is on this host, so navigations to it are never suppressed.
+     */
+    private val gatewayHost: String? by lazy { hostOf(args.orderUrl) }
+
+    private fun isGatewayHost(url: String?): Boolean {
+        val gateway = gatewayHost ?: return false
+        return hostOf(url) == gateway
+    }
+
+    private fun isBenefitHost(url: String?): Boolean {
+        val benefit = benefitHost ?: return false
+        return hostOf(url) == benefit
+    }
+
+    /**
+     * The payer is done with Benefit the moment the WebView leaves Benefit's own site, whatever it
+     * lands on next. That destination cannot be predicted from the order: the paypage is on an
+     * entirely different domain from the gateway (`paypage-dev.platform.network.ae` versus
+     * `api-gateway-dev.ngenius-payments.com`), so a rule written in terms of our own domain misses
+     * it and lets the paypage's dead "payment link is not exist" page render. Leaving Benefit is the
+     * signal; where it goes afterwards is not our business, because the order decides the outcome.
+     */
+    private fun hasLeftBenefit(url: String?): Boolean =
+        didReachBenefitHost && !isBenefitHost(url)
+
+    /**
+     * Benefit's own cancel page, e.g. `test.benefit-gateway.bh/payment/paymentcancel.htm`. Tapping
+     * Cancel on the hosted page lands here before Benefit hands control back to us.
+     *
+     * This — not the gateway's `Error/accept` — is the only cancel signal the WebView ever sees.
+     * Benefit reports the outcome to our backend server to server, so the accept callback never
+     * appears as a navigation at all; by the time the WebView moves again it is already on the
+     * paypage, which looks identical for a cancel and for a decline.
+     */
+    private fun isBenefitCancelPage(url: String?): Boolean {
+        if (!isBenefitHost(url)) return false
+        val path = url?.substringBefore('?')?.lowercase() ?: return false
+        return path.contains("cancel")
+    }
+
+    /**
+     * `.../benefit/Error/accept`. Kept as a secondary signal for the case where the callback does
+     * travel through the WebView, since the backend records it as a failed payment unconditionally
+     * and so it can never mean the payer actually paid.
+     */
+    private fun isErrorCallback(url: String?): Boolean {
+        val path = url?.substringBefore('?')?.lowercase() ?: return false
+        return path.contains("/benefit/error/") && path.endsWith("/accept")
+    }
+
+    /** Records anything worth knowing about a URL the WebView passes through. */
+    private fun noteNavigation(url: String?, source: String) {
+        Log.d(TAG, "$source $url")
+        if (isBenefitCancelPage(url) || isErrorCallback(url)) {
+            Log.d(TAG, "payer cancelled on the hosted page")
+            payerCancelled = true
+        }
+        if (isReturnCallback(url)) {
+            sawReturnCallback = true
+        }
+    }
+
+    /**
+     * Suppresses the browser-facing paypage hop the gateway redirects to once it has already
+     * recorded the result. That page's session was consumed when the payment started from the SDK
+     * rather than the paypage, so it renders a dead end the payer must never see.
+     */
+    private fun suppressRedirectAndResolve(url: String?) {
+        Log.d(TAG, "suppressing post-payment redirect to $url")
+        sawReturnCallback = true
+        webView.stopLoading()
+        showCover()
+        resolveAfterLeavingBenefit()
+    }
+
+    /**
+     * Decides what to do once the payer has left Benefit's site. The gateway has already recorded
+     * the result by this point — it is what redirected us onwards — so an error callback needs no
+     * confirmation from the order: it can only mean the payer cancelled or the attempt errored, and
+     * either way they belong back on the payment page with their other options intact. Anything
+     * else is a real result and is read from the order.
+     */
+    private fun resolveAfterLeavingBenefit() {
+        if (didDispatchResult || didStartPolling) return
+        if (payerCancelled) {
+            Log.d(TAG, "payer cancelled on Benefit's page — the order is spent, ending the payment")
+            finishWith(BenefitLauncher.Result.CanceledOnProvider)
+            return
+        }
+        startPollingIfNeeded()
     }
 
     private fun startPollingIfNeeded() {
@@ -262,7 +405,13 @@ class BenefitActivity : AppCompatActivity() {
                     }
 
                     state in TERMINAL_FAILURE_STATES -> {
-                        finishWith(BenefitLauncher.Result.Failed("state=$state"))
+                        // A failure that followed the error callback is the payer backing out, not a
+                        // decline, so it hands them back to the payment page rather than ending it.
+                        if (payerCancelled) {
+                            finishWith(BenefitLauncher.Result.CanceledOnProvider)
+                        } else {
+                            finishWith(BenefitLauncher.Result.Failed("state=$state"))
+                        }
                         return@launch
                     }
                     // Otherwise still in flight — give the backend more time.
