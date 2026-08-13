@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -191,8 +192,45 @@ class UnifiedPaymentPageViewModelTest {
 
             val state = (states.last() as UnifiedPaymentPageVMUiState.Authorized)
 
+            // The order still lists GOOGLE_PAY, so the wallet row stays — "can't pay with Google
+            // Pay on this device" is decided further down, in PaymentsScreen.
             assertTrue(state.showWallets)
         }
+
+    /**
+     * Every other authorize test uses an order that lists wallets, so `showWallets` was true in
+     * all of them — hard-coding it to `true` in the view model kept the suite green. This is the
+     * negative case that makes the condition matter.
+     */
+    @Test
+    fun `test authorize hides the wallet row when the order offers no wallet or apm`() = runTest {
+        val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
+        val orderResponse = Gson().fromJson(
+            """
+            {
+              "reference": "ref-1",
+              "outletId": "outlet-1",
+              "action": "PURCHASE",
+              "amount": { "currencyCode": "AED", "value": 5000 },
+              "paymentMethods": { "card": ["VISA"] },
+              "_links": { "payment": { "href": "$TEST_PAYMENT_URL" } }
+            }
+            """.trimIndent(),
+            Order::class.java
+        )
+
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
+        backgroundScope.launch(testDispatcher) { sut.uiState.toList(states) }
+
+        coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
+            listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
+        )
+
+        sut.authorize()
+
+        val state = states.last() as UnifiedPaymentPageVMUiState.Authorized
+        assertFalse(state.showWallets)
+    }
 
     @Test
     fun `test authorize failure with invalid auth code`() = runTest {
