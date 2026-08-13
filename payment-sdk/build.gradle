@@ -54,8 +54,16 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            // The SDK logs on its payment paths; without this every android.util.Log call throws
+            // "Method d in android.util.Log not mocked" and takes the test with it.
+            // Matches payment-sdk-core.
+            returnDefaultValues = true
             all {
-                jvmArgs '-Xmx4g', '-XX:+UseG1GC', '-XX:MaxMetaspaceSize=512m'
+                // MockK 1.13.7 bundles a Byte Buddy that only claims support up to Java 20. Mocking
+                // the SDK's final Kotlin classes needs the inline agent, which refuses to attach on
+                // a JDK 21 toolchain (such as Android Studio's bundled JBR) without this flag.
+                jvmArgs '-Xmx4g', '-XX:+UseG1GC', '-XX:MaxMetaspaceSize=512m',
+                        '-Dnet.bytebuddy.experimental=true'
                 maxParallelForks = 1
             }
         }
