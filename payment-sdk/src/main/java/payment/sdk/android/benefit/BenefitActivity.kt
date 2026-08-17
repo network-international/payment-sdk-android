@@ -227,7 +227,13 @@ class BenefitActivity : AppCompatActivity() {
             // Benefit returns via a form POST, and Android does not call shouldOverrideUrlLoading
             // for POST navigations — onPageStarted does fire, so the callback is detected here too.
             noteNavigation(url, "page started")
-            if (isReturnCallback(url) || isGatewayHost(url)) {
+            if (isBenefitHost(url)) {
+                // Also recorded here, not only in shouldOverrideUrlLoading: that callback is never
+                // invoked for `loadUrl`, for server redirects or for form POSTs, which is every
+                // navigation this flow actually makes. Without this the payer is never seen reaching
+                // Benefit, so leaving it goes unnoticed and the dead paypage hop renders.
+                didReachBenefitHost = true
+            } else if (isReturnCallback(url) || isGatewayHost(url)) {
                 sawReturnCallback = true
             } else if (hasLeftBenefit(url)) {
                 // The paypage hop started loading without passing through shouldOverrideUrlLoading;
@@ -368,7 +374,7 @@ class BenefitActivity : AppCompatActivity() {
     private fun resolveAfterLeavingBenefit() {
         if (didDispatchResult || didStartPolling) return
         if (payerCancelled) {
-            Log.d(TAG, "payer cancelled on Benefit's page — the order is spent, ending the payment")
+            Log.d(TAG, "payer cancelled on Benefit's page — returning to the payment page")
             finishWith(BenefitLauncher.Result.CanceledOnProvider)
             return
         }

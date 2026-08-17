@@ -53,9 +53,10 @@ class BenefitLauncher(
          */
         @Parcelize data object Canceled : Result()
         /**
-         * Cancelled on Benefit's own hosted page. By then the gateway has already marked the
-         * payment FAILED, which is a final state, so the order is closed and nothing can be paid
-         * on it — the payment has to end rather than return to the payment page.
+         * Cancelled on Benefit's own hosted page, after the gateway had already marked this attempt
+         * FAILED. Reported separately from [Canceled] because that attempt is spent, but it is still
+         * the payer backing out rather than a payment outcome, so the SDK returns them to the
+         * payment page instead of ending the payment.
          */
         @Parcelize data object CanceledOnProvider : Result()
         @Parcelize data object InvalidRequest : Result()
