@@ -75,6 +75,11 @@
             android:screenOrientation="portrait"
             android:exported="false"
             android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.googlepay.GooglePayActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
     </application>
 
 </manifest>

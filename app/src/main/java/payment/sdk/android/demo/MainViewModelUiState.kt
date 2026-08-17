@@ -24,6 +24,7 @@ data class MainViewModelEffect(
 
 enum class PaymentType {
     SAMSUNG_PAY,
+    GOOGLE_PAY,
     CARD,
     SAVED_CARD,
 }

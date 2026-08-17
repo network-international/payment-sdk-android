@@ -37,6 +37,7 @@ fun HomeScreen(
     onSelectProduct: (Product) -> Unit,
     onAddProduct: (Product) -> Unit,
     onClickPayByCard: () -> Unit,
+    onClickGooglePay: () -> Unit = {},
     onClickSamsungPay: () -> Unit,
     closeDialog: () -> Unit,
     onClickEnvironment: () -> Unit,
@@ -101,6 +102,9 @@ fun HomeScreen(
                         total = state.total,
                         currency = state.currency,
                         onClickPayByCard = onClickPayByCard,
+                        onClickGooglePay = onClickGooglePay,
+                        onClickSamsungPay = onClickSamsungPay,
+                        showSamsungPay = state.isSamsungPayAvailable,
                     )
                 }
 

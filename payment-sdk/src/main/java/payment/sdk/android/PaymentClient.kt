@@ -17,7 +17,9 @@ import payment.sdk.android.core.TransactionServiceHttpAdapter
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.getAuthorizationUrl
 import payment.sdk.android.core.getPayPageUrl
+import payment.sdk.android.payments.SamsungPayConfig
 import payment.sdk.android.samsungpay.SamsungPayClient
+import payment.sdk.android.samsungpay.SamsungPayLauncher
 import payment.sdk.android.samsungpay.SamsungPayResponse
 import payment.sdk.android.savedCard.SavedCardPaymentRequest
 import java.net.URI
@@ -149,11 +151,28 @@ class PaymentClient(
         )
     }
 
+    /**
+     * Starts Samsung Pay for [order]. Prefer [SamsungPayLauncher] for new integrations.
+     */
+    @Deprecated(
+        "Use SamsungPayLauncher instead",
+        ReplaceWith(
+            "SamsungPayLauncher(context).launch(order, SamsungPayConfig(serviceId, merchantName)) { }",
+            "payment.sdk.android.samsungpay.SamsungPayLauncher",
+            "payment.sdk.android.payments.SamsungPayConfig"
+        )
+    )
     fun launchSamsungPay(order: Order, merchantName: String, samsungPayResponse: SamsungPayResponse) {
-        samsungPayClient.startSamsungPay(
-                order = order,
-                merchantName = merchantName,
-                samsungPayResponse = samsungPayResponse)
+        SamsungPayLauncher(context).launch(
+            order = order,
+            config = SamsungPayConfig(serviceId = serviceId, merchantName = merchantName)
+        ) { result ->
+            when (result) {
+                SamsungPayLauncher.Result.Success -> samsungPayResponse.onSuccess()
+                is SamsungPayLauncher.Result.Failed -> samsungPayResponse.onFailure(result.error)
+                SamsungPayLauncher.Result.Cancelled -> samsungPayResponse.onCancelled()
+            }
+        }
     }
 
     fun isSamsungPayAvailable(statusListener: StatusListener) {

@@ -78,6 +78,7 @@ import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.googlepay.GooglePayJsonConfig
+import payment.sdk.android.googlepay.WalletPaymentStateMapper
 import payment.sdk.android.googlepay.env
 
 @Keep
@@ -480,8 +481,13 @@ internal class UnifiedPaymentPageViewModel(
                     }
 
                     is SDKHttpResponse.Success -> {
-                        Log.d(TAG, "acceptGooglePay: API success, emitting Captured")
-                        _effects.emit(UnifiedPaymentPageVMEffects.Captured)
+                        val state = WalletPaymentStateMapper.parseState(response.body)
+                            ?: getOrderApiInteractor.getOrder(
+                                currentState.orderUrl,
+                                currentState.accessToken
+                            )?.embedded?.payment?.firstOrNull()?.state
+                        Log.d(TAG, "acceptGooglePay: API success, payment state=$state")
+                        _effects.emit(WalletPaymentStateMapper.toUppEffect(state))
                     }
                 }
             } catch (e: Exception) {

@@ -1,0 +1,20 @@
+---
+description: Standalone Google Pay / Samsung Pay launchers — enable/disable model and continuation notes
+globs: payment-sdk/**/googlepay/**,payment-sdk/**/samsungpay/**,**/PaymentsViewModel.kt,**/PaymentClient.kt,README.md
+alwaysApply: false
+---
+
+# Standalone wallets (Android)
+
+Read `docs/AGENT_HANDOFF_STANDALONE_WALLETS.md` before changing wallet entry points.
+
+Enable/disable is what the merchant passes. Do not add `SDKConfig` or UPP `setXEnabled` flags.
+
+- UPP on: `setGooglePayConfig` / `setSamsungPayConfig`
+- UPP off: omit those setters
+- Standalone: `GooglePayLauncher` / `SamsungPayLauncher`
+- Hybrid: standalone launchers + UPP without wallet configs
+
+Map Google Pay accept/order `state` via `WalletPaymentStateMapper` (`AUTHORISED`, `CAPTURED`, `PURCHASED`, `POST_AUTH_REVIEW`). Never hard-code Captured.
+
+Sister iOS branch: `feature/standalone-wallet-launchers` on `payment-sdk-ios`.
