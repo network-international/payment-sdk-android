@@ -120,6 +120,12 @@ class Order {
 
         @SerializedName(value = "payment:qpay")
         var qpay: Href? = null
+
+        @SerializedName(value = "payment:tamara")
+        var tamara: Href? = null
+
+        @SerializedName(value = "payment:tabby")
+        var tabby: Href? = null
     }
 
     @Keep
@@ -199,6 +205,36 @@ fun Order.isBenefitSupported() =
     paymentMethods?.card?.any { it.equals("BENEFIT", ignoreCase = true) } == true &&
             action.equals("PURCHASE", ignoreCase = true) &&
             amount?.currencyCode.equals("BHD", ignoreCase = true)
+
+/**
+ * The buy-now-pay-later providers this order can be paid with, in the order they are offered.
+ *
+ * A provider qualifies purely on the outlet listing it among the order's APMs: which markets it
+ * lends in, whether it will lend to this shopper, and whether the basket suits it are all the
+ * provider's decisions, taken when the checkout is created, and the gateway reports those as a
+ * rejected initiation rather than an absent option.
+ */
+fun Order.supportedBnplProviders(): List<BnplProvider> {
+    val apms = paymentMethods?.apm ?: return emptyList()
+    return BnplProvider.entries.filter { provider ->
+        apms.any { it.equals(provider.apmName, ignoreCase = true) } && getBnplUrl(provider) != null
+    }
+}
+
+/**
+ * `payment:tamara` / `payment:tabby` when the gateway advertises it, otherwise derived from the
+ * payment's own `self` href the way the Benefit endpoint is — an outlet that lists the APM without
+ * the rel would otherwise lose the option.
+ */
+fun Order.getBnplUrl(provider: BnplProvider): String? {
+    val links = embedded?.payment?.firstOrNull()?.links
+    val advertised = when (provider) {
+        BnplProvider.TAMARA -> links?.tamara?.href
+        BnplProvider.TABBY -> links?.tabby?.href
+    }
+    advertised?.takeIf { it.isNotBlank() }?.let { return it }
+    return getSelfUrl()?.trimEnd('/')?.let { "$it/${provider.pathSegment}" }
+}
 
 fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
 

@@ -79,6 +79,8 @@ import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.bnpl.BnplLauncher
+import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.CardMapping
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.SavedCard
@@ -116,6 +118,9 @@ fun UnifiedPaymentPageScreen(
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
     savedCards: List<SavedCard> = emptyList(),
     orderItems: List<OrderItem> = emptyList(),
     sliceCheckState: SliceCheckState = SliceCheckState.Idle,
@@ -132,6 +137,7 @@ fun UnifiedPaymentPageScreen(
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
     onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
+    onClickBnpl: (BnplLauncher.Config) -> Unit = {},
     onClose: () -> Unit
 ) {
     // ── Selection state ──────────────────────────────────────────────────────
@@ -218,7 +224,8 @@ fun UnifiedPaymentPageScreen(
     val showSamsungPay = showWallets && isSamsungPayAvailable
     val showAani = showWallets && aaniConfig != null
     val hasOtherOptions = showGooglePay || showSamsungPay || showAani ||
-            clickToPayConfig != null || qpayConfig != null || benefitConfig != null
+            clickToPayConfig != null || qpayConfig != null || benefitConfig != null ||
+            bnplConfigs.isNotEmpty()
 
     val logoResId = if (SDKConfig.merchantLogoResId != 0) SDKConfig.merchantLogoResId
     else R.drawable.network_international_logo
@@ -297,6 +304,9 @@ fun UnifiedPaymentPageScreen(
                     clickToPayConfig = clickToPayConfig,
                     qpayConfig = qpayConfig,
                     benefitConfig = benefitConfig,
+                    bnplConfigs = bnplConfigs,
+                    unavailableBnplProviders = unavailableBnplProviders,
+                    belowMinimumBnplProviders = belowMinimumBnplProviders,
                     savedCards = savedCards.takeLast(3),
                     orderItems = orderItems,
                     sliceCheckState = sliceCheckState,
@@ -393,6 +403,9 @@ fun UnifiedPaymentPageScreen(
             clickToPayConfig = clickToPayConfig,
             qpayConfig = qpayConfig,
             benefitConfig = benefitConfig,
+            bnplConfigs = bnplConfigs,
+            unavailableBnplProviders = unavailableBnplProviders,
+            belowMinimumBnplProviders = belowMinimumBnplProviders,
             cardPan = cardPan,
             cardCvv = cardCvv,
             cardExpiry = cardExpiry,
@@ -411,6 +424,7 @@ fun UnifiedPaymentPageScreen(
             onClickToPay = onClickToPay,
             onClickQPay = onClickQPay,
             onClickBenefit = onClickBenefit,
+            onClickBnpl = onClickBnpl,
             onMakePayment = onMakePayment,
             onMakeSavedCardPayment = onMakeSavedCardPayment
         )
@@ -434,6 +448,9 @@ private fun PaymentSectionsContent(
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
     savedCards: List<SavedCard>,
     orderItems: List<OrderItem>,
     sliceCheckState: SliceCheckState,
@@ -552,7 +569,8 @@ private fun PaymentSectionsContent(
     val belowGooglePay = showGooglePay && qpayExpress
     val hasRemainingOptions =
         belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
-            benefitConfig != null || (qpayConfig != null && !qpayExpress)
+            benefitConfig != null || bnplConfigs.isNotEmpty() ||
+            (qpayConfig != null && !qpayExpress)
     if (hasRemainingOptions) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
@@ -568,6 +586,9 @@ private fun PaymentSectionsContent(
             clickToPayConfig = clickToPayConfig,
             qpayConfig = if (qpayExpress) null else qpayConfig,
             benefitConfig = benefitConfig,
+            bnplConfigs = bnplConfigs,
+            unavailableBnplProviders = unavailableBnplProviders,
+            belowMinimumBnplProviders = belowMinimumBnplProviders,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -819,6 +840,9 @@ internal fun BottomPayBar(
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
     cardPan: String,
     cardCvv: String,
     cardExpiry: TextFieldValue,
@@ -837,6 +861,7 @@ internal fun BottomPayBar(
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
     onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
+    onClickBnpl: (BnplLauncher.Config) -> Unit = {},
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String, sliceOffer: SliceOffer?, visaPlan: InstallmentPlan?) -> Unit,
     onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?) -> Unit
 ) {
@@ -861,7 +886,9 @@ internal fun BottomPayBar(
         PaymentOption.AANI,
         PaymentOption.CLICK_TO_PAY,
         PaymentOption.QPAY,
-        PaymentOption.BENEFIT -> !isProcessing
+        PaymentOption.BENEFIT,
+        PaymentOption.TAMARA,
+        PaymentOption.TABBY -> !isProcessing
         PaymentOption.GOOGLE_PAY,
         PaymentOption.SAMSUNG_PAY,
         null -> false
@@ -954,6 +981,12 @@ internal fun BottomPayBar(
                         PaymentOption.CLICK_TO_PAY -> clickToPayConfig?.let { onClickToPay(it) }
                         PaymentOption.QPAY -> qpayConfig?.let { onClickQPay(it) }
                         PaymentOption.BENEFIT -> benefitConfig?.let { onClickBenefit(it) }
+                        PaymentOption.TAMARA -> bnplConfigs[BnplProvider.TAMARA]
+                            ?.takeIf { BnplProvider.TAMARA !in belowMinimumBnplProviders }
+                            ?.let { onClickBnpl(it) }
+                        PaymentOption.TABBY -> bnplConfigs[BnplProvider.TABBY]
+                            ?.takeIf { BnplProvider.TABBY !in belowMinimumBnplProviders }
+                            ?.let { onClickBnpl(it) }
                         else -> {}
                     }
                 },

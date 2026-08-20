@@ -8,5 +8,7 @@ enum class PaymentOption {
     SAMSUNG_PAY,
     AANI,
     QPAY,
-    BENEFIT
+    BENEFIT,
+    TAMARA,
+    TABBY
 }

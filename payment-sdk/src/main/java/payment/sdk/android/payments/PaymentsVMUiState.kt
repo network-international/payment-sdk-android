@@ -6,6 +6,8 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.bnpl.BnplLauncher
+import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
@@ -35,6 +37,15 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val clickToPayConfig: ClickToPayLauncher.Config? = null,
         val qpayConfig: QPayLauncher.Config? = null,
         val benefitConfig: BenefitLauncher.Config? = null,
+        /** One entry per buy-now-pay-later provider the order supports, in display order. */
+        val bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+        /** Providers whose checkout could not be opened this session; their rows say so. */
+        val unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+        /**
+         * Providers this basket is too small for, mapped to their formatted minimum ("AED 10").
+         * The row still shows — it says why on selection rather than disappearing.
+         */
+        val belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,
