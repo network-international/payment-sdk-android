@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.com/network-international/payment-sdk-android.svg?branch=master)](https://travis-ci.com/network-international/payment-sdk-android)
 [![](https://jitpack.io/v/network-international/payment-sdk-android.svg)](https://jitpack.io/#network-international/payment-sdk-android)
 
-The Payment SDK for Android provides a pre-built checkout experience for accepting payments in your Android app. It supports card payments, Google Pay, Samsung Pay, Click to Pay, saved cards, Visa Installments, Aani Pay, and partial authorization — all with 3D Secure support.
+The Payment SDK for Android provides a pre-built checkout experience for accepting payments in your Android app. It supports card payments, Google Pay, Samsung Pay, Click to Pay, saved cards, Visa Installments, Slice installments, Aani Pay, and partial authorization — all with 3D Secure support.
 
 ## Requirements
 
@@ -121,7 +121,7 @@ dependencies {
 | Module | Description |
 |--------|-------------|
 | `payment-sdk-core` | Common interfaces, data models, and API layer. Required by all other modules. |
-| `payment-sdk` | Card payment UI (Jetpack Compose), 3D Secure, Google Pay, Saved Cards, Click to Pay, Visa Installments, Aani Pay, Partial Auth. |
+| `payment-sdk` | Card payment UI (Jetpack Compose), 3D Secure, Google Pay, Saved Cards, Click to Pay, Visa Installments, Slice Installments, Aani Pay, Partial Auth. |
 | `payment-sdk-samsungpay` | Samsung Pay integration. |
 
 ---
@@ -437,6 +437,65 @@ private val visaInstallmentsLauncher = VisaInstallmentsLauncher(this) { result -
     }
 }
 ```
+
+---
+
+## Slice Installments
+
+Slice is a "buy now, pay later" installment option presented **inline** within the unified payment page — there is no separate launcher to call. It is enabled per-order on the gateway side; the SDK detects it through the `payment:slice-eligibility-check` link embedded in the order.
+
+When a Slice-eligible order is loaded, the SDK automatically checks eligibility for the entered card and, if offers are returned, renders them inside the card payment section. The customer picks a plan, and the selected offer is submitted with the payment — no extra integration is required from the merchant.
+
+**Flow:**
+
+1. Merchant creates a Slice-enabled order via the gateway. The order response includes the `payment:slice-eligibility-check` link.
+2. Customer enters card details; the SDK calls the eligibility check and surfaces any returned `SliceOffer`s.
+3. Customer selects an installment plan; the SDK includes the corresponding `SliceRequest` (period, rate, fee) in the payment request.
+
+```kotlin
+// Eligibility response surfaced by the SDK (no merchant call needed)
+data class SliceOffer(
+    val period: String,            // e.g. "3", "6", "12" months
+    val rate: String,              // interest rate
+    val fee: String,
+    val feeType: String,
+    val installmentAmount: SliceAmount,
+    val totalAmount: SliceAmount
+)
+```
+
+> Slice eligibility is evaluated automatically. If the order is not Slice-enabled, or no offers are returned, the section is hidden and the standard card flow (and Visa Installments, if applicable) continues unaffected.
+
+---
+
+## Aani Pay
+
+Aani Pay is presented as one of the **other payment options** inside the unified payment page when the order is Aani-enabled on the gateway. The SDK launches the Aani flow with the configuration carried in the order, collects the result, and reports it back through the standard `UnifiedPaymentPageResult` callback — no separate launcher wiring is needed in merchant code.
+
+```kotlin
+// Aani Pay is surfaced automatically when the order is Aani-enabled.
+// Handle its outcome via the unified result, e.g.:
+is UnifiedPaymentPageResult.Success    -> // Aani payment completed
+is UnifiedPaymentPageResult.Failed     -> // Aani payment failed: result.error
+is UnifiedPaymentPageResult.Cancelled  -> // User cancelled
+```
+
+---
+
+## Partial Authorization
+
+When a card cannot cover the full order amount, the gateway may **partially authorize** the payment. The SDK handles the partial-auth prompt automatically and reports the outcome through the unified result. Merchants only need to handle the relevant result types:
+
+```kotlin
+when (result) {
+    is UnifiedPaymentPageResult.PartiallyAuthorised      -> // Partial amount accepted by the customer
+    is UnifiedPaymentPageResult.PartialAuthDeclined      -> // Customer declined the partial amount
+    is UnifiedPaymentPageResult.PartialAuthDeclineFailed -> // Reversal of the partial auth failed
+    // ... other result types
+}
+```
+
+> Partial authorization is driven by the gateway and the customer's decision in the SDK UI; there is no extra configuration required in the app beyond handling these results.
 
 ---
 
