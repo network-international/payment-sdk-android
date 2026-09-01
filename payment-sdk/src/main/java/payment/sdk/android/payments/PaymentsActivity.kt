@@ -34,6 +34,8 @@ import payment.sdk.android.SDKConfig
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.bnpl.BnplLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
@@ -161,6 +163,39 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             is QPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
             QPayLauncher.Result.Canceled -> {}
             QPayLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid QPay request"))
+        }
+    }
+
+    private val benefitLauncher = BenefitLauncher(this) { result ->
+        when (result) {
+            BenefitLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            BenefitLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+            is BenefitLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            // Nothing was recorded against the payment, so the order is still payable — stay put.
+            BenefitLauncher.Result.Canceled -> {}
+            // Cancelling on Benefit's own page is the payer changing their mind, not a payment
+            // outcome, so it hands them back to the payment page with their other options intact
+            // rather than ending the payment on their behalf.
+            BenefitLauncher.Result.CanceledOnProvider -> {}
+            BenefitLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid Benefit request"))
+        }
+    }
+
+    private val bnplLauncher = BnplLauncher(this) { result ->
+        when (result) {
+            BnplLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            BnplLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+            is BnplLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            // The checkout never opened, so nothing is owed and every other method is still
+            // available. Ending the payment here would cost the merchant a sale over a provider
+            // outage, so the payer returns to the page with that row marked unavailable instead.
+            is BnplLauncher.Result.Unavailable -> viewModel.markBnplUnavailable(result.provider)
+            // Nothing was recorded against the payment, so the order is still payable — stay put.
+            BnplLauncher.Result.Canceled -> {}
+            // Cancelling on the provider's own page is the payer changing their mind, not a payment
+            // outcome, so they keep their other options rather than the payment ending for them.
+            BnplLauncher.Result.CanceledOnProvider -> {}
+            BnplLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid buy-now-pay-later request"))
         }
     }
 
@@ -381,6 +416,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             aaniConfig = authState.aaniConfig,
                             clickToPayConfig = authState.clickToPayConfig,
                             qpayConfig = authState.qpayConfig,
+                            benefitConfig = authState.benefitConfig,
+                            bnplConfigs = authState.bnplConfigs,
+                            unavailableBnplProviders = authState.unavailableBnplProviders,
+                            belowMinimumBnplProviders = authState.belowMinimumBnplProviders,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
@@ -394,6 +433,12 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             onClickQPay = { config ->
                                 qpayLauncher.launch(config)
+                            },
+                            onClickBenefit = { config ->
+                                benefitLauncher.launch(config)
+                            },
+                            onClickBnpl = { config ->
+                                bnplLauncher.launch(config)
                             },
                             onClose = {
                                 finishWithData(UnifiedPaymentPageResult.Cancelled)

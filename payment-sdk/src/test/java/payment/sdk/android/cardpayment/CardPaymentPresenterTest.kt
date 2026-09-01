@@ -602,7 +602,7 @@ class CardPaymentPresenterTest {
         whenever(
             mockPaymentApiInteractor.getOrder(anyString(), anyString(), anyObject(), anyObject())
         ).then {
-            it.getArgument<((String, String, Set<CardType>, OrderAmount, String, String, JSONObject) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", "", JSONObject())
+            it.getArgument<((String, String, Set<CardType>, OrderAmount, String, String, JSONObject, Boolean) -> Unit)>(2)(fixtOrderReference, fixtPaymentUrl, setOf(Visa, MasterCard, AmericanExpress), OrderAmount(2000.00, "AED"), "", "", JSONObject(), false)
         }
         whenever(
             mockPaymentApiInteractor.doPayment(

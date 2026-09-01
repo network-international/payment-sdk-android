@@ -15,9 +15,21 @@ data class SliceOffer(
     @SerializedName("rate") val rate: String,
     @SerializedName("fee") val fee: String,
     @SerializedName("feeType") val feeType: String,
+    /**
+     * Optional installment fee charged by the issuer, as a major-unit amount string
+     * (e.g. "7.00"). Only rendered when present and greater than zero.
+     */
+    @SerializedName("commission") val commission: String? = null,
     @SerializedName("installmentAmount") val installmentAmount: SliceAmount,
     @SerializedName("totalAmount") val totalAmount: SliceAmount
-)
+) {
+    /**
+     * Parsed [commission] in major units, non-null only when the backend sent the flag
+     * with a value greater than zero — the condition for showing the Installment Fee row.
+     */
+    val installmentFeeAmount: Double?
+        get() = commission?.toDoubleOrNull()?.takeIf { it > 0 }
+}
 
 @Keep
 data class SliceEligibilityResponse(

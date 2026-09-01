@@ -193,9 +193,23 @@ fun CheckoutScreen() {
 
 ---
 
+## Wallets — choosing a path
+
+| Path | When to use | How to enable | How to disable |
+|---|---|---|---|
+| **Unified page** | One checkout screen with card + wallets | Pass the wallet config on `UnifiedPaymentPageRequest` | Omit that config — the row does not appear |
+| **Standalone** | Your own Google Pay / Samsung Pay button | Call `GooglePayLauncher` / `SamsungPayLauncher` | Do not call the launcher; hide your button |
+| **Hybrid** | Wallet buttons on your checkout, card on the unified page | Standalone launcher for wallets; omit wallet config on the page | — |
+
+Device-ready is not enough to pay. The order must also list the wallet in `paymentMethods.wallet` (`GOOGLE_PAY` / `SAMSUNG_PAY`).
+
+---
+
 ## Google Pay
 
-Pass a `GooglePayConfig` when building the request:
+### 1. Prerequisites
+
+Obtain a Google Pay `merchantGatewayId` from NI onboarding. Use `GooglePayConfig.Environment.Test` in sandbox and `.Production` for live.
 
 ```kotlin
 import payment.sdk.android.googlepay.GooglePayConfig
@@ -204,7 +218,13 @@ val googlePayConfig = GooglePayConfig(
     environment = GooglePayConfig.Environment.Test,  // .Production for live
     merchantGatewayId = "your-gateway-id"
 )
+```
 
+### 2. Enable on the unified page
+
+Pass the config when building the request — the Google Pay button appears when the device supports it and the order lists `GOOGLE_PAY`:
+
+```kotlin
 paymentsLauncher.launch(
     UnifiedPaymentPageRequest.builder()
         .gatewayAuthorizationUrl(authUrl)
@@ -214,7 +234,47 @@ paymentsLauncher.launch(
 )
 ```
 
-The Google Pay button appears automatically when the config is provided and the device supports it.
+### 3. Disable on the unified page
+
+Omit `setGooglePayConfig`. The Google Pay row will not appear.
+
+### 4. Launch standalone
+
+Use this when the merchant checkout has its own Google Pay button. The unified page is not opened.
+
+```kotlin
+import payment.sdk.android.googlepay.GooglePayAvailability
+import payment.sdk.android.googlepay.GooglePayLauncher
+
+private val googlePayLauncher = GooglePayLauncher(this) { result ->
+    when (result) {
+        GooglePayLauncher.Result.Success -> { }
+        GooglePayLauncher.Result.Authorised -> { }
+        GooglePayLauncher.Result.Captured -> { }
+        GooglePayLauncher.Result.PostAuthReview -> { }
+        is GooglePayLauncher.Result.Failed -> { } // result.error
+        GooglePayLauncher.Result.Cancelled -> { }
+    }
+}
+
+GooglePayAvailability.isReady(this, googlePayConfig) { ready ->
+    // Show or hide your Google Pay button. Also confirm the order lists GOOGLE_PAY.
+}
+
+googlePayLauncher.launch(
+    GooglePayLauncher.Config(
+        gatewayAuthorizationUrl = authUrl,
+        payPageUrl = payPageUrl,
+        googlePayConfig = googlePayConfig
+    )
+)
+```
+
+Also available as a composable: `rememberGooglePayLauncher`.
+
+### 5. Hybrid checkout
+
+Put a Google Pay button on your checkout (standalone launcher). When the shopper pays by card, launch the unified page **without** `setGooglePayConfig` so Google Pay is not shown twice.
 
 ---
 
@@ -306,7 +366,60 @@ private val clickToPayLauncher = ClickToPayLauncher(this) { result ->
 
 ## Samsung Pay
 
-See our [Samsung Pay Integration Guide](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay) and the [FAQ & Troubleshooting](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay#faq--troubleshooting) section.
+### 1. Prerequisites
+
+Register a Samsung Pay service ID and display name. See the [Samsung Pay Integration Guide](https://github.com/network-international/payment-sdk-android/wiki/Samsung-Pay) for portal setup.
+
+```kotlin
+import payment.sdk.android.payments.SamsungPayConfig
+
+val samsungPayConfig = SamsungPayConfig(
+    serviceId = "your-samsung-service-id",
+    merchantName = "Your Merchant Name"
+)
+```
+
+### 2. Enable on the unified page
+
+```kotlin
+paymentsLauncher.launch(
+    UnifiedPaymentPageRequest.builder()
+        .gatewayAuthorizationUrl(authUrl)
+        .payPageUrl(payPageUrl)
+        .setSamsungPayConfig(samsungPayConfig)
+        .build()
+)
+```
+
+### 3. Disable on the unified page
+
+Omit `setSamsungPayConfig`. The Samsung Pay row will not appear.
+
+### 4. Launch standalone
+
+```kotlin
+import payment.sdk.android.samsungpay.SamsungPayLauncher
+
+private val samsungPayLauncher = SamsungPayLauncher(this)
+
+samsungPayLauncher.isAvailable(samsungPayConfig.serviceId) { ready ->
+    // Show or hide your Samsung Pay button. Also confirm the order lists SAMSUNG_PAY.
+}
+
+samsungPayLauncher.launch(order, samsungPayConfig) { result ->
+    when (result) {
+        SamsungPayLauncher.Result.Success -> { }
+        is SamsungPayLauncher.Result.Failed -> { } // result.error
+        SamsungPayLauncher.Result.Cancelled -> { }
+    }
+}
+```
+
+`PaymentClient.launchSamsungPay` still works and delegates to `SamsungPayLauncher`. Prefer the launcher for new integrations.
+
+### 5. Hybrid checkout
+
+Launch Samsung Pay from your own button. Omit `setSamsungPayConfig` on the unified page so the wallet is not shown twice.
 
 ---
 

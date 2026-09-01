@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,10 +37,13 @@ import payment.sdk.android.core.interactor.AuthApiInteractor
 import payment.sdk.android.core.interactor.AuthResponse
 import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.CardPaymentResponse
+import payment.sdk.android.core.interactor.ClickToPayMerchantConfigInteractor
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
+import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
+import payment.sdk.android.core.interactor.SliceEligibilityInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
 import payment.sdk.android.core.interactor.VisaPlansResponse
 import payment.sdk.android.googlepay.GooglePayConfigFactory
@@ -71,6 +75,10 @@ class UnifiedPaymentPageViewModelTest {
     private val googlePayConfigFactory: GooglePayConfigFactory = mockk(relaxed = true)
     private val googlePayAcceptInteractor: GooglePayAcceptInteractor = mockk(relaxed = true)
     private val getOrderApiInteractor: GetOrderApiInteractor = mockk(relaxed = true)
+    private val sliceEligibilityInteractor: SliceEligibilityInteractor = mockk(relaxed = true)
+    private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor = mockk(relaxed = true)
+    private val clickToPayMerchantConfigInteractor: ClickToPayMerchantConfigInteractor =
+        mockk(relaxed = true)
 
     private lateinit var sut: UnifiedPaymentPageViewModel
 
@@ -87,6 +95,9 @@ class UnifiedPaymentPageViewModelTest {
             googlePayConfigFactory = googlePayConfigFactory,
             googlePayAcceptInteractor = googlePayAcceptInteractor,
             getOrderApiInteractor = getOrderApiInteractor,
+            sliceEligibilityInteractor = sliceEligibilityInteractor,
+            savedCardPaymentApiInteractor = savedCardPaymentApiInteractor,
+            clickToPayMerchantConfigInteractor = clickToPayMerchantConfigInteractor,
             dispatcher = testDispatcher
         )
     }
@@ -165,9 +176,10 @@ class UnifiedPaymentPageViewModelTest {
                 )
             } returns GooglePayUiConfig(
                 allowedPaymentMethods = "",
-                task = mockk(),
                 canUseGooglePay = false,
-                googlePayAcceptUrl = ""
+                googlePayAcceptUrl = "",
+                paymentsClient = mockk(relaxed = true),
+                paymentDataRequest = mockk(relaxed = true)
             )
 
             sut.authorize()
@@ -180,8 +192,45 @@ class UnifiedPaymentPageViewModelTest {
 
             val state = (states.last() as UnifiedPaymentPageVMUiState.Authorized)
 
+            // The order still lists GOOGLE_PAY, so the wallet row stays — "can't pay with Google
+            // Pay on this device" is decided further down, in PaymentsScreen.
             assertTrue(state.showWallets)
         }
+
+    /**
+     * Every other authorize test uses an order that lists wallets, so `showWallets` was true in
+     * all of them — hard-coding it to `true` in the view model kept the suite green. This is the
+     * negative case that makes the condition matter.
+     */
+    @Test
+    fun `test authorize hides the wallet row when the order offers no wallet or apm`() = runTest {
+        val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
+        val orderResponse = Gson().fromJson(
+            """
+            {
+              "reference": "ref-1",
+              "outletId": "outlet-1",
+              "action": "PURCHASE",
+              "amount": { "currencyCode": "AED", "value": 5000 },
+              "paymentMethods": { "card": ["VISA"] },
+              "_links": { "payment": { "href": "$TEST_PAYMENT_URL" } }
+            }
+            """.trimIndent(),
+            Order::class.java
+        )
+
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
+        backgroundScope.launch(testDispatcher) { sut.uiState.toList(states) }
+
+        coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
+            listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
+        )
+
+        sut.authorize()
+
+        val state = states.last() as UnifiedPaymentPageVMUiState.Authorized
+        assertFalse(state.showWallets)
+    }
 
     @Test
     fun `test authorize failure with invalid auth code`() = runTest {
@@ -389,9 +438,10 @@ class UnifiedPaymentPageViewModelTest {
             )
         } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
-            task = mockk(),
             canUseGooglePay = false,
-            googlePayAcceptUrl = ""
+            googlePayAcceptUrl = "",
+            paymentsClient = mockk(relaxed = true),
+            paymentDataRequest = mockk(relaxed = true)
         )
         val orderResponse = Gson().fromJson(
             ClassLoader.getSystemResource("orderResponse.json").readText(),
@@ -408,7 +458,7 @@ class UnifiedPaymentPageViewModelTest {
                 any()
             )
         } returns SDKHttpResponse.Success(
-            emptyMap(), ""
+            emptyMap(), """{"state":"CAPTURED"}"""
         )
 
         sut.acceptGooglePay("paymentDataJson")
@@ -417,6 +467,44 @@ class UnifiedPaymentPageViewModelTest {
 
         assertTrue(effects.isNotEmpty())
         assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Captured)
+    }
+
+    @Test
+    fun `test acceptGooglePay success authorised`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+
+        backgroundScope.launch(testDispatcher) {
+            sut.effect.toList(effects)
+        }
+
+        authorizeForGooglePay()
+
+        coEvery {
+            googlePayAcceptInteractor.accept(any(), any(), any())
+        } returns SDKHttpResponse.Success(emptyMap(), """{"state":"AUTHORISED"}""")
+
+        sut.acceptGooglePay("paymentDataJson")
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.PaymentAuthorised)
+    }
+
+    @Test
+    fun `test acceptGooglePay success post auth review`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+
+        backgroundScope.launch(testDispatcher) {
+            sut.effect.toList(effects)
+        }
+
+        authorizeForGooglePay()
+
+        coEvery {
+            googlePayAcceptInteractor.accept(any(), any(), any())
+        } returns SDKHttpResponse.Success(emptyMap(), """{"state":"POST_AUTH_REVIEW"}""")
+
+        sut.acceptGooglePay("paymentDataJson")
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.PostAuthReview)
     }
 
     @Test
@@ -476,9 +564,10 @@ class UnifiedPaymentPageViewModelTest {
             )
         } returns GooglePayUiConfig(
             allowedPaymentMethods = "",
-            task = mockk(),
             canUseGooglePay = false,
-            googlePayAcceptUrl = ""
+            googlePayAcceptUrl = "",
+            paymentsClient = mockk(relaxed = true),
+            paymentDataRequest = mockk(relaxed = true)
         )
 
         sut.authorize()
@@ -637,6 +726,27 @@ class UnifiedPaymentPageViewModelTest {
 
         assertNotNull(capturedRequest.captured.visaRequest)
         assertEquals("planId123", capturedRequest.captured.visaRequest?.vPlanId)
+    }
+
+    private fun authorizeForGooglePay() {
+        coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
+            listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
+        )
+        coEvery {
+            googlePayConfigFactory.checkGooglePayConfig(any(), any(), any(), any(), any())
+        } returns GooglePayUiConfig(
+            allowedPaymentMethods = "",
+            canUseGooglePay = true,
+            googlePayAcceptUrl = "https://example.com/google-pay/accept",
+            paymentsClient = mockk(relaxed = true),
+            paymentDataRequest = mockk(relaxed = true)
+        )
+        val orderResponse = Gson().fromJson(
+            ClassLoader.getSystemResource("orderResponse.json").readText(),
+            Order::class.java
+        )
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
+        sut.authorize()
     }
 
     companion object {

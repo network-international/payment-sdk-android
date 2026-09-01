@@ -33,13 +33,15 @@ import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.googlepay.GooglePayConfig
+import payment.sdk.android.googlepay.GooglePayLauncher
 import payment.sdk.android.payments.SamsungPayConfig
 import payment.sdk.android.payments.UnifiedPaymentPageLauncher
+import payment.sdk.android.payments.UnifiedPaymentPageResult
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.payments.UnifiedPaymentPageRequest
 import payment.sdk.android.payments.model.OrderItem
 import java.util.Locale
-import payment.sdk.android.samsungpay.SamsungPayResponse
+import payment.sdk.android.samsungpay.SamsungPayLauncher
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.savedCard.SavedCardPaymentLauncher
 import payment.sdk.android.savedCard.SavedCardPaymentRequest
@@ -60,11 +62,12 @@ import payment.sdk.android.savedCard.SavedCardPaymentRequest
  *   6. Handle results in the launcher callback (see MainViewModel.onPaymentResult)
  *
  * OPTIONAL:
- *   - Samsung Pay: Implement SamsungPayResponse, call paymentClient.launchSamsungPay()
+ *   - Google Pay: GooglePayLauncher (standalone) or setGooglePayConfig on the unified page
+ *   - Samsung Pay: SamsungPayLauncher (standalone) or setSamsungPayConfig on the unified page
  *   - Saved Cards: Use SavedCardPaymentLauncher
  *   - SDK Colors: Override payment_sdk_* colors in your app's colors.xml
  */
-class MainActivity : ComponentActivity(), SamsungPayResponse {
+class MainActivity : ComponentActivity() {
 
     // Step 1: Initialize PaymentClient with your service ID
     private val paymentClient: PaymentClient by lazy {
@@ -85,6 +88,22 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
     private val savedCardPaymentLauncher = SavedCardPaymentLauncher(this) {
         viewModel.onPaymentResult(it)
     }
+
+    private val googlePayLauncher = GooglePayLauncher(this) { result ->
+        when (result) {
+            GooglePayLauncher.Result.Success,
+            GooglePayLauncher.Result.Captured -> viewModel.onSuccess()
+            GooglePayLauncher.Result.Authorised ->
+                viewModel.onPaymentResult(UnifiedPaymentPageResult.Authorised)
+            GooglePayLauncher.Result.PostAuthReview ->
+                viewModel.onPaymentResult(UnifiedPaymentPageResult.PostAuthReview)
+            is GooglePayLauncher.Result.Failed -> viewModel.onFailure(result.error)
+            GooglePayLauncher.Result.Cancelled ->
+                viewModel.onPaymentResult(UnifiedPaymentPageResult.Cancelled)
+        }
+    }
+
+    private val samsungPayLauncher = SamsungPayLauncher(this)
 
     @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,6 +132,12 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
                             onClickPayByCard = {
                                 viewModel.createOrder(
                                     PaymentType.CARD,
+                                    viewModel.createOrderRequest()
+                                )
+                            },
+                            onClickGooglePay = {
+                                viewModel.createOrder(
+                                    PaymentType.GOOGLE_PAY,
                                     viewModel.createOrderRequest()
                                 )
                             },
@@ -179,10 +204,29 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         lifecycleScope.launch {
             viewModel.effect.collect { effect ->
                 when (effect.type) {
-                    PaymentType.SAMSUNG_PAY -> paymentClient.launchSamsungPay(
-                        effect.order,
-                        "WestZone",
-                        this@MainActivity
+                    PaymentType.SAMSUNG_PAY -> samsungPayLauncher.launch(
+                        order = effect.order,
+                        config = SamsungPayConfig(
+                            serviceId = paymentClient.serviceId,
+                            merchantName = "WestZone"
+                        )
+                    ) { result ->
+                        when (result) {
+                            SamsungPayLauncher.Result.Success -> viewModel.onSuccess()
+                            is SamsungPayLauncher.Result.Failed -> viewModel.onFailure(result.error)
+                            SamsungPayLauncher.Result.Cancelled -> viewModel.closeDialog()
+                        }
+                    }
+
+                    PaymentType.GOOGLE_PAY -> googlePayLauncher.launch(
+                        GooglePayLauncher.Config(
+                            gatewayAuthorizationUrl = effect.order.getAuthorizationUrl().orEmpty(),
+                            payPageUrl = effect.order.getPayPageUrl().orEmpty(),
+                            googlePayConfig = GooglePayConfig(
+                                environment = GooglePayConfig.Environment.Test,
+                                merchantGatewayId = "BCR2DN4T27NJW2Y"
+                            )
+                        )
                     )
 
                     PaymentType.CARD -> {
@@ -221,30 +265,19 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         val dataStore = DataStoreImpl(this)
         SDKConfig.setLanguage(dataStore.getLanguage().code)
 
-        val googlePayConfig = GooglePayConfig(
-            environment = GooglePayConfig.Environment.Test,
-            merchantGatewayId = "BCR2DN4T27NJW2Y"
-        )
-        // Click to Pay configuration — the merchant only declares merchantId; the SDK
-        // resolves dpaId / dpaClientId / dpaName from
-        // `/config/merchants/{merchantId}/configs/vctp` right after the order is authorized.
+        // Hybrid checkout: wallets are launched standalone from the storefront. Omit
+        // Google Pay / Samsung Pay config so those rows do not also appear on the page.
         val clickToPayConfig = ClickToPayConfig(
             merchantId = Environment.getSelectedEnvironment(this)?.clickToPayMerchantId,
             cardBrands = listOf("visa", "mastercard"),
             isSandbox = true,
             testOtpMode = false
         )
-        val samsungPayConfig = SamsungPayConfig(
-            serviceId = paymentClient.serviceId,
-            merchantName = "WestZone"
-        )
         paymentsLauncher.launch(
             UnifiedPaymentPageRequest.builder()
                 .gatewayAuthorizationUrl(authUrl)
                 .payPageUrl(payPageUrl)
-                .setGooglePayConfig(googlePayConfig)
                 .setClickToPayConfig(clickToPayConfig)
-                .setSamsungPayConfig(samsungPayConfig)
                 .setSavedCards(savedCards)
                 .setOrderItems(selectedProducts.map { product ->
                     OrderItem(
@@ -284,17 +317,5 @@ class MainActivity : ComponentActivity(), SamsungPayResponse {
         const val HOME_ROUTE = "home"
         const val ENVIRONMENT_ROUTE = "ENVIRONMENT_ROUTE"
         const val WHAT_YOU_NEED_ROUTE = "what_you_need"
-    }
-
-    override fun onSuccess() {
-        viewModel.onSuccess()
-    }
-
-    override fun onFailure(error: String) {
-        viewModel.onFailure(error)
-    }
-
-    override fun onCancelled() {
-        viewModel.closeDialog()
     }
 }

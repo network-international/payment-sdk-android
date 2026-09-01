@@ -103,6 +103,7 @@
 
     <string name="aani">الدفع عبر آني</string>
     <string name="qpay">ادفع باستخدام كيو باي</string>
+    <string name="benefit">الدفع عبر بنفت</string>
     <string name="qpay_express_pay_with">ادفع باستخدام</string>
     <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>

@@ -25,7 +25,14 @@ import kotlinx.coroutines.launch
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.core.getBenefitUrl
+import payment.sdk.android.core.BnplProvider
+import payment.sdk.android.core.getBnplUrl
+import payment.sdk.android.core.supportedBnplProviders
+import payment.sdk.android.bnpl.BnplLauncher
 import payment.sdk.android.core.getQPayUrl
+import payment.sdk.android.core.isBenefitSupported
 import payment.sdk.android.core.interactor.ClickToPayConfig
 import payment.sdk.android.core.interactor.ClickToPayMerchantConfigInteractor
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureFactory
@@ -75,6 +82,7 @@ import payment.sdk.android.core.interactor.VisaRequest
 import payment.sdk.android.googlepay.GooglePayConfigFactory
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.googlepay.GooglePayJsonConfig
+import payment.sdk.android.googlepay.WalletPaymentStateMapper
 import payment.sdk.android.googlepay.env
 
 @Keep
@@ -177,6 +185,22 @@ internal class UnifiedPaymentPageViewModel(
             } else config
             _isProcessing.value = false
             _effects.emit(UnifiedPaymentPageVMEffects.LaunchClickToPay(resolvedConfig))
+        }
+    }
+
+    /**
+     * Marks a buy-now-pay-later provider as unreachable after its checkout failed to open. The row
+     * stays on the page and says so rather than disappearing — nothing was charged and the order is
+     * untouched, so the payer keeps every other method — and it stops responding so a second tap
+     * cannot bounce them off the same dead option.
+     */
+    fun markBnplUnavailable(provider: BnplProvider) {
+        _uiState.update { state ->
+            if (state is UnifiedPaymentPageVMUiState.Authorized) {
+                state.copy(unavailableBnplProviders = state.unavailableBnplProviders + provider)
+            } else {
+                state
+            }
         }
     }
 
@@ -313,6 +337,59 @@ internal class UnifiedPaymentPageViewModel(
             )
         }
 
+        // Configure Benefit if the order lists BENEFIT and is a BHD purchase. The gateway rejects
+        // anything else, so the row never shows for other currencies or order actions.
+        val benefitConfig = run {
+            if (!order.isBenefitSupported()) return@run null
+            val benefitUrl = order.getBenefitUrl() ?: return@run null
+            BenefitLauncher.Config(
+                benefitUrl = benefitUrl,
+                orderUrl = orderUrl,
+                accessToken = accessToken,
+                currencyCode = currencyCode
+            )
+        }
+
+        // Configure every buy-now-pay-later provider the order lists among its APMs. The return
+        // URLs must be ones the provider will accept and redirect a browser to, and the hosted
+        // paypage is the only such address the order carries — so the SDK reuses it exactly as the
+        // web checkout does, with a marker of our own the WebView matches on. Those pages are never
+        // fetched: the redirect to them is intercepted before it loads.
+        val bnplConfigs = run {
+            val payPageUrl = cardPaymentsIntent.paymentUrl ?: return@run emptyMap()
+            val returnBase = payPageUrl.substringBefore('#')
+            val separator = if (returnBase.contains('?')) "&" else "?"
+            order.supportedBnplProviders().mapNotNull { provider ->
+                val checkoutUrl = order.getBnplUrl(provider) ?: return@mapNotNull null
+                val method = provider.pathSegment
+                val marker = BnplProvider.RESULT_PARAM
+                provider to BnplLauncher.Config(
+                    provider = provider,
+                    checkoutUrl = checkoutUrl,
+                    acceptUrl = "$checkoutUrl/accept",
+                    orderUrl = orderUrl,
+                    accessToken = accessToken,
+                    successUrl = "$returnBase${separator}payment_method=$method&$marker=success",
+                    cancelUrl = "$returnBase${separator}$marker=cancel",
+                    failureUrl = "$returnBase${separator}payment_method=$method&$marker=failure"
+                )
+            }.toMap()
+        }
+
+        // A basket under a provider's published minimum does not remove its row: an option the
+        // outlet enables and the payer cannot find reads as the SDK being broken. The row says why
+        // instead, so the amount is compared here rather than used to filter the list above.
+        val belowMinimumBnplProviders = bnplConfigs.keys.mapNotNull { provider ->
+            val minimum = BnplProvider.minimumAmount(provider, currencyCode) ?: return@mapNotNull null
+            val minorUnit = runCatching {
+                java.util.Currency.getInstance(currencyCode).defaultFractionDigits
+            }.getOrDefault(2)
+            val majorUnits = amount / Math.pow(10.0, minorUnit.toDouble())
+            if (majorUnits >= minimum) return@mapNotNull null
+            val formatted = if (minimum % 1.0 == 0.0) minimum.toInt().toString() else minimum.toString()
+            provider to "${currencyCode.uppercase()} $formatted"
+        }.toMap()
+
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
         if (supportedCards.isEmpty()) {
@@ -351,6 +428,9 @@ internal class UnifiedPaymentPageViewModel(
                 aaniConfig = aaniConfig,
                 clickToPayConfig = clickToPayConfig,
                 qpayConfig = qpayConfig,
+                benefitConfig = benefitConfig,
+                bnplConfigs = bnplConfigs,
+                belowMinimumBnplProviders = belowMinimumBnplProviders,
                 payerIp = payerIp,
                 orderReference = order.reference.orEmpty(),
                 savedCards = cardPaymentsIntent.savedCards,
@@ -463,8 +543,13 @@ internal class UnifiedPaymentPageViewModel(
                     }
 
                     is SDKHttpResponse.Success -> {
-                        Log.d(TAG, "acceptGooglePay: API success, emitting Captured")
-                        _effects.emit(UnifiedPaymentPageVMEffects.Captured)
+                        val state = WalletPaymentStateMapper.parseState(response.body)
+                            ?: getOrderApiInteractor.getOrder(
+                                currentState.orderUrl,
+                                currentState.accessToken
+                            )?.embedded?.payment?.firstOrNull()?.state
+                        Log.d(TAG, "acceptGooglePay: API success, payment state=$state")
+                        _effects.emit(WalletPaymentStateMapper.toUppEffect(state))
                     }
                 }
             } catch (e: Exception) {

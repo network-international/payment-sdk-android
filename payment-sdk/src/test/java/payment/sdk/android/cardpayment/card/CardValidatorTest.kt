@@ -62,6 +62,53 @@ class CardValidatorTest(
                     "123",
                     "   ",
                     false
+                ),
+
+                // Every case above uses a 3-digit CVV on a Visa, so the scheme's CVV length was
+                // never actually exercised — deleting that check from CardValidator kept the suite
+                // green. These pin it.
+                arrayOf(
+                    CardDetector(cards).detect("4539578763621486"),
+                    "4539578763621486",
+                    "12/30",
+                    "12",           // one short for a Visa
+                    "John Doe",
+                    false
+                ),
+                arrayOf(
+                    CardDetector(cards).detect("4539578763621486"),
+                    "4539578763621486",
+                    "12/30",
+                    "1234",         // one long for a Visa
+                    "John Doe",
+                    false
+                ),
+                arrayOf(
+                    CardDetector(cards).detect("378282246310005"),
+                    "378282246310005",
+                    "12/30",
+                    "1234",         // Amex genuinely wants four
+                    "John Doe",
+                    true
+                ),
+                arrayOf(
+                    CardDetector(cards).detect("378282246310005"),
+                    "378282246310005",
+                    "12/30",
+                    "123",          // three is short for Amex
+                    "John Doe",
+                    false
+                ),
+
+                // Likewise no case had an expiry whose invalidity changed the answer, so the
+                // expiry check could be deleted unnoticed.
+                arrayOf(
+                    CardDetector(cards).detect("4539578763621486"),
+                    "4539578763621486",
+                    "12/20",        // in the past
+                    "123",
+                    "John Doe",
+                    false
                 )
             )
         }
