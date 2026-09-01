@@ -84,7 +84,10 @@ import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.CardMapping
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.SliceOffer
+import java.util.Currency
+import kotlin.math.pow
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.payments.SliceCheckState
@@ -390,6 +393,17 @@ fun UnifiedPaymentPageScreen(
         }
 
         // ── Pinned bottom bar ────────────────────────────────────────────────
+        // The pay button shows what the shopper is actually debited: a selected Slice offer
+        // carrying a `commission` adds that Installment fees on top of the order total. The
+        // order summary above keeps showing the original total.
+        val payButtonAmount = payableAmountLabel(
+            formattedAmount = formattedAmount,
+            orderValue = orderValue,
+            currencyCode = currencyCode,
+            // The offer selection survives switching to another payment method, and only a
+            // card payment actually submits the Slice request — so gate the label on CARD.
+            sliceOffer = cardSelectedSliceOffer.takeIf { selectedOption == PaymentOption.CARD }
+        )
         Divider(color = PgColors.borderRow, thickness = 0.5.dp)
         BottomPayBar(
             selectedOption = selectedOption,
@@ -398,7 +412,7 @@ fun UnifiedPaymentPageScreen(
             isCardFormValid = isCardFormValid,
             isProcessing = isProcessing,
             googlePayUiConfig = googlePayUiConfig,
-            formattedAmount = formattedAmount,
+            formattedAmount = payButtonAmount,
             aaniConfig = aaniConfig,
             clickToPayConfig = clickToPayConfig,
             qpayConfig = qpayConfig,
@@ -599,6 +613,30 @@ private fun PaymentSectionsContent(
     }
 
     Spacer(Modifier.height(Spacing.sectionGap))
+}
+
+/**
+ * Amount shown on the pay button. Defaults to [formattedAmount] (the order total); when
+ * [sliceOffer] carries a `commission`, that Installment fees is added on top, because the
+ * issuer debits it alongside the order. Falls back to [formattedAmount] whenever the raw
+ * order value or currency isn't available to re-format.
+ */
+private fun payableAmountLabel(
+    formattedAmount: String,
+    orderValue: Double,
+    currencyCode: String,
+    sliceOffer: SliceOffer?
+): String {
+    val installmentFee = sliceOffer?.installmentFeeAmount ?: return formattedAmount
+    if (currencyCode.isEmpty()) return formattedAmount
+    return runCatching {
+        // `commission` is quoted in major units; the order value is in minor units.
+        val minorUnitScale = 10.0.pow(Currency.getInstance(currencyCode).defaultFractionDigits)
+        OrderAmount(
+            orderValue + Math.round(installmentFee * minorUnitScale),
+            currencyCode
+        ).formattedCurrencyString(true)
+    }.getOrDefault(formattedAmount)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

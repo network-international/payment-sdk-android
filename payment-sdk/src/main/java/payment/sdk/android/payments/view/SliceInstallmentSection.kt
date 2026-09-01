@@ -211,6 +211,9 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
     } else {
         formatAmount((offer.fee.toDoubleOrNull()?.times(100))?.toInt() ?: 0, offer.installmentAmount.currencyCode)
     }
+    val installmentFeeDisplay = offer.installmentFeeAmount?.let {
+        formatAmount(Math.round(it * 100).toInt(), offer.installmentAmount.currencyCode)
+    }
 
     Column(
         modifier = modifier
@@ -253,6 +256,10 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
         SliceDetailRow(label = if (isIslamic) "Profit rate:" else "Interest rate:", value = "${offer.rate}%", bold = true)
         Spacer(Modifier.height(8.dp))
         SliceDetailRow(label = "Processing fees:", value = feeDisplay, bold = true)
+        if (installmentFeeDisplay != null) {
+            Spacer(Modifier.height(8.dp))
+            SliceDetailRow(label = "Installment fees:", value = installmentFeeDisplay, bold = true)
+        }
         Spacer(Modifier.height(8.dp))
         SliceDetailRow(
             label = "Total after ${offer.period} months",
