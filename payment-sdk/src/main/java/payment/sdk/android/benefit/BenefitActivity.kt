@@ -9,8 +9,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
-import android.webkit.CookieManager
-import android.webkit.WebStorage
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -25,6 +23,7 @@ import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.BenefitApiInteractor
 import payment.sdk.android.core.interactor.BenefitApiResponse
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
+import payment.sdk.android.webview.PaymentWebSession
 
 /**
  * Drives the Benefit (Bahrain debit) checkout in a WebView.
@@ -51,6 +50,9 @@ class BenefitActivity : AppCompatActivity() {
     private var sawReturnCallback = false
     private var didStartPolling = false
     private var didDispatchResult = false
+
+    /** True when the payment WebView runs on the SDK's own isolated web profile (see Q2). */
+    private var isWebSessionIsolated = false
 
     /**
      * Set when the payer is seen hitting Benefit's cancel page. Distinguishes "the payer backed
@@ -111,6 +113,8 @@ class BenefitActivity : AppCompatActivity() {
             }
             webViewClient = benefitWebViewClient
         }
+        isWebSessionIsolated = PaymentWebSession.isolate(webView)
+        PaymentWebSession.configureCookies(webView, isWebSessionIsolated)
         container.addView(webView)
 
         progressBar = ProgressBar(this).apply {
@@ -145,25 +149,7 @@ class BenefitActivity : AppCompatActivity() {
             }
         })
 
-        resetWebSession()
         startCheckout()
-    }
-
-    /**
-     * Start every Benefit payment from a clean web session. Android's WebView storage is
-     * process-global and persistent, so without this a previous payment's cookies and localStorage
-     * leak into the next order's hosted page.
-     */
-    private fun resetWebSession() {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-        cookieManager.setAcceptThirdPartyCookies(webView, true)
-        cookieManager.removeAllCookies(null)
-        cookieManager.flush()
-        WebStorage.getInstance().deleteAllData()
-        webView.clearCache(true)
-        webView.clearFormData()
-        webView.clearHistory()
     }
 
     private fun startCheckout() {
@@ -188,6 +174,12 @@ class BenefitActivity : AppCompatActivity() {
                         return@launch
                     }
                     benefitHost = hostOf(paymentUrl)
+                    // Start from a clean session, scoped to the SDK — never the host app (Q2).
+                    val origins = listOfNotNull(
+                        PaymentWebSession.originOf(paymentUrl),   // Benefit hosted page
+                        PaymentWebSession.originOf(args.orderUrl) // api-gateway
+                    )
+                    PaymentWebSession.reset(isWebSessionIsolated, origins)
                     webView.loadUrl(paymentUrl)
                 }
             }

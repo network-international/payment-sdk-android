@@ -95,6 +95,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:1.7.0"
     debugImplementation "androidx.compose.ui:ui-tooling:1.7.0"
 
+    implementation "androidx.webkit:webkit:1.12.1"
     implementation "androidx.appcompat:appcompat:$androidx_appcompat"
     implementation "com.google.android.material:material:$android_material"
     implementation "androidx.constraintlayout:constraintlayout:$androidx_constraintlayout"
