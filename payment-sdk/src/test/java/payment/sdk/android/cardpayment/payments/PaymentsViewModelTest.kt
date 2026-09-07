@@ -42,6 +42,7 @@ import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
 import payment.sdk.android.core.interactor.GooglePayAcceptInteractor
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
+import payment.sdk.android.core.interactor.OrderStatePoller
 import payment.sdk.android.core.interactor.SavedCardPaymentApiInteractor
 import payment.sdk.android.core.interactor.SliceEligibilityInteractor
 import payment.sdk.android.core.interactor.VisaInstallmentPlanInteractor
@@ -79,6 +80,7 @@ class UnifiedPaymentPageViewModelTest {
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor = mockk(relaxed = true)
     private val clickToPayMerchantConfigInteractor: ClickToPayMerchantConfigInteractor =
         mockk(relaxed = true)
+    private val orderStatePoller: OrderStatePoller = mockk(relaxed = true)
 
     private lateinit var sut: UnifiedPaymentPageViewModel
 
@@ -98,8 +100,14 @@ class UnifiedPaymentPageViewModelTest {
             sliceEligibilityInteractor = sliceEligibilityInteractor,
             savedCardPaymentApiInteractor = savedCardPaymentApiInteractor,
             clickToPayMerchantConfigInteractor = clickToPayMerchantConfigInteractor,
+            orderStatePoller = orderStatePoller,
             dispatcher = testDispatcher
         )
+        // Default: the order never settles, so a failed payment call stays a failure. Tests that
+        // exercise recovery override this.
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Inconclusive(null)
     }
 
     @After
@@ -294,6 +302,136 @@ class UnifiedPaymentPageViewModelTest {
 
         assertTrue(effects.isNotEmpty())
         assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Captured)
+    }
+
+    private fun orderJsonWith(state: String) = org.json.JSONObject(
+        """
+        {
+          "reference": "orderRef",
+          "_embedded": { "payment": [ { "reference": "p1", "state": "$state" } ] }
+        }
+        """.trimIndent()
+    )
+
+    private fun payWithCard() = sut.makeCardPayment(
+        "selfUrl",
+        "cardPaymentUrl",
+        "accessToken",
+        "paymentCookie",
+        "1234567812345678",
+        "orderUrl",
+        "12/24",
+        "123",
+        "John Doe",
+        0.0,
+        "AED",
+        "1.1.1.1"
+    )
+
+    @Test
+    fun `a lost card payment call that the gateway captured is reported as captured`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(effects) }
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Terminal("CAPTURED", orderJsonWith("CAPTURED"))
+
+        payWithCard()
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Captured)
+    }
+
+    @Test
+    fun `a lost card payment call that the gateway purchased is reported as purchased`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(effects) }
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Terminal("PURCHASED", orderJsonWith("PURCHASED"))
+
+        payWithCard()
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Purchased)
+    }
+
+    @Test
+    fun `a lost card payment call the gateway declined is still a failure`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(effects) }
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Terminal("FAILED", orderJsonWith("FAILED"))
+
+        payWithCard()
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.Failed)
+    }
+
+    @Test
+    fun `a lost card payment call is never re-sent`() = runTest {
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(mutableListOf()) }
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Terminal("PURCHASED", orderJsonWith("PURCHASED"))
+
+        payWithCard()
+
+        coVerify(exactly = 1) { cardPaymentInteractor.makeCardPayment(any()) }
+    }
+
+    @Test
+    fun `an order still awaiting 3DS after a lost call resumes the challenge`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(effects) }
+
+        // The order's embedded payment carries the same shape as the payment resource, so the
+        // 3DS data needed to resume the challenge survives the lost call.
+        val threeDSOrder = org.json.JSONObject(
+            """{"_embedded":{"payment":[${
+                ClassLoader.getSystemResource("threeDSecureTwoResponse.json").readText()
+            }]}}"""
+        )
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Terminal("AWAIT_3DS", threeDSOrder)
+
+        payWithCard()
+
+        assertTrue(effects.first() is UnifiedPaymentPageVMEffects.InitiateThreeDSTwo)
+    }
+
+    @Test
+    fun `a payment that never reached the gateway stays a failure`() = runTest {
+        val effects: MutableList<UnifiedPaymentPageVMEffects> = mutableListOf()
+        backgroundScope.launch(testDispatcher) { sut.effect.toList(effects) }
+
+        coEvery { cardPaymentInteractor.makeCardPayment(any()) } returns
+                CardPaymentResponse.Error(java.net.SocketTimeoutException("timeout"))
+        coEvery {
+            orderStatePoller.awaitTerminalState(any(), any(), any(), any(), any())
+        } returns OrderStatePoller.Result.Inconclusive("STARTED")
+
+        payWithCard()
+
+        assertEquals(
+            "timeout",
+            (effects.first() as UnifiedPaymentPageVMEffects.Failed).error
+        )
     }
 
     @Test

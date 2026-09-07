@@ -116,6 +116,9 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_version"
     testImplementation "io.mockk:mockk:1.13.7"
+    // `returnDefaultValues = true` stubs android.jar, which is where org.json lives — so a
+    // JSONObject built in a test would answer null to everything. Matches payment-sdk-core.
+    testImplementation 'org.json:json:20231013'
 
     api project(path: ':payment-sdk-samsungpay')
 }

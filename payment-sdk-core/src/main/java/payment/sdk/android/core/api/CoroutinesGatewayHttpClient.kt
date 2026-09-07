@@ -15,7 +15,16 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSocketFactory
 
-class CoroutinesGatewayHttpClient : HttpClient {
+/**
+ * @param readTimeoutMs how long to wait for the response. The default suits ordinary gateway
+ * calls; callers that sit behind slow backend work (3DS challenge responses run fraud screening
+ * before answering) should raise it, because a client-side timeout leaves the caller unable to
+ * tell a failed payment from a slow one.
+ */
+class CoroutinesGatewayHttpClient(
+    private val readTimeoutMs: Int = DEFAULT_TIMEOUT_MS,
+    private val connectTimeoutMs: Int = DEFAULT_TIMEOUT_MS
+) : HttpClient {
 
     private val sslSocketFactoryDelegate: SSLSocketFactory by lazy {
         TLSSocketFactoryDelegate()
@@ -246,6 +255,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
 
     companion object {
         private const val TAG = "NI-SDK-HTTP"
+
+        const val DEFAULT_TIMEOUT_MS = 30_000
     }
 
     private fun initConnection(
@@ -254,8 +265,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
         isDoOutput: Boolean
     ) =
         connection.apply {
-            readTimeout = 30000
-            connectTimeout = 30000
+            readTimeout = readTimeoutMs
+            connectTimeout = connectTimeoutMs
             doOutput = isDoOutput
             useCaches = false
             val device = "${Build.MANUFACTURER}-${Build.MODEL}"

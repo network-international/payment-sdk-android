@@ -75,6 +75,7 @@
     <string name="message_loading_order_details">جارٍ تحميل تفاصيل الطلب …</string>
 
     <string name="authenticating_three_ds_two">Authenticating using 3DS</string>
+    <string name="confirming_payment_three_ds_two">جارٍ تأكيد عملية الدفع…</string>
 
     <string name="cancel_payment_alert_title">إلغاء الدفع</string>
     <string name="cancel_payment_alert_message">هل أنت متأكد أنك تريد إلغاء الدفع؟</string>
@@ -104,6 +105,7 @@
     <string name="aani">الدفع عبر آني</string>
     <string name="qpay">ادفع باستخدام كيو باي</string>
     <string name="benefit">الدفع عبر بنفت</string>
+    <string name="benefit_unavailable">غير متاح حالياً. يرجى اختيار طريقة دفع أخرى.</string>
     <string name="qpay_express_pay_with">ادفع باستخدام</string>
     <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>

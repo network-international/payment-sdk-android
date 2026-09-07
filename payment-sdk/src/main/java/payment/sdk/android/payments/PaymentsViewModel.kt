@@ -64,7 +64,10 @@ import payment.sdk.android.core.interactor.CardPaymentInteractor
 import payment.sdk.android.core.interactor.MakeCardPaymentRequest
 import payment.sdk.android.core.interactor.CardPaymentResponse
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
+import com.google.gson.Gson
+import payment.sdk.android.core.PaymentResponse
 import payment.sdk.android.core.interactor.GetPayerIpInteractor
+import payment.sdk.android.core.interactor.OrderStatePoller
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.getSavedCardPaymentUrl
 import payment.sdk.android.core.getSliceEligibilityCheckUrl
@@ -99,6 +102,7 @@ internal class UnifiedPaymentPageViewModel(
     private val getOrderApiInteractor: GetOrderApiInteractor,
     private val savedCardPaymentApiInteractor: SavedCardPaymentApiInteractor,
     private val clickToPayMerchantConfigInteractor: ClickToPayMerchantConfigInteractor,
+    private val orderStatePoller: OrderStatePoller,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -581,38 +585,22 @@ internal class UnifiedPaymentPageViewModel(
                 cvv = cvv?.takeIf { it.isNotBlank() }
             )
             when (val response = savedCardPaymentApiInteractor.doSavedCardPayment(request)) {
-                is SavedCardResponse.Success -> {
-                    when (response.paymentResponse.state) {
-                        "AUTHORISED" -> _effects.emit(UnifiedPaymentPageVMEffects.PaymentAuthorised)
-                        "PURCHASED" -> _effects.emit(UnifiedPaymentPageVMEffects.Purchased)
-                        "CAPTURED" -> _effects.emit(UnifiedPaymentPageVMEffects.Captured)
-                        "POST_AUTH_REVIEW" -> _effects.emit(UnifiedPaymentPageVMEffects.PostAuthReview)
-                        "AWAIT_3DS" -> {
-                            try {
-                                if (response.paymentResponse.isThreeDSecureTwo()) {
-                                    // Pull from the function parameters — uiState is Loading
-                                    // here (we transitioned to it at the top of this fn) so
-                                    // casting to Authorized would yield null and the cookie
-                                    // would be empty, breaking the 3DS2 /authentications call.
-                                    val dto = threeDSecureFactory.buildThreeDSecureTwoDto(
-                                        paymentResponse = response.paymentResponse,
-                                        orderUrl = orderUrl,
-                                        paymentCookie = paymentCookie
-                                    )
-                                    _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDSTwo(dto))
-                                } else {
-                                    val dto = threeDSecureFactory.buildThreeDSecureDto(response.paymentResponse)
-                                    _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDS(dto))
-                                }
-                            } catch (e: IllegalArgumentException) {
-                                _effects.emit(UnifiedPaymentPageVMEffects.Failed(e.message.orEmpty()))
-                            }
-                        }
-                        "FAILED" -> _effects.emit(UnifiedPaymentPageVMEffects.Failed("Saved card payment failed"))
-                        else -> _effects.emit(UnifiedPaymentPageVMEffects.Failed("Unknown state: ${response.paymentResponse.state}"))
-                    }
-                }
-                is SavedCardResponse.Error -> _effects.emit(UnifiedPaymentPageVMEffects.Failed(response.error.message.orEmpty()))
+                // The cookie is taken from the function parameters, not uiState: uiState is
+                // Loading here (we transitioned to it at the top of this fn), so casting to
+                // Authorized would yield null and the cookie would be empty, breaking the
+                // 3DS2 /authentications call.
+                is SavedCardResponse.Success -> dispatchPaymentState(
+                    paymentResponse = response.paymentResponse,
+                    paymentCookie = paymentCookie,
+                    orderUrl = orderUrl,
+                    failureMessage = "Saved card payment failed"
+                )
+
+                is SavedCardResponse.Error -> reconcilePaymentAfterError(
+                    error = response.error,
+                    paymentCookie = paymentCookie,
+                    orderUrl = orderUrl
+                )
             }
         }
     }
@@ -621,46 +609,110 @@ internal class UnifiedPaymentPageViewModel(
         makeCardPaymentRequest: MakeCardPaymentRequest,
         orderUrl: String,
     ) {
-        val response = cardPaymentInteractor.makeCardPayment(makeCardPaymentRequest)
+        when (val response = cardPaymentInteractor.makeCardPayment(makeCardPaymentRequest)) {
+            is CardPaymentResponse.Success -> dispatchPaymentState(
+                paymentResponse = response.paymentResponse,
+                paymentCookie = makeCardPaymentRequest.paymentCookie,
+                orderUrl = orderUrl,
+                failureMessage = " Payment Failed ${response.paymentResponse.threeDSOne?.summaryText.orEmpty()}"
+            )
 
-        if (response is CardPaymentResponse.Success) {
-            when (response.paymentResponse.state) {
-                "AUTHORISED" -> _effects.emit(UnifiedPaymentPageVMEffects.PaymentAuthorised)
-                "PURCHASED" -> _effects.emit(UnifiedPaymentPageVMEffects.Purchased)
-                "CAPTURED" -> _effects.emit(UnifiedPaymentPageVMEffects.Captured)
-                "POST_AUTH_REVIEW" -> _effects.emit(UnifiedPaymentPageVMEffects.PostAuthReview)
-                "AWAIT_3DS" -> {
-                    try {
-                        if (response.paymentResponse.isThreeDSecureTwo()) {
-                            val request = threeDSecureFactory.buildThreeDSecureTwoDto(
-                                paymentResponse = response.paymentResponse,
-                                orderUrl = orderUrl,
-                                paymentCookie = makeCardPaymentRequest.paymentCookie
-                            )
-                            _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDSTwo(request))
-                        } else {
-                            val request =
-                                threeDSecureFactory.buildThreeDSecureDto(paymentResponse = response.paymentResponse)
-                            _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDS(request))
-                        }
-
-                    } catch (e: IllegalArgumentException) {
-                        _effects.emit(UnifiedPaymentPageVMEffects.Failed(e.message.orEmpty()))
-                    }
-                }
-
-                "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
-                    response.paymentResponse.toIntent(makeCardPaymentRequest.paymentCookie).let { intent ->
-                        startPartialAuth(intent)
-                    }
-                }
-
-                "FAILED" -> _effects.emit(UnifiedPaymentPageVMEffects.Failed(" Payment Failed ${response.paymentResponse.threeDSOne?.summaryText.orEmpty()}"))
-                else -> _effects.emit(UnifiedPaymentPageVMEffects.Failed("Unknown payment state: $uiState"))
-            }
-        } else {
-            _effects.emit(UnifiedPaymentPageVMEffects.Failed((response as CardPaymentResponse.Error).error.message.orEmpty()))
+            is CardPaymentResponse.Error -> reconcilePaymentAfterError(
+                error = response.error,
+                paymentCookie = makeCardPaymentRequest.paymentCookie,
+                orderUrl = orderUrl
+            )
         }
+    }
+
+    /**
+     * Turns a payment's state into the next step, wherever that state came from — the payment
+     * call's own response, or the order re-read after that call was lost.
+     */
+    private suspend fun dispatchPaymentState(
+        paymentResponse: PaymentResponse,
+        paymentCookie: String,
+        orderUrl: String,
+        failureMessage: String
+    ) {
+        when (paymentResponse.state?.uppercase()) {
+            "AUTHORISED" -> _effects.emit(UnifiedPaymentPageVMEffects.PaymentAuthorised)
+            "PURCHASED" -> _effects.emit(UnifiedPaymentPageVMEffects.Purchased)
+            "CAPTURED", "VERIFIED" -> _effects.emit(UnifiedPaymentPageVMEffects.Captured)
+            "POST_AUTH_REVIEW" -> _effects.emit(UnifiedPaymentPageVMEffects.PostAuthReview)
+            "AWAIT_3DS" -> {
+                try {
+                    if (paymentResponse.isThreeDSecureTwo()) {
+                        val request = threeDSecureFactory.buildThreeDSecureTwoDto(
+                            paymentResponse = paymentResponse,
+                            orderUrl = orderUrl,
+                            paymentCookie = paymentCookie
+                        )
+                        _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDSTwo(request))
+                    } else {
+                        val request =
+                            threeDSecureFactory.buildThreeDSecureDto(paymentResponse = paymentResponse)
+                        _effects.emit(UnifiedPaymentPageVMEffects.InitiateThreeDS(request))
+                    }
+                } catch (e: IllegalArgumentException) {
+                    _effects.emit(UnifiedPaymentPageVMEffects.Failed(e.message.orEmpty()))
+                }
+            }
+
+            "AWAITING_PARTIAL_AUTH_APPROVAL" -> {
+                paymentResponse.toIntent(paymentCookie).let { intent ->
+                    startPartialAuth(intent)
+                }
+            }
+
+            "FAILED" -> _effects.emit(UnifiedPaymentPageVMEffects.Failed(failureMessage))
+            else -> _effects.emit(
+                UnifiedPaymentPageVMEffects.Failed("Unknown payment state: ${paymentResponse.state}")
+            )
+        }
+    }
+
+    /**
+     * Recovers the outcome when the payment call itself did not come back.
+     *
+     * A read timeout on the payment PUT says nothing about whether the gateway took it — fraud
+     * screening can outlast the client's patience on a payment that goes on to succeed. The
+     * request is never re-sent (it is not idempotent); the order is re-read instead and, once it
+     * reports something the SDK can act on, the flow carries on from there. A payment that is
+     * genuinely still STARTED never left the gate, so the original error stands.
+     */
+    private suspend fun reconcilePaymentAfterError(
+        error: Exception,
+        paymentCookie: String,
+        orderUrl: String
+    ) {
+        Log.d(TAG, "Payment call failed (${error.message}); reconciling against the order")
+        val result = orderStatePoller.awaitTerminalState(
+            orderUrl = orderUrl,
+            paymentCookie = paymentCookie,
+            maxAttempts = RECONCILE_POLL_ATTEMPTS,
+            // AWAIT_3DS is a resting place here, not a state to wait out: the payment exists and
+            // the challenge still needs running.
+            stopStates = OrderStatePoller.TERMINAL_STATES + OrderStatePoller.STATE_AWAIT_3DS
+        )
+
+        val payment = (result as? OrderStatePoller.Result.Terminal)
+            ?.let { OrderStatePoller.embeddedPayment(it.order) }
+
+        if (payment == null) {
+            val lastState = (result as? OrderStatePoller.Result.Inconclusive)?.lastState
+            Log.e(TAG, "Order did not settle after a failed payment call, last state=$lastState")
+            _effects.emit(UnifiedPaymentPageVMEffects.Failed(error.message.orEmpty()))
+            return
+        }
+
+        Log.d(TAG, "Order settled as ${(result as OrderStatePoller.Result.Terminal).state}")
+        dispatchPaymentState(
+            paymentResponse = Gson().fromJson(payment.toString(), PaymentResponse::class.java),
+            paymentCookie = paymentCookie,
+            orderUrl = orderUrl,
+            failureMessage = " Payment Failed"
+        )
     }
 
     fun makeVisPayment(
@@ -813,6 +865,19 @@ internal class UnifiedPaymentPageViewModel(
 
     companion object {
         private const val TAG = "NI-SDK-GPay-Debug"
+
+        /**
+         * ~15s of re-reads after a lost payment call. Long enough for the gateway to finish a
+         * payment it did receive, short enough not to strand a shopper whose request never
+         * arrived (that order stays STARTED however long we look).
+         */
+        private const val RECONCILE_POLL_ATTEMPTS = 6
+
+        /** Read timeout for the payment PUTs; fraud screening can outlast the 30s default. */
+        private const val PAYMENT_READ_TIMEOUT_MS = 60_000
+
+        /** Read timeout for each order re-read: short, so a hung read costs one attempt. */
+        private const val ORDER_READ_TIMEOUT_MS = 10_000
     }
 
     internal class Factory(private val cardPaymentsIntent: UnifiedPaymentPageRequest) :
@@ -826,10 +891,16 @@ internal class UnifiedPaymentPageViewModel(
                     .setEnvironment(cardPaymentsIntent.googlePayConfig.env())
                     .build();
             val httpClient = CoroutinesGatewayHttpClient()
+            // The payment PUTs sit behind fraud screening, so they get longer than the default;
+            // order re-reads get less, so one hung read does not swallow the poll budget.
+            val paymentHttpClient =
+                CoroutinesGatewayHttpClient(readTimeoutMs = PAYMENT_READ_TIMEOUT_MS)
+            val orderHttpClient =
+                CoroutinesGatewayHttpClient(readTimeoutMs = ORDER_READ_TIMEOUT_MS)
             return UnifiedPaymentPageViewModel(
                 cardPaymentsIntent = cardPaymentsIntent,
                 authApiInteractor = AuthApiInteractor(httpClient, extras.requireApplication()),
-                cardPaymentInteractor = CardPaymentInteractor(httpClient, extras.requireApplication()),
+                cardPaymentInteractor = CardPaymentInteractor(paymentHttpClient, extras.requireApplication()),
                 visaInstalmentPlanInteractor = VisaInstallmentPlanInteractor(httpClient),
                 sliceEligibilityInteractor = SliceEligibilityInteractor(httpClient),
                 getPayerIpInteractor = GetPayerIpInteractor(httpClient),
@@ -844,8 +915,9 @@ internal class UnifiedPaymentPageViewModel(
                 ),
                 googlePayAcceptInteractor = GooglePayAcceptInteractor(httpClient, extras.requireApplication()),
                 getOrderApiInteractor = GetOrderApiInteractor(httpClient),
-                savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(httpClient, extras.requireApplication()),
-                clickToPayMerchantConfigInteractor = ClickToPayMerchantConfigInteractor(httpClient)
+                savedCardPaymentApiInteractor = SavedCardPaymentApiInteractor(paymentHttpClient, extras.requireApplication()),
+                clickToPayMerchantConfigInteractor = ClickToPayMerchantConfigInteractor(httpClient),
+                orderStatePoller = OrderStatePoller(orderHttpClient)
             ) as T
         }
     }

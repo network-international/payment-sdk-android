@@ -53,6 +53,7 @@
     <string name="message_loading_order_details">Chargement des détails de la commande…</string>
 
     <string name="authenticating_three_ds_two">Authentification via 3DS</string>
+    <string name="confirming_payment_three_ds_two">Confirmation de votre paiement…</string>
 
     <string name="cancel_payment_alert_title">Annuler le paiement</string>
     <string name="cancel_payment_alert_message">Êtes-vous sûr de vouloir annuler le paiement ?</string>
@@ -88,6 +89,7 @@
     <string name="aani">Payer avec AANI</string>
     <string name="qpay">Payer avec QPay</string>
     <string name="benefit">Payer avec Benefit</string>
+    <string name="benefit_unavailable">Indisponible pour le moment. Veuillez choisir un autre moyen de paiement.</string>
     <string name="qpay_express_pay_with">Payer avec</string>
     <string name="aani_mobile_number">Numéro de mobile</string>
     <string name="aani_emirates_id">Emirates ID</string>

@@ -83,6 +83,7 @@
     <string name="message_loading_order_details">Loading order details…</string>
 
     <string name="authenticating_three_ds_two">Authenticating using 3DS</string>
+    <string name="confirming_payment_three_ds_two">Confirming your payment…</string>
 
     <string name="cancel_payment_alert_title">Cancel Payment</string>
     <string name="cancel_payment_alert_message">Are you sure you want to cancel the payment?</string>
@@ -118,6 +119,7 @@
     <string name="aani">Pay with AANI</string>
     <string name="qpay">Pay with QPay</string>
     <string name="benefit">Pay by Benefit</string>
+    <string name="benefit_unavailable">Unavailable right now. Please choose another payment method.</string>
     <string name="pay_with_tamara">Pay with Tamara</string>
     <string name="pay_with_tabby">Pay with Tabby</string>
     <string name="bnpl_unavailable">Unavailable right now. Please choose another payment method.</string>

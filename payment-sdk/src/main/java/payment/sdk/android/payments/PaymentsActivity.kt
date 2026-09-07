@@ -638,7 +638,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             }
                         when (state) {
                             "AUTHORISED" -> finishWithData(UnifiedPaymentPageResult.Authorised)
-                            "PURCHASED", "CAPTURED" -> finishWithData(UnifiedPaymentPageResult.Success)
+                            "PURCHASED", "CAPTURED", "VERIFIED" ->
+                                finishWithData(UnifiedPaymentPageResult.Success)
                             "FAILED" -> finishWithData(UnifiedPaymentPageResult.Failed("3DS Failed"))
                             "POST_AUTH_REVIEW" -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
                             "AWAITING_PARTIAL_AUTH_APPROVAL" -> {

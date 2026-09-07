@@ -18,7 +18,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import payment.sdk.android.cardpayment.CardPaymentApiInteractor
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.core.Order
@@ -26,6 +28,7 @@ import payment.sdk.android.core.ThreeDSAuthResponse
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.dependency.StringResources
 import payment.sdk.android.core.dependency.StringResourcesImpl
+import payment.sdk.android.core.interactor.OrderStatePoller
 import payment.sdk.android.sdk.R
 import java.net.URLEncoder
 import java.util.Stack
@@ -74,6 +77,7 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     private lateinit var paymentApiInteractor: CardPaymentApiInteractor
+    private lateinit var orderStatePoller: OrderStatePoller
 
     private val threeDSecureWebViews = Stack<ThreeDSecureTwoWebView>()
     private var paymentCookie: String? = null
@@ -88,15 +92,28 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var onFingerPrintTimeout: Runnable? = null
 
+    /** Set once the result has been handed back, so no later callback can dispatch a second one. */
+    private var didDispatchResult = false
+
+    /** Guards against the WebView reporting challenge completion more than once. */
+    private var didStartChallengeCompletion = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_3d_secure)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        // The challenge response can sit behind fraud screening for well over the default 30s.
+        // Waiting longer here is cheaper than timing out on a payment that is about to succeed.
         paymentApiInteractor = CardPaymentApiInteractor(
-            CoroutinesGatewayHttpClient(),
+            CoroutinesGatewayHttpClient(readTimeoutMs = THREE_DS_READ_TIMEOUT_MS),
             applicationContext
+        )
+        // Polling wants the opposite: each read should give up quickly so the next attempt comes
+        // round, rather than one hung read swallowing the whole budget.
+        orderStatePoller = OrderStatePoller(
+            CoroutinesGatewayHttpClient(readTimeoutMs = ORDER_READ_TIMEOUT_MS)
         )
 
         val threeDSMethodURL = intent.getStringExtra(THREE_DS_METHOD_URL)
@@ -180,6 +197,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     private fun finishWithError(message: String) {
+        if (didDispatchResult) return
+        didDispatchResult = true
         val intent = Intent().apply {
             putExtra(CardPaymentData.INTENT_DATA_KEY, CardPaymentData(CardPaymentData.STATUS_GENERIC_ERROR, message))
             putExtra(KEY_3DS_STATE, STATUS_PAYMENT_FAILED)
@@ -249,9 +268,15 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
                     finishWithResult(state)
                 }
             },
-            error = { _ ->
-                Log.e("ThreeDSTwoWebActivity", "ThreeDS Authentications failed")
-                finishWithResult()
+            error = { exception ->
+                // The authentication call may have timed out after the gateway already authorised
+                // a frictionless payment, so check the order before calling it a failure. A short
+                // budget: if the payment is genuinely still awaiting 3DS, no amount of waiting
+                // moves it — the challenge was never shown.
+                reconcileWithOrder(
+                    reason = "3DS authentications failed: ${exception.message}",
+                    maxAttempts = AUTH_FAILURE_POLL_ATTEMPTS
+                )
             }
         )
     }
@@ -262,37 +287,63 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
             onCompleteFingerPrint("Y")
         } else {
             // Challenge is completed.
+            if (didStartChallengeCompletion) return
+            didStartChallengeCompletion = true
             val currentWebView = threeDSecureWebViews.last()
             currentWebView.visibility = View.GONE
             showProgress(true, stringResources.getString(AUTHENTICATING_3DS_TRANSACTION))
             paymentApiInteractor.postThreeDSTwoChallengeResponse(
                 threeDSTwoChallengeResponseURL = threeDSTwoChallengeResponseURL!!,
                 paymentCookie = paymentCookie!!,
-                success = { _, _ ->
-                    paymentApiInteractor.getOrder(
-                        orderUrl = orderUrl!!,
-                        paymentCookie = paymentCookie!!,
-                        success = { _, _, _, _, _, _, order, _ ->
-                            val orderResponse = Gson().fromJson(order.toString(), Order::class.java)
-                            val orderState: String? = try {
-                                order.getJSONObject("_embedded")
-                                    .getJSONArray("payment")
-                                    .getJSONObject(0)
-                                    .getString("state")
-                            } catch (_: Exception) {
-                                null
-                            }
-                            finishWithResult(orderState, orderResponse.toIntent(paymentCookie))
-                        },
-                        error = {
-                            finishWithResult()
-                        }
-                    )
-                },
-                error = {
+                // The challenge response carries a state, but the order is what the caller is told
+                // about, so it stays the single source of truth on both branches. Reconciling on
+                // success costs one extra read; reconciling on failure is the whole point — a
+                // timed-out challenge response very often belongs to a payment that succeeded.
+                success = { _, _ -> reconcileWithOrder("challenge response completed") },
+                error = { reconcileWithOrder("challenge response failed: ${it.message}") }
+            )
+        }
+    }
+
+    /**
+     * Asks the order what actually happened and finishes on its answer.
+     *
+     * Only ever reads. The 3DS calls are not idempotent, so a payment that may already have gone
+     * through is never retried — the order is polled until it settles instead.
+     */
+    private fun reconcileWithOrder(
+        reason: String,
+        maxAttempts: Int = OrderStatePoller.DEFAULT_MAX_ATTEMPTS
+    ) {
+        val url = orderUrl
+        val cookie = paymentCookie
+        if (url.isNullOrBlank() || cookie.isNullOrBlank()) {
+            Log.e(TAG, "Cannot reconcile ($reason): order url or payment cookie missing")
+            finishWithResult()
+            return
+        }
+        Log.d(TAG, "Reconciling payment against the order: $reason")
+        showProgress(true, stringResources.getString(CONFIRMING_PAYMENT))
+        lifecycleScope.launch {
+            when (val result = orderStatePoller.awaitTerminalState(
+                orderUrl = url,
+                paymentCookie = cookie,
+                maxAttempts = maxAttempts
+            )) {
+                is OrderStatePoller.Result.Terminal -> {
+                    Log.d(TAG, "Order settled as ${result.state}")
+                    val order = Gson().fromJson(result.order.toString(), Order::class.java)
+                    finishWithResult(result.state, order.toIntent(paymentCookie))
+                }
+
+                is OrderStatePoller.Result.Inconclusive -> {
+                    // Still unresolved after the full budget, or the order was never readable.
+                    // Reporting failure is the only honest answer left; the state is logged so a
+                    // support query can be matched against the order.
+                    Log.e(TAG, "Order did not settle, last state=${result.lastState}")
                     finishWithResult()
                 }
-            )
+            }
         }
     }
 
@@ -358,7 +409,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         return when (state) {
             STATUS_PAYMENT_AUTHORISED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_AUTHORIZED)
             STATUS_PAYMENT_PURCHASED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_PURCHASED)
-            STATUS_PAYMENT_CAPTURED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
+            STATUS_PAYMENT_CAPTURED, STATUS_PAYMENT_VERIFIED ->
+                CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED)
             STATUS_PAYMENT_FAILED -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
             STATUS_POST_AUTH_REVIEW -> CardPaymentData(CardPaymentData.STATUS_POST_AUTH_REVIEW)
             else -> CardPaymentData(CardPaymentData.STATUS_PAYMENT_FAILED)
@@ -366,6 +418,8 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
     }
 
     fun finishWithResult(state: String? = null, partialAuthIntent: PartialAuthIntent? = null) {
+        if (didDispatchResult) return
+        didDispatchResult = true
         if(state != null) {
             val intent = Intent().apply {
                 putExtra(KEY_3DS_STATE, state)
@@ -454,7 +508,19 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val ORDER_URL = "orderUrl"
         internal const val PAYMENT_REF = "paymentRef"
 
+        private const val TAG = "ThreeDSTwoWebActivity"
+
         private val AUTHENTICATING_3DS_TRANSACTION: Int = R.string.authenticating_three_ds_two
+        private val CONFIRMING_PAYMENT: Int = R.string.confirming_payment_three_ds_two
+
+        /** Read timeout for the 3DS calls; the gateway's fraud screening can outlast the default. */
+        private const val THREE_DS_READ_TIMEOUT_MS = 90_000
+
+        /** Read timeout for each order re-read: short, so a hung read costs one attempt. */
+        private const val ORDER_READ_TIMEOUT_MS = 10_000
+
+        /** Poll budget when the authentication call — not the challenge response — failed. */
+        private const val AUTH_FAILURE_POLL_ATTEMPTS = 3
 
         fun getIntent(
             context: Context,
@@ -494,6 +560,9 @@ open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
         internal const val STATUS_PAYMENT_PURCHASED = "PURCHASED"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_CAPTURED = "CAPTURED"
+        /** Zero-amount card verification; the payment succeeded, there is just nothing to capture. */
+        @VisibleForTesting
+        internal const val STATUS_PAYMENT_VERIFIED = "VERIFIED"
         @VisibleForTesting
         internal const val STATUS_PAYMENT_FAILED = "FAILED"
         @VisibleForTesting
