@@ -37,6 +37,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ListItem
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -69,12 +71,9 @@ import payment.sdk.android.BuildConfig
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.demo.MainActivity
 import payment.sdk.android.demo.isTablet
-import payment.sdk.android.demo.model.AppCurrency
 import payment.sdk.android.demo.model.AppLanguage
-import payment.sdk.android.demo.model.OrderAction
-import payment.sdk.android.demo.model.OrderType
-import payment.sdk.android.demo.model.Region
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.ScannedEnvironment
 import payment.sdk.android.demo.ui.screen.SectionView
 import payment.sdk.android.sdk.R as SdkR
 import payment.sdk.android.core.testId
@@ -83,6 +82,7 @@ import payment.sdk.android.core.testId
 @Composable
 fun EnvironmentScreen(
     onNavUp: () -> Unit,
+    onClickSdkAppearance: () -> Unit,
     onChangeLanguage: (AppLanguage) -> Unit
 ) {
     val activity = LocalContext.current as MainActivity
@@ -96,44 +96,45 @@ fun EnvironmentScreen(
     var showAddEnvironmentDialog by remember { mutableStateOf(false) }
     var showMerchantAttributeDialog by remember { mutableStateOf(false) }
     var showQrConfirmDialog by rememberSaveable { mutableStateOf(false) }
-    var qrNickname by rememberSaveable { mutableStateOf("") }
-    var qrRealm by rememberSaveable { mutableStateOf("") }
-    var qrOutletReference by rememberSaveable { mutableStateOf("") }
-    var qrApiKey by rememberSaveable { mutableStateOf("") }
+    var qrScanned by remember { mutableStateOf<ScannedEnvironment?>(null) }
     var editingEnvironment by remember { mutableStateOf<Environment?>(null) }
+    var environmentPendingDeletion by remember { mutableStateOf<Environment?>(null) }
 
     var isExpandedEnvironments by remember { mutableStateOf(false) }
     var isExpandedMerchantAttributes by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
+    val scanOptions = ScanOptions().apply {
+        setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+        setPrompt("Scan environment QR code")
+        setBeepEnabled(false)
+        setOrientationLocked(true)
+    }
+    var scanAnotherPrompt by remember { mutableStateOf<String?>(null) }
     val qrScanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
-        if (result.contents != null) {
-            val parts = result.contents.split("|")
-            when (parts.size) {
-                3 -> {
-                    // Legacy format: realm|outletReference|apiKey
-                    qrNickname = ""
-                    qrRealm = parts[0]
-                    qrOutletReference = parts[1]
-                    qrApiKey = parts[2]
-                    showQrConfirmDialog = true
-                }
-                in 4..5 -> {
-                    // New format: nickname|realm|outletReference|apiKey|applePayMerchantId
-                    qrNickname = parts[0]
-                    qrRealm = parts[1]
-                    qrOutletReference = parts[2]
-                    qrApiKey = parts[3]
-                    showQrConfirmDialog = true
-                }
-                else -> {
-                    Toast.makeText(
-                        context,
-                        "Invalid QR format. Expected: nickname|realm|outletReference|apiKey",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+        val contents = result.contents ?: return@rememberLauncherForActivityResult
+        val batch = ScannedEnvironment.parseAll(contents)
+        when {
+            batch.environments.isEmpty() -> Toast.makeText(
+                context,
+                "Invalid QR format. Expected one per line: " +
+                    "nickname|realm|outletReference|apiKey|applePayMerchantId|region|currency|type|orderAction|orderType",
+                Toast.LENGTH_LONG
+            ).show()
+            // One outlet: confirm before saving, as before. A batch is imported
+            // directly — the point is not to confirm ten dialogs.
+            batch.environments.size == 1 && batch.rejected == 0 -> {
+                qrScanned = batch.environments.single()
+                showQrConfirmDialog = true
+            }
+            else -> {
+                val r = viewModel.importEnvironments(batch.environments.map { it.toEnvironment() })
+                isExpandedEnvironments = true
+                val skipped = if (batch.rejected > 0) ", ${batch.rejected} line(s) skipped" else ""
+                // The scanner is one-shot on Android (ZXing ScanContract), so a bulk
+                // export split across several codes is collected by relaunching it.
+                scanAnotherPrompt = "${r.added} added, ${r.replaced} updated$skipped."
             }
         }
     }
@@ -178,30 +179,54 @@ fun EnvironmentScreen(
                     }
                 }
                 if (showAddEnvironmentDialog) {
-                    AddEnvironmentDialog(
-                        region = viewModel.getRegion(),
-                        onCancel = { showAddEnvironmentDialog = false }
-                    ) { environment ->
-                        viewModel.saveEnvironment(environment)
-                        isExpandedEnvironments = true
-                    }
+                    EnvironmentFormSheet(
+                        existing = null,
+                        onCancel = { showAddEnvironmentDialog = false },
+                        onSave = { environment ->
+                            viewModel.saveEnvironment(environment)
+                            isExpandedEnvironments = true
+                            showAddEnvironmentDialog = false
+                        },
+                    )
                 }
-                if (showQrConfirmDialog) {
+                qrScanned?.takeIf { showQrConfirmDialog }?.let { scanned ->
                     QrEnvironmentDialog(
-                        nickname = qrNickname,
-                        realm = qrRealm,
-                        outletReference = qrOutletReference,
-                        apiKey = qrApiKey,
-                        region = viewModel.getRegion(),
+                        scanned = scanned,
                         onCancel = { showQrConfirmDialog = false }
                     ) { environment ->
                         viewModel.saveEnvironment(environment)
                         isExpandedEnvironments = true
                     }
                 }
-                editingEnvironment?.let { env ->
-                    EditEnvironmentDialog(
+                environmentPendingDeletion?.let { env ->
+                    DeleteEnvironmentDialog(
                         environment = env,
+                        onCancel = { environmentPendingDeletion = null },
+                        onConfirm = {
+                            viewModel.onDeleteEnvironment(env)
+                            environmentPendingDeletion = null
+                        },
+                    )
+                }
+                scanAnotherPrompt?.let { summary ->
+                    AlertDialog(
+                        onDismissRequest = { scanAnotherPrompt = null },
+                        title = { Text("Environments imported") },
+                        text = { Text("$summary Scan another code?") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                scanAnotherPrompt = null
+                                qrScanLauncher.launch(scanOptions)
+                            }) { Text("Scan another") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { scanAnotherPrompt = null }) { Text("Done") }
+                        }
+                    )
+                }
+                editingEnvironment?.let { env ->
+                    EnvironmentFormSheet(
+                        existing = env,
                         onCancel = { editingEnvironment = null },
                         onSave = { updated ->
                             viewModel.updateEnvironment(updated)
@@ -212,30 +237,10 @@ fun EnvironmentScreen(
 
                 HorizontalDivider()
 
-                PickerView(
-                    title = "Order Action",
-                    items = OrderAction.entries,
-                    selectedItem = viewModel.getOrderAction(),
-                    pickerId = "environment_picker_orderAction"
-                ) {
-                    @Suppress("UNCHECKED_CAST")
-                    viewModel.setOrderAction(it as OrderAction)
-                }
-
-                HorizontalDivider()
-
-                PickerView(
-                    title = "Order Type",
-                    items = OrderType.entries,
-                    selectedItem = viewModel.getOrderType(),
-                    pickerId = "environment_picker_orderType"
-                ) {
-                    @Suppress("UNCHECKED_CAST")
-                    viewModel.setOrderType(it as OrderType)
-                }
-
-                HorizontalDivider()
-
+                // Order action, order type, currency and region are outlet configuration, not
+                // app settings — which actions and payment methods an outlet accepts differ per
+                // outlet, and a key only works against its own region's deployment. They live in
+                // the add/edit environment dialogs; only app-wide settings remain here.
                 PickerView(
                     title = "Language",
                     items = AppLanguage.entries,
@@ -249,30 +254,19 @@ fun EnvironmentScreen(
 
                 HorizontalDivider()
 
-                PickerView(
-                    title = "Currency",
-                    items = AppCurrency.entries,
-                    selectedItem = viewModel.getCurrency()
-                ) {
-                    @Suppress("UNCHECKED_CAST")
-                    viewModel.setCurrency(it as AppCurrency)
-                }
-
-                HorizontalDivider()
-
-                PickerView(
-                    title = "Region",
-                    items = Region.entries,
-                    selectedItem = viewModel.getRegion(),
-                    pickerId = "environment_picker_region"
-                ) {
-                    @Suppress("UNCHECKED_CAST")
-                    viewModel.setRegion(it as Region)
-                }
-
-                HorizontalDivider()
-
-                SDKColorsSection(viewModel)
+                // SDK appearance is about how the SDK draws, not which outlet is
+                // charged, and eleven colour rows crowd a screen that is mostly
+                // about environments. It lives on its own page.
+                ListItem(
+                    modifier = Modifier
+                        .clickable { onClickSdkAppearance() }
+                        .testId("environment_row_sdkAppearance"),
+                    headlineContent = { Text("SDK Appearance") },
+                    supportingContent = { Text("SDK colours") },
+                    trailingContent = {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    },
+                )
 
                 HorizontalDivider()
 
@@ -317,13 +311,7 @@ fun EnvironmentScreen(
                     scanButtonId = "environment_button_scanQR",
                     toggleButtonId = "environment_button_toggleEnvironments",
                     onScan = {
-                        val options = ScanOptions().apply {
-                            setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                            setPrompt("Scan environment QR code")
-                            setBeepEnabled(false)
-                            setOrientationLocked(true)
-                        }
-                        qrScanLauncher.launch(options)
+                        qrScanLauncher.launch(scanOptions)
                     }
                 ) {
                     LazyVerticalGrid(
@@ -342,7 +330,7 @@ fun EnvironmentScreen(
                                     editingEnvironment = environment
                                 },
                                 onDelete = {
-                                    viewModel.onDeleteEnvironment(environment)
+                                    environmentPendingDeletion = environment
                                 })
                         }
                     }
@@ -350,300 +338,4 @@ fun EnvironmentScreen(
             }
         }
     )
-}
-
-@Composable
-private fun SDKColorsSection(viewModel: EnvironmentViewModel) {
-    var isExpanded by remember { mutableStateOf(false) }
-    val sdkColors by viewModel.sdkColors.collectAsState()
-
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "SDK Colors",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { isExpanded = !isExpanded }) {
-                Icon(
-                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = "toggle"
-                )
-            }
-        }
-
-        if (isExpanded) {
-            Column(
-                modifier = Modifier.padding(bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                viewModel.sdkColorDefs.forEach { def ->
-                    SDKColorRow(
-                        label = def.label,
-                        hex = sdkColors[def.key] ?: def.defaultHex,
-                        onHexChanged = { viewModel.setSDKColor(def.key, it) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SDKColorRow(label: String, hex: String, onHexChanged: (String) -> Unit) {
-    var showPicker by remember { mutableStateOf(false) }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = hex,
-            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(parseHexToColor(hex), RoundedCornerShape(6.dp))
-                .border(1.5.dp, Color.Gray, RoundedCornerShape(6.dp))
-                .clickable { showPicker = true }
-        )
-    }
-
-    if (showPicker) {
-        ColorPickerDialog(
-            initialColor = parseHexToColor(hex),
-            onColorSelected = { color ->
-                val r = (color.red * 255).toInt()
-                val g = (color.green * 255).toInt()
-                val b = (color.blue * 255).toInt()
-                onHexChanged("#%02X%02X%02X".format(r, g, b))
-                showPicker = false
-            },
-            onDismiss = { showPicker = false }
-        )
-    }
-}
-
-@Composable
-private fun ColorPickerDialog(
-    initialColor: Color,
-    onColorSelected: (Color) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val initialHsv = remember {
-        val hsv = FloatArray(3)
-        android.graphics.Color.colorToHSV(
-            android.graphics.Color.argb(
-                255,
-                (initialColor.red * 255).toInt(),
-                (initialColor.green * 255).toInt(),
-                (initialColor.blue * 255).toInt()
-            ),
-            hsv
-        )
-        hsv
-    }
-
-    var hue by remember { mutableStateOf(initialHsv[0]) }
-    var saturation by remember { mutableStateOf(initialHsv[1]) }
-    var brightness by remember { mutableStateOf(initialHsv[2]) }
-
-    val currentColor = Color.hsv(hue, saturation, brightness)
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Pick a color") },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Saturation-Brightness panel
-                SatBrightnessPanel(
-                    hue = hue,
-                    saturation = saturation,
-                    brightness = brightness,
-                    onSatBrightnessChanged = { s, v ->
-                        saturation = s
-                        brightness = v
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Hue slider
-                HueBar(
-                    hue = hue,
-                    onHueChanged = { hue = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(28.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Preview
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(initialColor, RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("→", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(currentColor, RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    val r = (currentColor.red * 255).toInt()
-                    val g = (currentColor.green * 255).toInt()
-                    val b = (currentColor.blue * 255).toInt()
-                    Text(
-                        text = "#%02X%02X%02X".format(r, g, b),
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onColorSelected(currentColor) }) {
-                Text("Select")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
-
-@Composable
-private fun SatBrightnessPanel(
-    hue: Float,
-    saturation: Float,
-    brightness: Float,
-    onSatBrightnessChanged: (Float, Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    Canvas(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    val s = (offset.x / size.width).coerceIn(0f, 1f)
-                    val v = 1f - (offset.y / size.height).coerceIn(0f, 1f)
-                    onSatBrightnessChanged(s, v)
-                }
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    change.consume()
-                    val s = (change.position.x / size.width).coerceIn(0f, 1f)
-                    val v = 1f - (change.position.y / size.height).coerceIn(0f, 1f)
-                    onSatBrightnessChanged(s, v)
-                }
-            }
-    ) {
-        val pureHueColor = Color.hsv(hue, 1f, 1f)
-
-        // White to hue (horizontal saturation gradient)
-        drawRect(
-            brush = Brush.horizontalGradient(listOf(Color.White, pureHueColor))
-        )
-        // Transparent to black (vertical brightness gradient)
-        drawRect(
-            brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black))
-        )
-
-        // Draw selector circle
-        val cx = saturation * size.width
-        val cy = (1f - brightness) * size.height
-        drawCircle(
-            color = Color.White,
-            radius = with(density) { 8.dp.toPx() },
-            center = Offset(cx, cy),
-            style = Stroke(width = with(density) { 2.dp.toPx() })
-        )
-        drawCircle(
-            color = Color.Black,
-            radius = with(density) { 6.dp.toPx() },
-            center = Offset(cx, cy),
-            style = Stroke(width = with(density) { 1.dp.toPx() })
-        )
-    }
-}
-
-@Composable
-private fun HueBar(
-    hue: Float,
-    onHueChanged: (Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    val hueColors = remember {
-        (0..360 step 1).map { Color.hsv(it.toFloat(), 1f, 1f) }
-    }
-
-    Canvas(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    onHueChanged((offset.x / size.width).coerceIn(0f, 1f) * 360f)
-                }
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    change.consume()
-                    onHueChanged((change.position.x / size.width).coerceIn(0f, 1f) * 360f)
-                }
-            }
-    ) {
-        drawRect(brush = Brush.horizontalGradient(hueColors))
-
-        // Draw selector
-        val cx = (hue / 360f) * size.width
-        drawCircle(
-            color = Color.White,
-            radius = size.height / 2f,
-            center = Offset(cx, size.height / 2f),
-            style = Stroke(width = with(density) { 2.dp.toPx() })
-        )
-        drawCircle(
-            color = Color.Black,
-            radius = size.height / 2f - with(density) { 1.dp.toPx() },
-            center = Offset(cx, size.height / 2f),
-            style = Stroke(width = with(density) { 1.dp.toPx() })
-        )
-    }
-}
-
-private fun parseHexToColor(hex: String): Color {
-    return try {
-        val sanitized = hex.removePrefix("#")
-        if (sanitized.length == 6) {
-            Color(android.graphics.Color.parseColor("#$sanitized"))
-        } else {
-            Color.Gray.copy(alpha = 0.3f)
-        }
-    } catch (e: Exception) {
-        Color.Gray.copy(alpha = 0.3f)
-    }
 }

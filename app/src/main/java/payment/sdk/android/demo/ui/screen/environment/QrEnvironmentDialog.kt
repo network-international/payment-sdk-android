@@ -24,23 +24,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.demo.model.Environment
 import payment.sdk.android.demo.model.EnvironmentType
-import payment.sdk.android.demo.model.Region
+import payment.sdk.android.demo.model.OrderAction
+import payment.sdk.android.demo.model.OrderType
+import payment.sdk.android.demo.model.ScannedEnvironment
 import payment.sdk.android.demo.ui.screen.AppDialog
 import payment.sdk.android.core.testId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QrEnvironmentDialog(
-    nickname: String = "",
-    realm: String,
-    outletReference: String,
-    apiKey: String,
-    region: Region,
+    scanned: ScannedEnvironment,
     onCancel: () -> Unit,
     onAddEnvironment: (environment: Environment) -> Unit
 ) {
+    val nickname = scanned.nickname
+    val realm = scanned.realm
+    val outletReference = scanned.outletReference
+    val apiKey = scanned.apiKey
     val entries = EnvironmentType.values()
-    var selectedEnvironment by remember { mutableIntStateOf(0) }
+    // Pre-select whatever the code said; older codes carry no type and land on DEV.
+    var selectedEnvironment by remember {
+        mutableIntStateOf(entries.indexOf(scanned.type).coerceAtLeast(0))
+    }
 
     AppDialog(title = "Add Scanned Environment", onCancel = onCancel) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -97,6 +102,34 @@ fun QrEnvironmentDialog(
             fontWeight = FontWeight.Medium
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Region and currency belong to the outlet, so the tester should see what
+        // the code is about to commit them to before tapping Add.
+        Text(
+            text = "Region · Currency",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Text(
+            text = "${scanned.region.code} · ${scanned.currency}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Order",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Text(
+            text = "${scanned.orderAction} · ${scanned.orderType}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -112,7 +145,10 @@ fun QrEnvironmentDialog(
                             apiKey = apiKey,
                             outletReference = outletReference,
                             realm = realm,
-                            region = region
+                            region = scanned.region,
+                            currency = scanned.currency,
+                            orderAction = scanned.orderAction,
+                            orderType = scanned.orderType
                         )
                     )
                     onCancel()

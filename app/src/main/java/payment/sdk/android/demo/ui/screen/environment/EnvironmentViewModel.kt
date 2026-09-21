@@ -77,6 +77,13 @@ class EnvironmentViewModel(
         applySDKColors()
     }
 
+    /// Restores every colour to the SDK's own default.
+    fun resetSDKColors() {
+        sdkColorDefs.forEach { dataStore.setSDKColor(it.key, it.defaultHex) }
+        _sdkColors.value = sdkColorDefs.associate { it.key to it.defaultHex }
+        applySDKColors()
+    }
+
     fun applySDKColors() {
         sdkColorDefs.forEach { def ->
             val hex = _sdkColors.value[def.key] ?: def.defaultHex
@@ -109,7 +116,55 @@ class EnvironmentViewModel(
 
     fun onDeleteEnvironment(environment: Environment) {
         dataStore.deleteEnvironment(environment)
-        _state.update { it.copy(environments = dataStore.getEnvironments()) }
+        // A selection pointing at the deleted outlet would leave the app looking
+        // configured while every read silently fell back to the legacy globals.
+        val remaining = dataStore.getEnvironments()
+        if (dataStore.getSelectedEnvironment()?.id == environment.id) {
+            remaining.firstOrNull()?.let { dataStore.setSelectedEnvironment(it) }
+        }
+        _state.update {
+            it.copy(
+                environments = remaining,
+                selectedEnvironment = dataStore.getSelectedEnvironment(),
+            )
+        }
+    }
+
+    /** Outcome of a bulk QR import, for the summary shown to the tester. */
+    data class ImportResult(val added: Int, val replaced: Int)
+
+    /**
+     * Adds a batch of scanned environments. An outlet already present (same reference
+     * and type) is replaced rather than duplicated, keeping its id so a selection
+     * pointing at it stays valid — re-scanning a refreshed bulk code updates keys in
+     * place. Selects the first if nothing is selected yet: a fresh install should be
+     * ready to pay after one scan.
+     */
+    fun importEnvironments(scanned: List<Environment>): ImportResult {
+        var added = 0
+        var replaced = 0
+        scanned.forEach { env ->
+            val existing = dataStore.getEnvironments().firstOrNull {
+                it.outletReference == env.outletReference && it.type == env.type
+            }
+            if (existing != null) {
+                dataStore.updateEnvironment(env.copy(id = existing.id))
+                replaced++
+            } else {
+                dataStore.saveEnvironment(env)
+                added++
+            }
+        }
+        if (dataStore.getSelectedEnvironment() == null) {
+            dataStore.getEnvironments().firstOrNull()?.let { dataStore.setSelectedEnvironment(it) }
+        }
+        _state.update {
+            it.copy(
+                environments = dataStore.getEnvironments(),
+                selectedEnvironment = dataStore.getSelectedEnvironment()
+            )
+        }
+        return ImportResult(added, replaced)
     }
 
     fun saveEnvironment(environment: Environment) {
@@ -140,35 +195,9 @@ class EnvironmentViewModel(
         _state.update { it.copy(selectedEnvironment = environment) }
     }
 
-    fun getOrderAction(): OrderAction {
-        val code = dataStore.getOrderAction()
-        return OrderAction.entries.firstOrNull { it.code == code } ?: OrderAction.SALE
-    }
-
-    fun setOrderAction(action: OrderAction) {
-        dataStore.setOrderAction(action.code)
-        _state.update { it.copy(orderAction = action.code) }
-    }
-
-    fun getOrderType(): OrderType {
-        val code = dataStore.getOrderType()
-        return OrderType.entries.firstOrNull { it.code == code } ?: OrderType.SINGLE
-    }
-
-    fun setOrderType(type: OrderType) {
-        dataStore.setOrderType(type.code)
-        _state.update { it.copy(orderType = type.code) }
-    }
-
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
         dataStore.updateMerchantAttribute(merchantAttribute)
         _state.update { it.copy(merchantAttributes = dataStore.getMerchantAttributes()) }
-    }
-
-    fun getCurrency() = dataStore.getCurrency()
-
-    fun setCurrency(currency: AppCurrency) {
-        dataStore.setCurrency(currency)
     }
 
     fun getLanguage() = dataStore.getLanguage()
@@ -177,11 +206,6 @@ class EnvironmentViewModel(
         dataStore.setLanguage(language)
     }
 
-    fun getRegion() = dataStore.getRegion()
-
-    fun setRegion(region: Region) {
-        dataStore.setRegion(region)
-    }
 
     companion object {
         fun provideFactory(

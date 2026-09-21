@@ -62,7 +62,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopBar(
-                topAppBarText = "N-Genius Demo",
+                topAppBarText = "Native Test Shop",
                 onAddProduct = { showAddProductDialog = true },
                 onSettingClicked = onClickEnvironment,
                 onInfoClicked = onClickWhatYouNeed

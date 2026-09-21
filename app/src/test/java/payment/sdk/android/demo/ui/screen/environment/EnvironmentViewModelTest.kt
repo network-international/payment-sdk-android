@@ -133,17 +133,6 @@ class EnvironmentViewModelTest {
     }
 
     @Test
-    fun `test setOrderAction`() = runTest {
-        val states: MutableList<EnvironmentViewModelState> = mutableListOf()
-        backgroundScope.launch(testDispatcher) { sut.state.toList(states) }
-
-        sut.setOrderAction(payment.sdk.android.demo.model.OrderAction.SALE)
-
-        coVerify { dataStore.setOrderAction("SALE") }
-        assertEquals(states[1].orderAction, "SALE")
-    }
-
-    @Test
     fun `test updateMerchantAttribute`() = runTest {
         val states: MutableList<EnvironmentViewModelState> = mutableListOf()
         backgroundScope.launch(testDispatcher) { sut.state.toList(states) }

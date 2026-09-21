@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -23,11 +27,18 @@ fun AppDialog(
     onCancel: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    // A Dialog sizes itself to its content and will happily grow past the screen,
+    // clipping whatever does not fit with no way to reach it. The environment dialogs
+    // outgrew the screen once region, currency, order action and order type moved onto
+    // the outlet, so the body is capped and scrolls: `weight(fill = false)` keeps a
+    // short dialog compact and only the tall ones scroll.
+    val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.9f).dp
     Dialog(
         onDismissRequest = onCancel,
         content = {
             Column(
                 modifier = Modifier
+                    .heightIn(max = maxHeight)
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp)
@@ -42,7 +53,13 @@ fun AppDialog(
                 )
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
-                content()
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    content()
+                }
             }
         }
     )

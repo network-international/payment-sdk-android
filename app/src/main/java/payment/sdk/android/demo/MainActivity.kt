@@ -27,6 +27,7 @@ import payment.sdk.android.demo.data.DataStoreImpl
 import payment.sdk.android.core.getAuthorizationUrl
 import payment.sdk.android.core.getPayPageUrl
 import payment.sdk.android.demo.ui.screen.environment.EnvironmentScreen
+import payment.sdk.android.demo.ui.screen.environment.SdkAppearanceScreen
 import payment.sdk.android.demo.ui.screen.home.HomeScreen
 import payment.sdk.android.demo.ui.screen.whatyouneed.WhatYouNeedScreen
 import payment.sdk.android.demo.ui.theme.NewMerchantAppTheme
@@ -179,8 +180,19 @@ class MainActivity : ComponentActivity() {
                             onNavUp = {
                                 navController.popBackStack()
                             },
+                            onClickSdkAppearance = {
+                                navController.navigate(SDK_APPEARANCE_ROUTE)
+                            },
                             onChangeLanguage = {
                                 localeSelection(this@MainActivity, it.code)
+                            }
+                        )
+                    }
+
+                    composable(SDK_APPEARANCE_ROUTE) {
+                        SdkAppearanceScreen(
+                            onNavUp = {
+                                navController.popBackStack()
                             }
                         )
                     }
@@ -317,5 +329,6 @@ class MainActivity : ComponentActivity() {
         const val HOME_ROUTE = "home"
         const val ENVIRONMENT_ROUTE = "ENVIRONMENT_ROUTE"
         const val WHAT_YOU_NEED_ROUTE = "what_you_need"
+        const val SDK_APPEARANCE_ROUTE = "sdk_appearance"
     }
 }
