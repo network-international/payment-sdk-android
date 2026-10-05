@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,7 @@ import payment.sdk.android.core.testId
 fun EnvironmentViewItem(
     environment: Environment,
     isSelected: Boolean,
+    isOverridden: Boolean = false,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
@@ -122,10 +124,14 @@ fun EnvironmentViewItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
             )
+            // Struck through while the QA override is on, so nobody reads these as the
+            // values orders will use.
+            val outletValues = "${environment.region.code} · ${environment.currency ?: "AED"}"
             Text(
-                text = "${environment.region.code} · ${environment.currency ?: "AED"}",
+                text = if (isOverridden) "$outletValues  (overridden)" else outletValues,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
+                textDecoration = if (isOverridden) TextDecoration.LineThrough else null,
             )
 
             val methods = environment.paymentMethods.orEmpty()

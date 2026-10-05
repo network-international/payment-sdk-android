@@ -310,6 +310,15 @@ fun EnvironmentScreen(
                     }
                 }
 
+                EnvironmentOverrideSection(
+                    state = state.override,
+                    onEnabledChange = viewModel::setOverrideEnabled,
+                    onRegionChange = viewModel::setOverrideRegion,
+                    onCurrencyChange = viewModel::setOverrideCurrency,
+                    onOrderActionChange = viewModel::setOverrideOrderAction,
+                    onOrderTypeChange = viewModel::setOverrideOrderType,
+                )
+
                 SectionView(
                     title = "Environments",
                     count = state.environments.size,
@@ -334,6 +343,7 @@ fun EnvironmentScreen(
                             EnvironmentViewItem(
                                 environment = environment,
                                 isSelected = isSelected,
+                                isOverridden = state.override.enabled,
                                 onClick = {
                                     viewModel.onSelectEnvironment(environment)
                                 },

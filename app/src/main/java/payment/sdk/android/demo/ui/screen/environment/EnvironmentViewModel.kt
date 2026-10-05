@@ -60,7 +60,8 @@ class EnvironmentViewModel(
                 environments = dataStore.getEnvironments(),
                 selectedEnvironment = dataStore.getSelectedEnvironment(),
                 merchantAttributes = dataStore.getMerchantAttributes(),
-                orderAction = dataStore.getOrderAction()
+                orderAction = dataStore.getOrderAction(),
+                override = readOverride(),
             )
         }
         // Load saved SDK colors
@@ -211,6 +212,39 @@ class EnvironmentViewModel(
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
         dataStore.updateMerchantAttribute(merchantAttribute)
         _state.update { it.copy(merchantAttributes = dataStore.getMerchantAttributes()) }
+    }
+
+    private fun readOverride() = OverrideState(
+        enabled = dataStore.isOverrideEnabled(),
+        region = dataStore.getOverrideRegion(),
+        currency = dataStore.getOverrideCurrency(),
+        orderAction = dataStore.getOverrideOrderAction(),
+        orderType = dataStore.getOverrideOrderType(),
+    )
+
+    fun setOverrideEnabled(enabled: Boolean) {
+        dataStore.setOverrideEnabled(enabled)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideRegion(region: Region) {
+        dataStore.setOverrideRegion(region)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideCurrency(currency: AppCurrency) {
+        dataStore.setOverrideCurrency(currency)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideOrderAction(action: OrderAction) {
+        dataStore.setOverrideOrderAction(action.code)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideOrderType(type: OrderType) {
+        dataStore.setOverrideOrderType(type.code)
+        _state.update { it.copy(override = readOverride()) }
     }
 
     fun getLanguage() = dataStore.getLanguage()

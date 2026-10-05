@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import payment.sdk.android.demo.getPreferences
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.EnvironmentOverride
 import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.model.Product
 import com.google.gson.Gson
@@ -173,9 +174,41 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     override fun getRegion(): Region {
+        if (EnvironmentOverride.isEnabled(context)) return getOverrideRegion()
         val code = context.getPreferences().getString(KEY_REGION, "")
         return Region.entries.firstOrNull { it.code == code } ?: Region.UAE
     }
+
+    override fun isOverrideEnabled() = EnvironmentOverride.isEnabled(context)
+
+    override fun setOverrideEnabled(enabled: Boolean) =
+        EnvironmentOverride.setEnabled(context, enabled)
+
+    override fun getOverrideRegion(): Region {
+        val code = EnvironmentOverride.region(context)
+        return Region.entries.firstOrNull { it.code == code } ?: Region.UAE
+    }
+
+    override fun setOverrideRegion(region: Region) =
+        EnvironmentOverride.setRegion(context, region.code)
+
+    override fun getOverrideCurrency(): AppCurrency {
+        val code = EnvironmentOverride.currency(context)
+        return AppCurrency.entries.firstOrNull { it.code == code } ?: AppCurrency.AED
+    }
+
+    override fun setOverrideCurrency(currency: AppCurrency) =
+        EnvironmentOverride.setCurrency(context, currency.code)
+
+    override fun getOverrideOrderAction() = EnvironmentOverride.orderAction(context)
+
+    override fun setOverrideOrderAction(action: String) =
+        EnvironmentOverride.setOrderAction(context, action)
+
+    override fun getOverrideOrderType() = EnvironmentOverride.orderType(context)
+
+    override fun setOverrideOrderType(type: String) =
+        EnvironmentOverride.setOrderType(context, type)
 
     override fun setSDKColor(key: String, hex: String) {
         context.getPreferences().edit { putString(key, hex) }

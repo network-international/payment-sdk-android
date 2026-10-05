@@ -93,13 +93,17 @@ data class Environment(
          * AED when nothing is selected yet.
          */
         fun selectedCurrency(context: Context): String =
-            getSelectedEnvironment(context)?.currencyCode(context) ?: legacyCurrency(context)
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.currency(context)
+            else getSelectedEnvironment(context)?.currencyCode(context) ?: legacyCurrency(context)
 
+        // All three defer to the QA override while it is on; see [EnvironmentOverride].
         fun selectedOrderAction(context: Context): String =
-            getSelectedEnvironment(context)?.orderActionCode(context) ?: legacyOrderAction(context)
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.orderAction(context)
+            else getSelectedEnvironment(context)?.orderActionCode(context) ?: legacyOrderAction(context)
 
         fun selectedOrderType(context: Context): String =
-            getSelectedEnvironment(context)?.orderTypeCode(context) ?: legacyOrderType(context)
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.orderType(context)
+            else getSelectedEnvironment(context)?.orderTypeCode(context) ?: legacyOrderType(context)
 
         /**
          * The app-wide currency setting that used to be independent of the selected outlet — which
