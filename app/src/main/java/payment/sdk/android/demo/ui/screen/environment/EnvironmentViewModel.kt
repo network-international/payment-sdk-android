@@ -9,6 +9,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import payment.sdk.android.demo.data.DataStore
 import payment.sdk.android.demo.data.DataStoreImpl
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.ScannedEnvironment
 import payment.sdk.android.demo.model.MerchantAttribute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -128,6 +129,18 @@ class EnvironmentViewModel(
                 selectedEnvironment = dataStore.getSelectedEnvironment(),
             )
         }
+    }
+
+    /**
+     * Imports a pasted or scanned payload. Returns a summary line, or null when no line
+     * matched — the caller decides how loudly to say so.
+     */
+    fun importPayload(payload: String): String? {
+        val batch = ScannedEnvironment.parseAll(payload)
+        if (batch.environments.isEmpty()) return null
+        val r = importEnvironments(batch.environments.map { it.toEnvironment() })
+        val skipped = if (batch.rejected > 0) ", ${batch.rejected} line(s) skipped" else ""
+        return "${r.added} added, ${r.replaced} updated$skipped."
     }
 
     /** Outcome of a bulk QR import, for the summary shown to the tester. */

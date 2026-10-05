@@ -48,6 +48,12 @@ data class Environment(
      */
     val orderType: String? = null,
     /**
+     * Payment methods the gateway offered for this outlet, captured on import.
+     * Informational: shown on the tile so an outlet's capabilities are visible without
+     * opening it or starting a payment. Null for an outlet added by hand.
+     */
+    val paymentMethods: List<String>? = null,
+    /**
      * Merchant identifier used by the Click to Pay config endpoint
      * (`/config/merchants/{merchantId}/configs/vctp`). Distinct from [outletReference].
      */

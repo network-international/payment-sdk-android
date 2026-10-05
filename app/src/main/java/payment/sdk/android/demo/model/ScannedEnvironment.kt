@@ -1,12 +1,18 @@
 package payment.sdk.android.demo.model
 
+import android.content.Context
+
 /**
  * One environment decoded from a QR payload line.
  *
  * Line format, pipe-delimited, shared with the iOS and Flutter demos and the
  * outlet-cred-puller:
  *
- *     nickname|realm|outletReference|apiKey|applePayMerchantId|region|currency|type|orderAction|orderType
+ *     nickname|realm|outletReference|apiKey|applePayMerchantId|region|currency|type|orderAction|orderType|paymentMethods
+ *
+ * `paymentMethods` is comma-separated and informational — what the gateway offered on a
+ * probe order, shown on the environment tile so an outlet's capabilities are visible
+ * without opening it.
  *
  * The first five fields are the original contract; the rest were appended as region,
  * currency, order action and order type each moved onto the outlet, so a five- or
@@ -28,6 +34,8 @@ data class ScannedEnvironment(
     val orderAction: String = "SALE",
     /** RECURRING / UNSCHEDULED / INSTALLMENT; SINGLE is the default. */
     val orderType: String = "SINGLE",
+    /** Gateway payment-method names. Empty for a code predating the field. */
+    val paymentMethods: List<String> = emptyList(),
 ) {
     fun toEnvironment(): Environment = Environment(
         type = type,
@@ -40,6 +48,7 @@ data class ScannedEnvironment(
         currency = currency,
         orderAction = orderAction,
         orderType = orderType,
+        paymentMethods = paymentMethods,
     )
 
     /** Everything parsed from a payload, plus how many lines were not an environment. */
@@ -69,6 +78,9 @@ data class ScannedEnvironment(
                     // explicit SINGLE, so an omitted field maps to it rather than to "".
                     orderType = OrderType.entries.firstOrNull { it.code == at(9, "SINGLE").uppercase() }
                         ?.code ?: OrderType.SINGLE.code,
+                    paymentMethods = at(10).split(",")
+                        .map { it.trim().uppercase() }
+                        .filter { it.isNotEmpty() },
                 )
                 parts.size == 4 -> ScannedEnvironment(
                     nickname = at(0), realm = at(1), outletReference = at(2), apiKey = at(3),
@@ -78,6 +90,58 @@ data class ScannedEnvironment(
                 )
                 else -> null
             }
+        }
+
+        /**
+         * Encodes one environment as a payload line — the inverse of [parse].
+         *
+         * Always writes all ten fields so a line never has a variable shape, and strips
+         * pipes and newlines from the free-text fields: the format has no escaping, so a
+         * pipe in a nickname would shift every later field and put the region where the
+         * API key belongs.
+         */
+        fun encode(e: Environment, context: Context): String = listOf(
+            e.nickname.orEmpty(),
+            e.realm,
+            e.outletReference,
+            e.apiKey,
+            "",                     // applePayMerchantId: iOS-only, not stored here
+            e.region.code,
+            e.currencyCode(context),
+            e.type.value,
+            e.orderActionCode(context),
+            e.orderTypeCode(context),
+            e.paymentMethods.orEmpty().joinToString(","),
+        ).joinToString("|") { it.replace(Regex("[|\r\n]"), " ").trim() }
+
+        /** Encodes every environment, one per line — what Copy and the QR both use. */
+        fun encodeAll(envs: List<Environment>, context: Context): String =
+            envs.joinToString("\n") { encode(it, context) }
+
+        /**
+         * Splits [lines] into groups that each fit within [limitBytes] when joined.
+         *
+         * Whole lines only: an environment split across two codes would parse as two
+         * broken ones. A single line over the limit still gets a group of its own —
+         * dropping it would silently lose an outlet. The limit matches the
+         * outlet-cred-puller's, so a batch splits identically whichever end makes it.
+         */
+        fun chunkLines(lines: List<String>, limitBytes: Int): List<List<String>> {
+            val chunks = mutableListOf<List<String>>()
+            var current = mutableListOf<String>()
+            var size = 0
+            lines.forEach { line ->
+                val add = line.toByteArray().size + if (current.isEmpty()) 0 else 1
+                if (current.isNotEmpty() && size + add > limitBytes) {
+                    chunks += current
+                    current = mutableListOf()
+                    size = 0
+                }
+                current += line
+                size += add
+            }
+            if (current.isNotEmpty()) chunks += current
+            return chunks
         }
 
         /**

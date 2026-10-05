@@ -1,5 +1,9 @@
 package payment.sdk.android.demo.model
 
+import android.content.Context
+import android.content.SharedPreferences
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -111,6 +115,118 @@ class ScannedEnvironmentTest {
     fun `other shapes are rejected rather than mis-mapped`() {
         assertNull(ScannedEnvironment.parse("ni|outlet-1"))
         assertNull(ScannedEnvironment.parse("https://example.com/x"))
+    }
+
+    // --- encode: the inverse of parse, shared with the iOS and Flutter demos ---
+
+    private fun env(
+        nickname: String? = "KSA Main",
+        outlet: String = "outlet-1",
+        type: EnvironmentType = EnvironmentType.UAT,
+        region: Region = Region.KSA,
+        currency: String? = "SAR",
+        orderAction: String? = "PURCHASE",
+        orderType: String? = "INSTALLMENT",
+    ) = Environment(
+        type = type, name = "n", nickname = nickname, apiKey = "key-1",
+        outletReference = outlet, realm = "ni", region = region,
+        currency = currency, orderAction = orderAction, orderType = orderType,
+    )
+
+    private val context: Context = mockk<Context>().also {
+        val prefs = mockk<SharedPreferences>()
+        every { prefs.getString(any(), any()) } answers { secondArg() }
+        every { it.getSharedPreferences(any(), any()) } returns prefs
+    }
+
+    @Test
+    fun `encode writes all eleven fields in the shared order`() {
+        assertEquals(
+            "KSA Main|ni|outlet-1|key-1||KSA|SAR|UAT|PURCHASE|INSTALLMENT|",
+            ScannedEnvironment.encode(env(), context),
+        )
+    }
+
+    @Test
+    fun `encode strips a pipe from free text rather than shifting later fields`() {
+        val parts = ScannedEnvironment.encode(env(nickname = "a|b"), context).split("|")
+        assertEquals(11, parts.size)
+        assertEquals("key-1", parts[3])
+    }
+
+    @Test
+    fun `parse of encode preserves every field`() {
+        val original = env()
+        val back = ScannedEnvironment.parse(ScannedEnvironment.encode(original, context))!!
+        assertEquals(original.nickname, back.nickname)
+        assertEquals(original.realm, back.realm)
+        assertEquals(original.outletReference, back.outletReference)
+        assertEquals(original.apiKey, back.apiKey)
+        assertEquals(original.region, back.region)
+        assertEquals(original.currency, back.currency)
+        assertEquals(original.type, back.type)
+        assertEquals(original.orderAction, back.orderAction)
+        assertEquals(original.orderType, back.orderType)
+    }
+
+    @Test
+    fun `encodeAll then parseAll returns every environment in order`() {
+        val envs = listOf(env(outlet = "o1"), env(outlet = "o2", region = Region.UAE), env(outlet = "o3"))
+        val batch = ScannedEnvironment.parseAll(ScannedEnvironment.encodeAll(envs, context))
+        assertEquals(0, batch.rejected)
+        assertEquals(listOf("o1", "o2", "o3"), batch.environments.map { it.outletReference })
+        assertEquals(Region.UAE, batch.environments[1].region)
+    }
+
+    // --- chunking: the same rule the puller and the other demos use ---
+
+    @Test
+    fun `eleven fields carry the payment methods`() {
+        val e = ScannedEnvironment.parse(
+            "N|ni|o|k|m|UAE|AED|UAT|SALE|SINGLE|VISA,APPLE_PAY,DIRECT_APPLE_PAY")!!
+        assertEquals(listOf("VISA", "APPLE_PAY", "DIRECT_APPLE_PAY"), e.paymentMethods)
+    }
+
+    @Test
+    fun `methods are trimmed, upper-cased and blanks dropped`() {
+        val e = ScannedEnvironment.parse("N|ni|o|k|m|UAE|AED|UAT|SALE|SINGLE| visa , qpay ,,")!!
+        assertEquals(listOf("VISA", "QPAY"), e.paymentMethods)
+    }
+
+    @Test
+    fun `a ten-field line from an older generator still parses`() {
+        val e = ScannedEnvironment.parse("N|ni|o|k|m|UAE|AED|UAT|SALE|SINGLE")!!
+        assertEquals(emptyList<String>(), e.paymentMethods)
+        assertEquals("SALE", e.orderAction)
+    }
+
+    @Test
+    fun `encode writes the methods back as field eleven`() {
+        val line = ScannedEnvironment.encode(
+            env().copy(paymentMethods = listOf("VISA", "QPAY")), context)
+        val parts = line.split("|")
+        assertEquals(11, parts.size)
+        assertEquals("VISA,QPAY", parts[10])
+    }
+
+    @Test
+    fun `a small batch stays in one code`() {
+        assertEquals(1, ScannedEnvironment.chunkLines(List(3) { "x".repeat(100) }, 2000).size)
+    }
+
+    @Test
+    fun `a large batch splits without losing, reordering or splitting a line`() {
+        val lines = List(10) { "$it" + "x".repeat(260) }
+        val chunks = ScannedEnvironment.chunkLines(lines, 2000)
+        assert(chunks.size > 1) { "expected more than one code" }
+        assertEquals(lines, chunks.flatten())
+        chunks.forEach { assert(it.joinToString("\n").toByteArray().size <= 2000) }
+    }
+
+    @Test
+    fun `a single oversize line still gets a code of its own`() {
+        val chunks = ScannedEnvironment.chunkLines(listOf("y".repeat(3000), "short"), 2000)
+        assertEquals(listOf(1, 1), chunks.map { it.size })
     }
 
     @Test

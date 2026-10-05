@@ -83,6 +83,7 @@ import payment.sdk.android.core.testId
 fun EnvironmentScreen(
     onNavUp: () -> Unit,
     onClickSdkAppearance: () -> Unit,
+    onClickTransfer: () -> Unit,
     onChangeLanguage: (AppLanguage) -> Unit
 ) {
     val activity = LocalContext.current as MainActivity
@@ -259,6 +260,17 @@ fun EnvironmentScreen(
                 // about environments. It lives on its own page.
                 ListItem(
                     modifier = Modifier
+                        .clickable { onClickTransfer() }
+                        .testId("environment_row_transfer"),
+                    headlineContent = { Text("Transfer Environments") },
+                    supportingContent = { Text("Copy, paste, scan or show a QR") },
+                    trailingContent = {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    },
+                )
+
+                ListItem(
+                    modifier = Modifier
                         .clickable { onClickSdkAppearance() }
                         .testId("environment_row_sdkAppearance"),
                     headlineContent = { Text("SDK Appearance") },
@@ -279,11 +291,8 @@ fun EnvironmentScreen(
                     addButtonId = "environment_button_addMerchantAttribute",
                     toggleButtonId = "environment_button_toggleMerchantAttributes"
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(if (isTablet()) 2 else 1),
-                        modifier = Modifier.heightIn(max = 300.dp)
-                    ) {
-                        items(state.merchantAttributes) { merchantAttribute ->
+                    Column {
+                        state.merchantAttributes.forEach { merchantAttribute ->
                             MerchantAttributeItem(
                                 merchantAttribute = merchantAttribute,
                                 deleteMerchantAttribute = {
@@ -314,11 +323,13 @@ fun EnvironmentScreen(
                         qrScanLauncher.launch(scanOptions)
                     }
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(if (isTablet()) 2 else 1),
-                        modifier = Modifier.heightIn(max = 300.dp)
-                    ) {
-                        items(state.environments) { environment ->
+                    // A plain Column, not a height-capped lazy grid: the grid
+                    // scrolled inside its own 300dp window while the page scrolled
+                    // separately, so only three or four outlets were ever reachable
+                    // and it was unclear the list continued. The page's own scroll
+                    // now carries everything.
+                    Column {
+                        state.environments.forEach { environment ->
                             val isSelected = state.selectedEnvironment?.id == environment.id
                             EnvironmentViewItem(
                                 environment = environment,
