@@ -122,8 +122,6 @@
     <string name="benefit_unavailable">Unavailable right now. Please choose another payment method.</string>
     <string name="pay_with_tamara">Pay with Tamara</string>
     <string name="pay_with_tabby">Pay with Tabby</string>
-    <string name="bnpl_unavailable">Unavailable right now. Please choose another payment method.</string>
-    <string name="bnpl_below_minimum">%1$s needs a minimum order of %2$s.</string>
     <string name="qpay_express_pay_with">Pay with</string>
     <string name="aani_mobile_number">Mobile number</string>
     <string name="aani_emirates_id">Emirates ID</string>
@@ -192,6 +190,7 @@
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">You paid %1$s</string>
+    <string name="payment_result_success_title_slice">Total payable %1$s</string>
     <string name="payment_result_success_title_no_amount">Payment Successful</string>
     <string name="payment_result_failure_title">Something Went Wrong</string>
     <string name="payment_result_success_subtitle">Thank you! your payment has been received.</string>
@@ -203,4 +202,32 @@
     <string name="select_payment_option_validation">Please select a payment option to proceed</string>
     <string name="card_already_saved">This card is already saved</string>
 
+    <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
+    <string name="slice_checking_eligibility">Checking Slice eligibility...</string>
+    <string name="slice_banner_title">Zero fees, Zero interest installments.</string>
+    <string name="slice_banner_subtitle">Split your purchases into easy installments</string>
+    <string name="slice_pay_in_full">Pay in Full</string>
+    <plurals name="slice_tab_months">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="slice_per_month">Per Month</string>
+    <string name="slice_badge_zero_interest">Zero interest</string>
+    <string name="slice_badge_zero_profit">Zero profit</string>
+    <string name="slice_badge_zero_fees">Zero fees</string>
+    <string name="slice_interest_rate">Interest rate</string>
+    <string name="slice_profit_rate">Profit rate</string>
+    <string name="slice_processing_fees">Processing fees</string>
+    <string name="slice_installment_fees">Installment fees</string>
+    <plurals name="slice_total_after_months">
+        <item quantity="one">Total after %d month</item>
+        <item quantity="other">Total after %d months</item>
+    </plurals>
+    <string name="slice_receipt_title">Your purchase has been Sliced successfully!</string>
+    <string name="slice_receipt_tenor">Tenor</string>
+    <plurals name="slice_receipt_tenor_months">
+        <item quantity="one">%d Month</item>
+        <item quantity="other">%d Months</item>
+    </plurals>
+    <string name="slice_receipt_installment_amount">Installment amount</string>
 </resources>

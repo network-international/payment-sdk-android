@@ -3,6 +3,7 @@ package payment.sdk.android.core.interactor
 import android.app.Application
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
@@ -11,10 +12,13 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.SliceRequest
+import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
 import payment.sdk.android.core.api.SDKHttpResponse
 
@@ -68,6 +72,38 @@ class SavedCardPaymentApiInteractorTest {
         val response = sut.doSavedCardPayment(savedCardPaymentRequest)
 
         assertTrue(response is SavedCardResponse.Success)
+    }
+
+    @Test
+    fun `sends the selected slice plan under the slice key`() = runTest {
+        val body = slot<Body>()
+        coEvery {
+            httpClient.put(any(), any(), capture(body))
+        } returns SDKHttpResponse.Success(headers = mapOf(), body = paymentResponse.trimIndent())
+
+        sut.doSavedCardPayment(
+            savedCardPaymentRequest.copy(
+                sliceRequest = SliceRequest(period = "4", rate = "0", fee = "0")
+            )
+        )
+
+        val sent = (body.captured as Body.StringBody).value
+        assertTrue(sent.contains("\"slice\":{\"period\":\"4\",\"rate\":\"0\",\"fee\":\"0\"}"))
+    }
+
+    @Test
+    fun `omits the slice key entirely when no plan was selected`() = runTest {
+        val body = slot<Body>()
+        coEvery {
+            httpClient.put(any(), any(), capture(body))
+        } returns SDKHttpResponse.Success(headers = mapOf(), body = paymentResponse.trimIndent())
+
+        sut.doSavedCardPayment(savedCardPaymentRequest)
+
+        val sent = (body.captured as Body.StringBody).value
+        assertFalse(sent.contains("slice"))
+        // `vis` still goes out as an explicit null - the gateway's saved-card route wants the key.
+        assertTrue(sent.contains("\"vis\":null"))
     }
 
     @Test

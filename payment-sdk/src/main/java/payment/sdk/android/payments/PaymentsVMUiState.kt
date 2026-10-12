@@ -37,6 +37,8 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val clickToPayConfig: ClickToPayLauncher.Config? = null,
         val qpayConfig: QPayLauncher.Config? = null,
         val benefitConfig: BenefitLauncher.Config? = null,
+        /** Set when Benefit could not be started this session; its row says so. */
+        val isBenefitUnavailable: Boolean = false,
         /** One entry per buy-now-pay-later provider the order supports, in display order. */
         val bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
         /** Providers whose checkout could not be opened this session; their rows say so. */
@@ -45,7 +47,6 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
          * Providers this basket is too small for, mapped to their formatted minimum ("AED 10").
          * The row still shows — it says why on selection rather than disappearing.
          */
-        val belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,

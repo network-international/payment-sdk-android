@@ -43,19 +43,6 @@ enum class BnplProvider(
          */
         const val RESULT_PARAM = "ni_sdk_result"
 
-        /**
-         * Smallest basket a provider will finance, by currency, in major units. Only the amounts the
-         * hosted paypage enforces are listed: a currency that is absent is left to the gateway,
-         * which rejects the checkout on its own terms. Showing an option that is certain to fail is
-         * worse than not showing it, but guessing a limit the provider never set is worse still.
-         */
-        private val MINIMUM_AMOUNTS: Map<BnplProvider, Map<String, Double>> = mapOf(
-            TABBY to mapOf("AED" to 10.0)
-        )
-
-        fun minimumAmount(provider: BnplProvider, currencyCode: String): Double? =
-            MINIMUM_AMOUNTS[provider]?.get(currencyCode.uppercase())
-
         fun fromApmName(name: String): BnplProvider? =
             entries.firstOrNull { it.apmName.equals(name, ignoreCase = true) }
     }

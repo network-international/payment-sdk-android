@@ -208,6 +208,16 @@ internal class UnifiedPaymentPageViewModel(
         }
     }
 
+    fun markBenefitUnavailable() {
+        _uiState.update { state ->
+            if (state is UnifiedPaymentPageVMUiState.Authorized) {
+                state.copy(isBenefitUnavailable = true)
+            } else {
+                state
+            }
+        }
+    }
+
     fun showPaymentResult(state: UnifiedPaymentPageVMUiState.ShowPaymentResult) {
         _isProcessing.value = false
         _uiState.update { state }
@@ -380,19 +390,6 @@ internal class UnifiedPaymentPageViewModel(
             }.toMap()
         }
 
-        // A basket under a provider's published minimum does not remove its row: an option the
-        // outlet enables and the payer cannot find reads as the SDK being broken. The row says why
-        // instead, so the amount is compared here rather than used to filter the list above.
-        val belowMinimumBnplProviders = bnplConfigs.keys.mapNotNull { provider ->
-            val minimum = BnplProvider.minimumAmount(provider, currencyCode) ?: return@mapNotNull null
-            val minorUnit = runCatching {
-                java.util.Currency.getInstance(currencyCode).defaultFractionDigits
-            }.getOrDefault(2)
-            val majorUnits = amount / Math.pow(10.0, minorUnit.toDouble())
-            if (majorUnits >= minimum) return@mapNotNull null
-            val formatted = if (minimum % 1.0 == 0.0) minimum.toInt().toString() else minimum.toString()
-            provider to "${currencyCode.uppercase()} $formatted"
-        }.toMap()
 
         val supportedCards = order.paymentMethods?.card.orEmpty()
 
@@ -434,7 +431,6 @@ internal class UnifiedPaymentPageViewModel(
                 qpayConfig = qpayConfig,
                 benefitConfig = benefitConfig,
                 bnplConfigs = bnplConfigs,
-                belowMinimumBnplProviders = belowMinimumBnplProviders,
                 payerIp = payerIp,
                 orderReference = order.reference.orEmpty(),
                 savedCards = cardPaymentsIntent.savedCards,
@@ -572,7 +568,8 @@ internal class UnifiedPaymentPageViewModel(
         paymentCookie: String,
         orderUrl: String,
         payerIp: String,
-        cvv: String?
+        cvv: String?,
+        sliceRequest: SliceRequest? = null
     ) {
         _uiState.update { UnifiedPaymentPageVMUiState.Loading(LoadingMessage.PAYMENT) }
         viewModelScope.launch(dispatcher) {
@@ -582,7 +579,8 @@ internal class UnifiedPaymentPageViewModel(
                 savedCardUrl = savedCardPaymentUrl,
                 savedCard = savedCard,
                 payerIp = payerIp,
-                cvv = cvv?.takeIf { it.isNotBlank() }
+                cvv = cvv?.takeIf { it.isNotBlank() },
+                sliceRequest = sliceRequest
             )
             when (val response = savedCardPaymentApiInteractor.doSavedCardPayment(request)) {
                 // The cookie is taken from the function parameters, not uiState: uiState is
@@ -855,6 +853,18 @@ internal class UnifiedPaymentPageViewModel(
         visCheckJob?.cancel()
         lastVisCheckKey = null
         _visCheckState.update { VisCheckState.Idle }
+    }
+
+    /**
+     * Put the page into a loading state for the duration of a 3DS round trip.
+     *
+     * The challenge runs in its own activity on top of this one. Without this the page
+     * still holds the payment form, so finishing the challenge reveals the form for a
+     * frame or two before the result screen replaces it — the payer sees 3DS, then the
+     * form again, then success. A challenge should only ever lead to success or failure.
+     */
+    fun onThreeDSLaunched() {
+        _uiState.update { UnifiedPaymentPageVMUiState.Loading(LoadingMessage.PAYMENT) }
     }
 
     fun startPartialAuth(partialAuthIntent: PartialAuthIntent) {

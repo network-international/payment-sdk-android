@@ -22,6 +22,14 @@ class BnplInitResponse {
 
     /** True when the gateway aborted the checkout itself, e.g. the order was already paid. */
     var cancelled: Boolean? = null
+
+    /**
+     * True when the gateway refused the checkout while still answering 200 — an over-large basket
+     * comes back as `{"isError": true, "errorMessage": "order amount too high"}`. Read explicitly
+     * rather than inferred from a missing URL: the two have only ever coincided by luck, and a
+     * response carrying both would otherwise send the payer to a checkout the gateway rejected.
+     */
+    var isError: Boolean? = null
     var errorMessage: String? = null
 
     @SerializedName(value = "tamaraOrderId")
@@ -33,9 +41,9 @@ class BnplInitResponse {
     var orderId: String? = null
     var paymentId: String? = null
 
-    /** The hosted page to load, whichever field the gateway used to return it. */
+    /** The hosted page to load, or null when there is none to load or the gateway flagged an error. */
     val hostedCheckoutUrl: String?
-        get() = listOfNotNull(webUrl, redirectUrl, paymentUrl, checkoutUrl)
+        get() = if (isError == true) null else listOfNotNull(webUrl, redirectUrl, paymentUrl, checkoutUrl)
             .firstOrNull { it.isNotBlank() }
 
     /**

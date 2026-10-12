@@ -20,6 +20,8 @@ import android.widget.ProgressBar
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import payment.sdk.android.webview.applyPaymentWindowInsets
+import payment.sdk.android.webview.redactUrlForLog
 import kotlinx.coroutines.launch
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
@@ -85,6 +87,8 @@ class QPayActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
+            // Shows through the padding the insets add below, and the providers' pages are white.
+            setBackgroundColor(android.graphics.Color.WHITE)
         }
 
         webView = WebView(this).apply {
@@ -126,6 +130,7 @@ class QPayActivity : AppCompatActivity() {
         coverView.addView(progressBar)
         container.addView(coverView)
         setContentView(container)
+        applyPaymentWindowInsets(container)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -157,7 +162,7 @@ class QPayActivity : AppCompatActivity() {
                         finishWith(QPayLauncher.Result.Failed("Missing redirectUri or payPageUrl"))
                         return@launch
                     }
-                    Log.d(TAG, "Loading auto-submit form, baseUrl=$baseUrl action=${r.redirectUri}")
+                    Log.d(TAG, "Loading auto-submit form, baseUrl=${redactUrlForLog(baseUrl)} action=${redactUrlForLog(r.redirectUri)}")
                     // Start from a clean session, scoped to the SDK — never the host app (Q2).
                     val origins = listOfNotNull(
                         PaymentWebSession.originOf(baseUrl),        // paypage origin

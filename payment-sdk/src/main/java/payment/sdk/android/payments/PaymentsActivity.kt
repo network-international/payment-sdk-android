@@ -52,10 +52,14 @@ import payment.sdk.android.core.CardType
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.SliceRequest
+import payment.sdk.android.core.OrderAmount
+import androidx.core.view.ViewCompat
+import androidx.core.text.TextUtilsCompat
 import payment.sdk.android.samsungpay.SamsungPayClient
 import payment.sdk.android.samsungpay.SamsungPayResponse
 import payment.sdk.android.payments.model.PaymentResultArgs
 import payment.sdk.android.payments.view.PaymentResultScreen
+import payment.sdk.android.payments.model.SliceReceipt
 import payment.sdk.android.payments.view.UnifiedPaymentPageScreen
 import payment.sdk.android.sdk.R
 import java.text.SimpleDateFormat
@@ -84,6 +88,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
      *  Loading transition that happens during payment dispatch. Required for the result page,
      *  which is rendered AFTER state has moved past Authorized. */
     private var lastAuthorizedState: UnifiedPaymentPageVMUiState.Authorized? = null
+    /** The Slice plan the payer actually paid with, kept for the success receipt. */
+    private var lastSliceOffer: payment.sdk.android.core.SliceOffer? = null
+    private var lastSliceIsIslamic: Boolean = false
 
     private lateinit var args: UnifiedPaymentPageRequest
 
@@ -171,6 +178,11 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             BenefitLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
             BenefitLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
             is BenefitLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            // Benefit never opened, so nothing is owed and every other method is still available.
+            // Ending the payment here would cost the merchant a sale over an outlet whose BENEFIT
+            // keys are not provisioned, so the payer returns to the page with that row marked
+            // unavailable instead.
+            is BenefitLauncher.Result.Unavailable -> viewModel.markBenefitUnavailable()
             // Nothing was recorded against the payment, so the order is still payable — stay put.
             BenefitLauncher.Result.Canceled -> {}
             // Cancelling on Benefit's own page is the payer changing their mind, not a payment
@@ -208,6 +220,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             is ClickToPayLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
             ClickToPayLauncher.Result.Canceled -> {}
             is ClickToPayLauncher.Result.Requires3DS -> {
+                viewModel.onThreeDSLaunched()
                 startActivityForResult(
                     ThreeDSecureWebViewActivity.getIntent(
                         context = this,
@@ -220,6 +233,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                 )
             }
             is ClickToPayLauncher.Result.Requires3DSTwo -> {
+                viewModel.onThreeDSLaunched()
                 val currentState = viewModel.uiState.value
                 val orderUrl = result.orderUrl
                     ?: (currentState as? UnifiedPaymentPageVMUiState.Authorized)?.orderUrl
@@ -311,6 +325,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             onResetSliceCheck = { viewModel.resetSliceCheck() },
                             onMakePayment = { cardNumber, expiry, cvv, cardholderName, sliceOffer, visaPlan ->
+                                lastSliceOffer = sliceOffer
+                                lastSliceIsIslamic =
+                                    (viewModel.sliceCheckState.value as? SliceCheckState.Available)?.isIslamic == true
                                 val visaRequest = visaPlan
                                     ?.takeIf { it.frequency != payment.sdk.android.visaInstalments.model.PlanFrequency.PayInFull }
                                     ?.let { plan ->
@@ -342,8 +359,11 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                     skipVisaPlansCheck = visCheckState !is VisCheckState.Idle
                                 )
                             },
-                            onMakeSavedCardPayment = { savedCard, cvv ->
+                            onMakeSavedCardPayment = { savedCard, cvv, sliceOffer ->
                                 val url = authState.savedCardPaymentUrl ?: return@UnifiedPaymentPageScreen
+                                lastSliceOffer = sliceOffer
+                                lastSliceIsIslamic =
+                                    (viewModel.sliceCheckState.value as? SliceCheckState.Available)?.isIslamic == true
                                 viewModel.makeSavedCardPayment(
                                     savedCard = savedCard,
                                     savedCardPaymentUrl = url,
@@ -351,7 +371,10 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                                     paymentCookie = authState.paymentCookie,
                                     orderUrl = authState.orderUrl,
                                     payerIp = authState.payerIp,
-                                    cvv = cvv
+                                    cvv = cvv,
+                                    sliceRequest = sliceOffer?.let {
+                                        SliceRequest(period = it.period, rate = it.rate, fee = it.fee)
+                                    }
                                 )
                             },
                             formattedAmount = authState.orderAmount,
@@ -417,9 +440,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             clickToPayConfig = authState.clickToPayConfig,
                             qpayConfig = authState.qpayConfig,
                             benefitConfig = authState.benefitConfig,
+                            isBenefitUnavailable = authState.isBenefitUnavailable,
                             bnplConfigs = authState.bnplConfigs,
                             unavailableBnplProviders = authState.unavailableBnplProviders,
-                            belowMinimumBnplProviders = authState.belowMinimumBnplProviders,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
@@ -535,6 +558,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
                     is UnifiedPaymentPageVMEffects.InitiateThreeDS -> {
                         val response = it.threeDSecureDto
+                        viewModel.onThreeDSLaunched()
                         startActivityForResult(
                             ThreeDSecureWebViewActivity.getIntent(
                                 context = this@UnifiedPaymentPageActivity,
@@ -549,6 +573,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
 
                     is UnifiedPaymentPageVMEffects.InitiateThreeDSTwo -> {
                         val response = it.threeDSecureTwoDto
+                        viewModel.onThreeDSLaunched()
                         startActivityForResult(
                             ThreeDSecureTwoWebViewActivity.getIntent(
                                 context = this@UnifiedPaymentPageActivity,
@@ -704,12 +729,27 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
         // has already transitioned past Authorized (Loading → ShowPaymentResult).
         val authorizedState = lastAuthorizedState
             ?: (viewModel.uiState.value as? UnifiedPaymentPageVMUiState.Authorized)
-        val formattedAmount = authorizedState?.orderAmount
+        // On a Slice plan the payer commits to the plan's total, not the order total — the
+        // instalments plus whatever the issuer charges on top. Showing the order amount here
+        // would understate what they actually signed up for. Built through OrderAmount so the
+        // per-currency minor unit is honoured rather than assuming two decimals.
+        val sliceTotal = lastSliceOffer?.takeIf { isSuccess }?.totalAmount
+        val formattedAmount = if (sliceTotal != null) {
+            val isLTR = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) ==
+                    ViewCompat.LAYOUT_DIRECTION_LTR
+            OrderAmount(sliceTotal.value.toDouble(), sliceTotal.currencyCode)
+                .formattedCurrencyString2Decimal(isLTR)
+        } else {
+            authorizedState?.orderAmount
+        }
         val supportedCards = authorizedState?.supportedCards ?: emptySet()
         val orderReference = viewModel.orderReference
 
         val dateFormatter = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
         val dateTime = dateFormatter.format(Date())
+
+        val sliceReceipt = lastSliceOffer?.takeIf { isSuccess }
+            ?.let { SliceReceipt.from(it, lastSliceIsIslamic) }
 
         val args = PaymentResultArgs(
             isSuccess = isSuccess,
@@ -718,6 +758,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             dateTime = dateTime,
             supportedCards = supportedCards,
             orderItems = authorizedState?.orderItems ?: emptyList(),
+            sliceReceipt = sliceReceipt,
         )
 
         viewModel.showPaymentResult(

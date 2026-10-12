@@ -99,7 +99,14 @@ fun PaymentResultScreen(
             AedAmountText(
                 text = if (args.isSuccess) {
                     if (args.formattedAmount != null) {
-                        stringResource(R.string.payment_result_success_title, args.formattedAmount)
+                        // On a Slice plan the amount is the plan's total across the term, not what
+                        // was debited today, so "You paid" would misdescribe it.
+                        val titleRes = if (args.sliceReceipt != null) {
+                            R.string.payment_result_success_title_slice
+                        } else {
+                            R.string.payment_result_success_title
+                        }
+                        stringResource(titleRes, args.formattedAmount)
                     } else {
                         stringResource(R.string.payment_result_success_title_no_amount)
                     }
@@ -128,6 +135,12 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(32.dp))
 
+            // Slice success section - only when the user paid via a Slice installment plan.
+            if (args.isSuccess && args.sliceReceipt != null) {
+                SliceSuccessSection(receipt = args.sliceReceipt)
+                Spacer(Modifier.height(24.dp))
+            }
+
             DetailLine(
                 label = if (args.isSuccess)
                     stringResource(R.string.payment_result_transaction_id)
@@ -153,6 +166,98 @@ fun PaymentResultScreen(
 
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun SliceSuccessSection(receipt: payment.sdk.android.payments.model.SliceReceipt) {
+    val textColor = Color(0xFF070707)
+    val lgSize = 16.sp
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testId("sdk_result_slice_receipt"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.slice_receipt_title),
+            // FontWeight 350 = "Medium" (rounds to 400 on system fonts that don't expose 350).
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(350),
+                color = textColor,
+            ),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.testId("sdk_result_slice_title"),
+        )
+        Spacer(Modifier.height(12.dp))
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_slice),
+            contentDescription = "slice by network",
+            modifier = Modifier
+                .height(70.dp)
+                .width(170.dp),
+            contentScale = ContentScale.Fit,
+        )
+        Spacer(Modifier.height(16.dp))
+        SliceReceiptRow(
+            label = stringResource(R.string.slice_receipt_tenor),
+            value = sliceMonths(R.plurals.slice_receipt_tenor_months, receipt.period),
+            textColor = textColor,
+            lgSize = lgSize,
+        )
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(
+            label = stringResource(sliceRateLabel(receipt.isIslamic)),
+            value = receipt.rate,
+            textColor = textColor,
+            lgSize = lgSize,
+        )
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(label = stringResource(R.string.slice_processing_fees), value = receipt.processingFees, textColor = textColor, lgSize = lgSize)
+        // Charged on top of the order total, so it only appears when the offer carried one -
+        // exactly as the offer card hides its own row.
+        if (receipt.installmentFees != null) {
+            Spacer(Modifier.height(12.dp))
+            SliceReceiptRow(label = stringResource(R.string.slice_installment_fees), value = receipt.installmentFees, textColor = textColor, lgSize = lgSize)
+        }
+        Spacer(Modifier.height(12.dp))
+        SliceReceiptRow(label = stringResource(R.string.slice_receipt_installment_amount), value = receipt.installmentAmount, textColor = textColor, lgSize = lgSize)
+    }
+}
+
+@Composable
+private fun SliceReceiptRow(
+    label: String,
+    value: String,
+    textColor: Color,
+    lgSize: androidx.compose.ui.unit.TextUnit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            // FontWeight 325 = "Book"; system font rounds to nearest available (typically 300/400).
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(325),
+                letterSpacing = (lgSize.value * 0.01f).sp,
+                color = textColor,
+            ),
+        )
+        AedAmountText(
+            text = value,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = lgSize,
+                fontWeight = FontWeight(350),
+                color = textColor,
+            ),
+            color = textColor,
+        )
     }
 }
 

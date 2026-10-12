@@ -196,8 +196,11 @@ class CoroutinesGatewayHttpClient(
                     }
                     logResponse(responseCode, url, connection.headerFields, errorBody)
                     val correlationId = findCorrelationId(connection.headerFields)
-                    throw IllegalStateException(
-                        "HTTP: $responseCode - $errorBody" +
+                    // Carries the status code so callers can tell an expired session from a
+                    // provider refusal. The message is byte-for-byte what it always was.
+                    throw SDKHttpException(
+                        statusCode = responseCode,
+                        message = "HTTP: $responseCode - $errorBody" +
                             (correlationId?.let { " (x-correlation-id: $it)" } ?: "")
                     )
                 }

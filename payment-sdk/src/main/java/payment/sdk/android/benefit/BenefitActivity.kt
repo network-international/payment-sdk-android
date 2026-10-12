@@ -17,8 +17,11 @@ import android.widget.ProgressBar
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import payment.sdk.android.webview.applyPaymentWindowInsets
+import payment.sdk.android.webview.redactUrlForLog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import payment.sdk.android.core.BenefitInitErrorBody
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.BenefitApiInteractor
 import payment.sdk.android.core.interactor.BenefitApiResponse
@@ -95,6 +98,8 @@ class BenefitActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
+            // Shows through the padding the insets add below, and the providers' pages are white.
+            setBackgroundColor(android.graphics.Color.WHITE)
         }
 
         webView = WebView(this).apply {
@@ -134,6 +139,7 @@ class BenefitActivity : AppCompatActivity() {
         coverView.addView(progressBar)
         container.addView(coverView)
         setContentView(container)
+        applyPaymentWindowInsets(container)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -157,20 +163,24 @@ class BenefitActivity : AppCompatActivity() {
         lifecycleScope.launch {
             when (val response = BenefitApiInteractor(httpClient).initBenefit(args.benefitUrl, args.accessToken)) {
                 is BenefitApiResponse.Error -> {
-                    Log.e(TAG, "initBenefit failed: ${response.error.message}")
-                    finishWith(BenefitLauncher.Result.Failed(response.error.message ?: "Benefit init failed"))
+                    // A non-2xx arrives as an exception carrying the raw body, so the gateway's own
+                    // reason has to be read back out of it before it is worth reporting.
+                    val reason = BenefitInitErrorBody.reasonFrom(response.error.message)
+                        ?: response.error.message
+                        ?: "Benefit init failed"
+                    Log.e(TAG, "initBenefit failed: $reason")
+                    // The payer never reached Benefit and nothing was recorded, so the option is
+                    // what failed, not the payment.
+                    finishWith(BenefitLauncher.Result.Unavailable(reason))
                 }
 
                 is BenefitApiResponse.Success -> {
                     val body = response.response
                     val paymentUrl = body.paymentUrl
                     if (!body.isInitiated || paymentUrl.isNullOrBlank()) {
-                        Log.e(TAG, "Benefit initiation rejected status=${body.status}")
-                        finishWith(
-                            BenefitLauncher.Result.Failed(
-                                body.errorMessage ?: "Benefit initiation was not accepted"
-                            )
-                        )
+                        val reason = body.errorMessage ?: "Benefit initiation was not accepted"
+                        Log.e(TAG, "Benefit initiation rejected status=${body.status} reason=$reason")
+                        finishWith(BenefitLauncher.Result.Unavailable(reason))
                         return@launch
                     }
                     benefitHost = hostOf(paymentUrl)
@@ -252,7 +262,7 @@ class BenefitActivity : AppCompatActivity() {
         ) {
             super.onReceivedError(view, request, error)
             if (request?.isForMainFrame != true) return
-            Log.e(TAG, "main frame error code=${error?.errorCode} url=${request.url}")
+            Log.e(TAG, "main frame error code=${error?.errorCode} url=${redactUrlForLog(request.url?.toString())}")
             // Stopping the paypage hop above surfaces here as a load error of our own making, and
             // the payment is already being resolved, so it must not be treated as a failure.
             if (didStartPolling) return
@@ -260,8 +270,12 @@ class BenefitActivity : AppCompatActivity() {
             // loading the redirect target must not be reported as a failed payment.
             if (sawReturnCallback) {
                 startPollingIfNeeded()
-            } else {
+            } else if (didReachBenefitHost) {
+                // Already on Benefit's site, so an attempt may be in flight — that is a payment
+                // outcome, not an option that never opened.
                 finishWith(BenefitLauncher.Result.Failed("Failed to load Benefit page"))
+            } else {
+                finishWith(BenefitLauncher.Result.Unavailable("Failed to load Benefit page"))
             }
         }
     }
@@ -333,7 +347,7 @@ class BenefitActivity : AppCompatActivity() {
 
     /** Records anything worth knowing about a URL the WebView passes through. */
     private fun noteNavigation(url: String?, source: String) {
-        Log.d(TAG, "$source $url")
+        Log.d(TAG, "$source ${redactUrlForLog(url)}")
         if (isBenefitCancelPage(url) || isErrorCallback(url)) {
             Log.d(TAG, "payer cancelled on the hosted page")
             payerCancelled = true
@@ -349,7 +363,7 @@ class BenefitActivity : AppCompatActivity() {
      * rather than the paypage, so it renders a dead end the payer must never see.
      */
     private fun suppressRedirectAndResolve(url: String?) {
-        Log.d(TAG, "suppressing post-payment redirect to $url")
+        Log.d(TAG, "suppressing post-payment redirect to ${redactUrlForLog(url)}")
         sawReturnCallback = true
         webView.stopLoading()
         showCover()

@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import payment.sdk.android.sdk.R
 import payment.sdk.android.core.SliceOffer
 import payment.sdk.android.payments.SliceCheckState
+import payment.sdk.android.payments.model.SliceReceipt
 import payment.sdk.android.payments.theme.PgColors
 import payment.sdk.android.payments.theme.PgSize
 import payment.sdk.android.payments.theme.PgType
@@ -69,7 +72,7 @@ fun SliceEligibilityRow(state: SliceCheckState) {
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Checking Slice eligibility...",
+                    text = stringResource(R.string.slice_checking_eligibility),
                     style = PgType.bodyRowSubtitle,
                     color = PgColors.textEligibility
                 )
@@ -135,7 +138,7 @@ fun SliceInstallmentSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SliceTab(
-                label = "Pay in Full",
+                label = stringResource(R.string.slice_pay_in_full),
                 selected = selectedIndex == 0,
                 onClick = {
                     selectedIndex = 0
@@ -144,7 +147,7 @@ fun SliceInstallmentSection(
             )
             offers.forEachIndexed { idx, offer ->
                 SliceTab(
-                    label = "${offer.period} months",
+                    label = sliceMonths(R.plurals.slice_tab_months, offer.period),
                     selected = selectedIndex == idx + 1,
                     onClick = {
                         selectedIndex = idx + 1
@@ -157,7 +160,7 @@ fun SliceInstallmentSection(
         if (showSelectionError) {
             Spacer(Modifier.height(6.dp))
             Text(
-                text = androidx.compose.ui.res.stringResource(R.string.select_payment_option_validation),
+                text = stringResource(R.string.select_payment_option_validation),
                 color = Color(0xFFD32F2F),
                 style = PgType.bodyRowSubtitle,
                 modifier = Modifier.padding(horizontal = 2.dp)
@@ -201,19 +204,14 @@ private fun SliceTab(label: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modifier: Modifier = Modifier) {
-    val installmentDisplay = formatAmount(offer.installmentAmount.value, offer.installmentAmount.currencyCode)
-    val totalDisplay = formatAmount(offer.totalAmount.value, offer.totalAmount.currencyCode)
+    // Built through the receipt so the success screen restates exactly what is shown here.
+    val plan = SliceReceipt.from(offer, isIslamic)
+    val installmentDisplay = plan.installmentAmount
+    val totalDisplay = formatSliceAmount(offer.totalAmount.value, offer.totalAmount.currencyCode)
     val isZeroInterest = offer.rate == "0" || offer.rate == "0.0" || offer.rate == "0.00"
     val isZeroFee = offer.fee == "0" || offer.fee == "0.0" || offer.fee == "0.00"
-
-    val feeDisplay = if (offer.feeType == "P") {
-        "${offer.fee}%"
-    } else {
-        formatAmount((offer.fee.toDoubleOrNull()?.times(100))?.toInt() ?: 0, offer.installmentAmount.currencyCode)
-    }
-    val installmentFeeDisplay = offer.installmentFeeAmount?.let {
-        formatAmount(Math.round(it * 100).toInt(), offer.installmentAmount.currencyCode)
-    }
+    val feeDisplay = plan.processingFees
+    val installmentFeeDisplay = plan.installmentFees
 
     Column(
         modifier = modifier
@@ -234,17 +232,21 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
                     color = PgColors.textPrimary
                 )
                 Text(
-                    text = "Per Month",
+                    text = stringResource(R.string.slice_per_month),
                     style = PgType.bodyRowSubtitle,
                     color = PgColors.textSecondary
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (isZeroInterest) {
-                    SliceBadge(label = if (isIslamic) "Zero profit" else "Zero interest")
+                    SliceBadge(
+                        label = stringResource(
+                            if (isIslamic) R.string.slice_badge_zero_profit else R.string.slice_badge_zero_interest
+                        )
+                    )
                 }
                 if (isZeroFee) {
-                    SliceBadge(label = "Zero fees")
+                    SliceBadge(label = stringResource(R.string.slice_badge_zero_fees))
                 }
             }
         }
@@ -253,16 +255,16 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
         Divider(color = PgColors.dividerSlice)
         Spacer(Modifier.height(8.dp))
 
-        SliceDetailRow(label = if (isIslamic) "Profit rate:" else "Interest rate:", value = "${offer.rate}%", bold = true)
+        SliceDetailRow(label = "${stringResource(sliceRateLabel(isIslamic))}:", value = plan.rate, bold = true)
         Spacer(Modifier.height(8.dp))
-        SliceDetailRow(label = "Processing fees:", value = feeDisplay, bold = true)
+        SliceDetailRow(label = "${stringResource(R.string.slice_processing_fees)}:", value = feeDisplay, bold = true)
         if (installmentFeeDisplay != null) {
             Spacer(Modifier.height(8.dp))
-            SliceDetailRow(label = "Installment fees:", value = installmentFeeDisplay, bold = true)
+            SliceDetailRow(label = "${stringResource(R.string.slice_installment_fees)}:", value = installmentFeeDisplay, bold = true)
         }
         Spacer(Modifier.height(8.dp))
         SliceDetailRow(
-            label = "Total after ${offer.period} months",
+            label = sliceMonths(R.plurals.slice_total_after_months, offer.period),
             value = totalDisplay,
             bold = true
         )
@@ -307,7 +309,28 @@ private fun SliceDetailRow(label: String, value: String, bold: Boolean = false) 
     }
 }
 
-private fun formatAmount(minorUnits: Int, currencyCode: String): String {
+/** Interest-based offers and Islamic (Murabaha) offers name the same figure differently. */
+internal fun sliceRateLabel(isIslamic: Boolean): Int =
+    if (isIslamic) R.string.slice_profit_rate else R.string.slice_interest_rate
+
+/**
+ * A month count from an offer's `period`, pluralised for the SDK language — Arabic alone has six
+ * forms. The gateway sends `period` as a string; one that is not a number is shown as sent rather
+ * than guessed at.
+ */
+@Composable
+internal fun sliceMonths(pluralsRes: Int, period: String): String {
+    val months = period.trim().toIntOrNull() ?: return period
+    // The form is picked by the resource locale; the digits stay Western, like every amount.
+    val format = LocalContext.current.resources.getQuantityString(pluralsRes, months)
+    return String.format(java.util.Locale.US, format, months)
+}
+
+/**
+ * Shared by the offer card and the success receipt, so the amounts the payer agrees to and the
+ * amounts they are shown afterwards are formatted identically.
+ */
+internal fun formatSliceAmount(minorUnits: Int, currencyCode: String): String {
     val amount = minorUnits / 100.0
     return "$currencyCode ${String.format(java.util.Locale.US, "%,.2f", amount)}"
 }
@@ -334,7 +357,7 @@ internal fun SliceBanner() {
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "Zero fees, Zero interest installments.",
+            text = stringResource(R.string.slice_banner_title),
             style = PgType.bodyRowTitle,
             color = PgColors.textPrimary,
             fontWeight = FontWeight.SemiBold,
@@ -342,7 +365,7 @@ internal fun SliceBanner() {
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "Split your purchases into easy installments",
+            text = stringResource(R.string.slice_banner_subtitle),
             style = PgType.bodyRowSubtitle,
             color = PgColors.textSecondary
         )

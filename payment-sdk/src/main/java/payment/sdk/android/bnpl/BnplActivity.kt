@@ -21,11 +21,15 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import payment.sdk.android.core.BnplProvider
+import payment.sdk.android.core.BnplReturn
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
+import payment.sdk.android.core.api.SDKHttpException
 import payment.sdk.android.core.interactor.BnplApiInteractor
 import payment.sdk.android.core.interactor.BnplApiResponse
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.webview.PaymentWebSession
+import payment.sdk.android.webview.applyPaymentWindowInsets
+import payment.sdk.android.webview.redactUrlForLog
 
 /**
  * Drives a buy-now-pay-later checkout — Tamara or Tabby — in a WebView.
@@ -40,7 +44,16 @@ import payment.sdk.android.webview.PaymentWebSession
 class BnplActivity : AppCompatActivity() {
 
     /** Which return URL the provider redirected to. */
-    private enum class ReturnLeg { SUCCESS, CANCEL, FAILURE }
+    private enum class ReturnLeg {
+        SUCCESS, CANCEL, FAILURE,
+        /**
+         * The payer landed back on our return address, but without our marker to say how it went.
+         * Providers that rebuild the query from their own form fields — Tabby's hosted page submits
+         * a GET form carrying only `code`, `payment_method` and `payment_id` — drop it. The payer
+         * has still returned, so the payment is finalised and the order decides the outcome.
+         */
+        UNKNOWN
+    }
 
     private lateinit var args: BnplLauncher.Config
     private lateinit var webView: WebView
@@ -90,6 +103,8 @@ class BnplActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
+            // Shows through the padding the insets add below, and the providers' pages are white.
+            setBackgroundColor(android.graphics.Color.WHITE)
         }
 
         webView = WebView(this).apply {
@@ -129,6 +144,7 @@ class BnplActivity : AppCompatActivity() {
         coverView.addView(progressBar)
         container.addView(coverView)
         setContentView(container)
+        applyPaymentWindowInsets(container)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -157,11 +173,24 @@ class BnplActivity : AppCompatActivity() {
             )
             when (response) {
                 is BnplApiResponse.Error -> {
-                    // These providers refuse checkouts for reasons the SDK cannot see coming — a
-                    // basket below their minimum, an unsupported currency, a shopper they will not
-                    // lend to — and the gateway itself can fail to reach them at all. None of it
-                    // touches the order, so the option ends rather than the payment.
                     Log.e(TAG, "${provider.apmName}: initiation failed: ${response.error.message}")
+                    if (SDKHttpException.isSessionExpired(response.error)) {
+                        // The access token is dead, not the provider. Every other method on the
+                        // page authenticates with the same token, so sending the payer back to
+                        // choose one of them walks them into the same failure. The payment ends
+                        // instead, which tells the merchant to start a fresh order.
+                        finishWith(
+                            BnplLauncher.Result.Failed(
+                                "The payment session has expired. Start a new order to pay."
+                            )
+                        )
+                        return@launch
+                    }
+                    // Otherwise the providers refuse checkouts for reasons the SDK cannot see
+                    // coming — a basket below their minimum, an unsupported currency, a shopper
+                    // they will not lend to — and the gateway itself can fail to reach them at
+                    // all. None of it touches the order, so the option ends rather than the
+                    // payment.
                     finishWith(
                         BnplLauncher.Result.Unavailable(
                             provider,
@@ -206,7 +235,7 @@ class BnplActivity : AppCompatActivity() {
     private val bnplWebViewClient = object : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
             val url = request?.url?.toString()
-            Log.d(TAG, "${provider.apmName}: navigating to $url")
+            Log.d(TAG, "${provider.apmName}: navigating to ${redactUrlForLog(url)}")
             return handleIfReturn(url)
         }
 
@@ -232,7 +261,7 @@ class BnplActivity : AppCompatActivity() {
         ) {
             super.onReceivedError(view, request, error)
             if (request?.isForMainFrame != true) return
-            Log.e(TAG, "${provider.apmName}: main frame error code=${error?.errorCode} url=${request.url}")
+            Log.e(TAG, "${provider.apmName}: main frame error code=${error?.errorCode} url=${redactUrlForLog(request.url?.toString())}")
             // Stopping the return navigation above surfaces here as a load error of our own making,
             // and the payment is already being resolved, so it must not be treated as a failure.
             if (didStartPolling || didDispatchResult) return
@@ -251,18 +280,30 @@ class BnplActivity : AppCompatActivity() {
         }
     }
 
+    /** The addresses we asked the provider to send the payer back to. */
+    private val returnUrls: List<String> by lazy {
+        listOf(args.successUrl, args.cancelUrl, args.failureUrl)
+    }
+
     /**
-     * Which return URL, if any, a navigation is heading to. Matching is on the marker parameter the
-     * SDK put there rather than on the whole URL, because the providers append their own parameters
-     * to the address they were given.
+     * Which return URL, if any, a navigation is heading to.
+     *
+     * Both halves matter: the navigation has to be going to one of the addresses we nominated
+     * ([BnplReturn]), and it has to carry our marker. Matching on the marker alone ends the
+     * checkout the instant it opens, because the gateway pastes our return URLs unencoded into the
+     * provider's checkout URL and the marker surfaces there too. Matching on the address alone
+     * cannot tell success from cancel.
      */
     private fun returnLeg(url: String?): ReturnLeg? {
-        val marker = queryParam(url, BnplProvider.RESULT_PARAM) ?: return null
-        return when (marker) {
+        if (!BnplReturn.isReturnTarget(url, returnUrls)) return null
+        return when (BnplReturn.markerOf(url, returnUrls)) {
             "success" -> ReturnLeg.SUCCESS
             "cancel" -> ReturnLeg.CANCEL
             "failure" -> ReturnLeg.FAILURE
-            else -> null
+            // Arriving at an address we nominated is itself the signal that the payer came back.
+            // Only the marker can distinguish a cancel, so without it the payment is finalised and
+            // the order has the final say — which it does in every other case anyway.
+            else -> ReturnLeg.UNKNOWN
         }
     }
 
@@ -343,30 +384,66 @@ class BnplActivity : AppCompatActivity() {
      */
     private fun pollOrderState() {
         lifecycleScope.launch {
+            var lastState: String? = null
+
             repeat(MAX_POLL_ATTEMPTS) { attempt ->
                 if (attempt > 0) delay(POLL_INTERVAL_MS)
-                val order = GetOrderApiInteractor(httpClient).getOrder(args.orderUrl, args.accessToken)
-                val state = order?.embedded?.payment?.firstOrNull()?.state.orEmpty().uppercase()
+                val state = readPaymentState()
+                if (state != null) lastState = state
                 Log.d(TAG, "${provider.apmName}: poll attempt=${attempt + 1} state=$state")
-                when {
-                    state in TERMINAL_SUCCESS_STATES -> {
-                        finishWith(BnplLauncher.Result.Success)
-                        return@launch
-                    }
+                resultFor(state)?.let {
+                    finishWith(it)
+                    return@launch
+                }
+                // Otherwise still in flight — give the backend more time.
+            }
 
-                    state == STATE_POST_AUTH_REVIEW -> {
-                        finishWith(BnplLauncher.Result.PostAuthReview)
-                        return@launch
-                    }
-
-                    state in TERMINAL_FAILURE_STATES -> {
-                        finishWith(BnplLauncher.Result.Failed("state=$state"))
-                        return@launch
-                    }
-                    // Otherwise still in flight — give the backend more time.
+            // Out of attempts, which is not the same as out of options: the payer may have approved
+            // the plan while the gateway was slow to finalise it, and a request that never landed
+            // leaves the state unread rather than pending. So the order is asked again, more
+            // patiently, before anything is reported — telling a merchant a payment failed when it
+            // actually went through is the worst outcome this flow has.
+            repeat(FINAL_CHECK_ATTEMPTS) { attempt ->
+                delay(FINAL_CHECK_INTERVAL_MS)
+                val state = readPaymentState()
+                if (state != null) lastState = state
+                Log.d(TAG, "${provider.apmName}: final check attempt=${attempt + 1} state=$state")
+                resultFor(state)?.let {
+                    finishWith(it)
+                    return@launch
                 }
             }
-            finishWith(BnplLauncher.Result.Failed("Timed out waiting for the payment result"))
+
+            // Still unresolved. That is an unknown outcome, not a declined one, so it is reported
+            // as something to reconcile from the order rather than as a payment the payer failed
+            // to make.
+            val waited = (MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS +
+                    FINAL_CHECK_ATTEMPTS * FINAL_CHECK_INTERVAL_MS) / 1_000
+            val seen = lastState?.takeIf { it.isNotEmpty() }?.let { " (last seen $it)" }.orEmpty()
+            Log.e(TAG, "${provider.apmName}: no final state after ${waited}s$seen")
+            finishWith(
+                BnplLauncher.Result.Failed(
+                    "The payment did not reach a final state within ${waited}s$seen; " +
+                            "confirm it from the order"
+                )
+            )
+        }
+    }
+
+    /** The order's payment state, or null when the order could not be read or carries no payment. */
+    private suspend fun readPaymentState(): String? =
+        GetOrderApiInteractor(httpClient)
+            .getOrder(args.orderUrl, args.accessToken)
+            ?.embedded?.payment?.firstOrNull()?.state?.uppercase()
+
+    /** The outcome a state settles on, or null while it is still in flight or could not be read. */
+    private fun resultFor(state: String?): BnplLauncher.Result? {
+        if (state.isNullOrEmpty()) return null
+        return when {
+            state in TERMINAL_SUCCESS_STATES -> BnplLauncher.Result.Success
+            state == STATE_POST_AUTH_REVIEW -> BnplLauncher.Result.PostAuthReview
+            state in TERMINAL_FAILURE_STATES -> BnplLauncher.Result.Failed("state=$state")
+            else -> null
         }
     }
 
@@ -409,6 +486,10 @@ class BnplActivity : AppCompatActivity() {
         private const val REVEAL_DEBOUNCE_MS = 450L
         private const val MAX_POLL_ATTEMPTS = 15
         private const val POLL_INTERVAL_MS = 2_000L
+
+        /** Slower, last-chance reads of the order once the poll above has run out. */
+        private const val FINAL_CHECK_ATTEMPTS = 3
+        private const val FINAL_CHECK_INTERVAL_MS = 3_000L
 
         private const val STATE_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
         private val TERMINAL_SUCCESS_STATES = setOf("CAPTURED", "AUTHORISED", "PURCHASED", "VERIFIED")

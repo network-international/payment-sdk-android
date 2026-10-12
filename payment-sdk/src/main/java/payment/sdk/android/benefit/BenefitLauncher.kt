@@ -48,6 +48,15 @@ class BenefitLauncher(
         @Parcelize data object PostAuthReview : Result()
         @Parcelize data class Failed(val error: String) : Result()
         /**
+         * Benefit never started — the gateway refused the initiation, or its hosted page never
+         * loaded. Nothing was charged and the order is untouched, so this ends the *option*, not the
+         * payment: the payer goes back to the page with the row marked unavailable and every other
+         * method still open. Reported separately from [Failed] because an outlet that lists BENEFIT
+         * without provisioned keys must not cost the merchant a sale the payer would have completed
+         * by card.
+         */
+        @Parcelize data class Unavailable(val error: String) : Result()
+        /**
          * Backed out before Benefit recorded anything against the payment. The order is untouched
          * and still payable, so the payer can go back and choose another method.
          */

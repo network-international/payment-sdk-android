@@ -54,9 +54,9 @@ fun OtherPaymentOptionsSection(
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
+    isBenefitUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
-    belowMinimumBnplProviders: Map<BnplProvider, String> = emptyMap(),
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
@@ -160,6 +160,10 @@ fun OtherPaymentOptionsSection(
             PaymentOptionRow(
                 selected = selectedOption == PaymentOption.BENEFIT,
                 label = stringResource(R.string.benefit),
+                // Nothing was charged when Benefit fails to start, so the row stays put and says
+                // why: an option the outlet enables and the payer cannot find reads as a broken SDK.
+                notice = if (isBenefitUnavailable) stringResource(R.string.benefit_unavailable) else null,
+                enabled = !isBenefitUnavailable,
                 trailingIcon = {
                     Image(
                         painter = painterResource(R.drawable.benefit_logo),
@@ -175,21 +179,12 @@ fun OtherPaymentOptionsSection(
         // Buy now, pay later — one row per provider the order supports.
         bnplConfigs.keys.forEach { provider ->
             val unavailable = provider in unavailableBnplProviders
-            val selected = selectedOption == provider.paymentOption
-            val minimum = belowMinimumBnplProviders[provider]
             PaymentOptionRow(
-                selected = selected,
+                selected = selectedOption == provider.paymentOption,
                 label = stringResource(provider.labelRes),
-                // Nothing was charged when a checkout fails to open, so the row stays put and says
-                // why: an option the outlet enables and the payer cannot find reads as a broken SDK.
-                // The same goes for a basket under the provider's minimum, said on selection so the
-                // payer can change it or pick another method before being sent anywhere.
-                notice = when {
-                    unavailable -> stringResource(R.string.bnpl_unavailable)
-                    minimum != null && selected ->
-                        stringResource(R.string.bnpl_below_minimum, stringResource(provider.labelRes), minimum)
-                    else -> null
-                },
+                // A provider that could not be reached greys out so it cannot be tapped again.
+                // Why it is unavailable is reported to the merchant through the payment result,
+                // not written under the row.
                 enabled = !unavailable,
                 trailingIcon = {
                     Image(

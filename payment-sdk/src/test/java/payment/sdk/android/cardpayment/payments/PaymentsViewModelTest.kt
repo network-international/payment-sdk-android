@@ -240,6 +240,54 @@ class UnifiedPaymentPageViewModelTest {
         assertFalse(state.showWallets)
     }
 
+    /**
+     * A Benefit initiation the gateway refuses ends the option, not the payment: the row says so and
+     * the payer keeps every other method. Ending the payment there costs the merchant a sale over an
+     * outlet whose BENEFIT keys are not provisioned.
+     */
+    @Test
+    fun `test benefit that could not be started marks its row unavailable and leaves the page`() = runTest {
+        val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
+        val orderResponse = Gson().fromJson(
+            """
+            {
+              "reference": "ref-1",
+              "outletId": "outlet-1",
+              "action": "PURCHASE",
+              "amount": { "currencyCode": "BHD", "value": 11000 },
+              "paymentMethods": { "card": ["VISA", "BENEFIT"] },
+              "_links": { "payment": { "href": "$TEST_PAYMENT_URL" } },
+              "_embedded": {
+                "payment": [
+                  { "_links": { "self": { "href": "https://api.example.com/payments/pay123" } } }
+                ]
+              }
+            }
+            """.trimIndent(),
+            Order::class.java
+        )
+
+        coEvery { getOrderApiInteractor.getOrder(any(), any()) } returns orderResponse
+        backgroundScope.launch(testDispatcher) { sut.uiState.toList(states) }
+
+        coEvery { authApiInteractor.authenticate(any(), any()) } returns AuthResponse.Success(
+            listOf(PAYMENT_TOKEN_COOKIE, ACCESS_TOKEN_COOKIE), "orderUrl"
+        )
+
+        sut.authorize()
+
+        val offered = states.last() as UnifiedPaymentPageVMUiState.Authorized
+        assertNotNull(offered.benefitConfig)
+        assertFalse(offered.isBenefitUnavailable)
+
+        sut.markBenefitUnavailable()
+
+        val afterRefusal = states.last() as UnifiedPaymentPageVMUiState.Authorized
+        assertTrue(afterRefusal.isBenefitUnavailable)
+        // Still on the payment page, with the rest of the order intact.
+        assertNotNull(afterRefusal.benefitConfig)
+    }
+
     @Test
     fun `test authorize failure with invalid auth code`() = runTest {
         val states: MutableList<UnifiedPaymentPageVMUiState> = mutableListOf()
