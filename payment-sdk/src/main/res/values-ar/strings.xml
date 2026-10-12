@@ -171,22 +171,20 @@
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">لقد دفعت %1$s</string>
-    <string name="payment_result_success_title_slice">إجمالي المبلغ المستحق %1$s</string>
     <string name="payment_result_success_title_no_amount">تمت عملية الدفع بنجاح</string>
     <string name="payment_result_failure_title">حدث خطأ ما</string>
     <string name="payment_result_success_subtitle">شكراً لك! تم استلام دفعتك.</string>
     <string name="payment_result_failure_subtitle">يرجى المحاولة مرة أخرى لاحقاً.</string>
     <string name="payment_result_transaction_id">رقم المرجع</string>
-    <string name="payment_result_reference_number">الرقم المرجعي</string>
-    <string name="payment_result_date_time">تاريخ المعاملة</string>
+    <string name="payment_result_reference_number">رقم المرجع</string>
+    <string name="payment_result_date_time">التاريخ والوقت</string>
     <string name="payment_result_done">تم</string>
     <string name="select_payment_option_validation">يرجى اختيار خيار الدفع للمتابعة</string>
     <string name="card_already_saved">هذه البطاقة محفوظة بالفعل</string>
 
     <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
     <string name="slice_checking_eligibility">جارٍ التحقق من الأهلية لـ Slice...</string>
-    <string name="slice_banner_title">أقساط بدون رسوم وبدون فوائد.</string>
-    <string name="slice_banner_subtitle">قسّم مشترياتك على أقساط ميسّرة</string>
+    <string name="slice_banner_title">أقساط بدون فوائد</string>
     <string name="slice_pay_in_full">الدفع بالكامل</string>
     <plurals name="slice_tab_months">
         <item quantity="zero">%d شهر</item>

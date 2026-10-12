@@ -29,6 +29,13 @@ data class SliceOffer(
      */
     val installmentFeeAmount: Double?
         get() = commission?.toDoubleOrNull()?.takeIf { it > 0 }
+
+    /**
+     * True when the plan costs nothing beyond the order: a zero processing fee and no
+     * Installment Fee — the condition for the "Zero fees" tag.
+     */
+    val isFeeFree: Boolean
+        get() = fee.toDoubleOrNull() == 0.0 && installmentFeeAmount == null
 }
 
 @Keep

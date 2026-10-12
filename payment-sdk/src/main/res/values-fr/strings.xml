@@ -154,22 +154,20 @@
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">Vous avez payé %1$s</string>
-    <string name="payment_result_success_title_slice">Total à payer %1$s</string>
     <string name="payment_result_success_title_no_amount">Paiement réussi</string>
     <string name="payment_result_failure_title">Une erreur est survenue</string>
     <string name="payment_result_success_subtitle">Merci ! Votre paiement a été reçu.</string>
     <string name="payment_result_failure_subtitle">Veuillez réessayer plus tard.</string>
-    <string name="payment_result_transaction_id">Numéro de référence</string>
-    <string name="payment_result_reference_number">Numéro de référence</string>
-    <string name="payment_result_date_time">Date de transaction</string>
+    <string name="payment_result_transaction_id">N° de réf.</string>
+    <string name="payment_result_reference_number">N° de réf.</string>
+    <string name="payment_result_date_time">Date et heure</string>
     <string name="payment_result_done">Terminé</string>
     <string name="select_payment_option_validation">Veuillez sélectionner une option de paiement pour continuer</string>
     <string name="card_already_saved">Cette carte est déjà enregistrée</string>
 
     <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
     <string name="slice_checking_eligibility">Vérification de l\'éligibilité à Slice...</string>
-    <string name="slice_banner_title">Paiement échelonné sans frais ni intérêts.</string>
-    <string name="slice_banner_subtitle">Réglez vos achats en plusieurs fois, facilement</string>
+    <string name="slice_banner_title">Paiement échelonné sans intérêts</string>
     <string name="slice_pay_in_full">Payer en totalité</string>
     <plurals name="slice_tab_months">
         <item quantity="one">%d mois</item>

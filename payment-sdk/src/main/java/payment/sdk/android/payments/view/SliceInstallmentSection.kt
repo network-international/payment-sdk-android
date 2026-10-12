@@ -209,7 +209,7 @@ private fun SliceDetailCard(offer: SliceOffer, isIslamic: Boolean = false, modif
     val installmentDisplay = plan.installmentAmount
     val totalDisplay = formatSliceAmount(offer.totalAmount.value, offer.totalAmount.currencyCode)
     val isZeroInterest = offer.rate == "0" || offer.rate == "0.0" || offer.rate == "0.00"
-    val isZeroFee = offer.fee == "0" || offer.fee == "0.0" || offer.fee == "0.00"
+    val isZeroFee = offer.isFeeFree
     val feeDisplay = plan.processingFees
     val installmentFeeDisplay = plan.installmentFees
 
@@ -339,35 +339,31 @@ internal fun formatSliceAmount(minorUnits: Int, currencyCode: String): String {
 // (Slice link present, current card not eligible).
 @Composable
 internal fun SliceBanner() {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Radius.row))
             .background(PgColors.surfaceRow)
-            .padding(horizontal = 14.dp, vertical = 14.dp)
+            .padding(horizontal = 14.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // The asset is a square with the wordmark across its middle; cropping to the
+        // wordmark's own proportions trims the padding without touching the shared asset.
         Image(
             painter = painterResource(R.drawable.ic_logo_slice),
             contentDescription = "slice by network",
-            contentScale = ContentScale.Fit,
-            alignment = Alignment.CenterStart,
-            modifier = Modifier.height(48.dp)
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .width(64.dp)
+                .height(28.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
-
         Text(
             text = stringResource(R.string.slice_banner_title),
             style = PgType.bodyRowTitle,
             color = PgColors.textPrimary,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Normal,
             fontSize = 16.sp
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = stringResource(R.string.slice_banner_subtitle),
-            style = PgType.bodyRowSubtitle,
-            color = PgColors.textSecondary
         )
     }
 }

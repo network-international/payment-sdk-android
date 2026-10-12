@@ -15,6 +15,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
+import payment.sdk.android.core.api.SDKDiagnostics
 import payment.sdk.android.core.api.SDKHttpResponse
 import java.util.concurrent.TimeUnit
 
@@ -162,9 +163,17 @@ class OkHttpClientAdapter(context: Context) : HttpClient {
             }
             .build()
 
-        val response = client.newCall(request).execute()
+        val response = try {
+            client.newCall(request).execute()
+        } catch (e: Exception) {
+            SDKDiagnostics.record(method, url, null, "${e.javaClass.simpleName}: ${e.message}")
+            throw e
+        }
         val responseBody = response.body?.string() ?: "{}"
         val responseHeaders = response.headers.toMultimap()
+        // Order creation goes through here rather than the SDK's client; record it alongside
+        // the SDK's calls so a failure report shows the order the payment was made against.
+        SDKDiagnostics.record(method, url, response.code, responseBody)
 
         if (!response.isSuccessful) {
             throw IllegalStateException("HTTP: ${response.code} - $responseBody")

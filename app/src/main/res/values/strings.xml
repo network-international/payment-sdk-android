@@ -25,4 +25,10 @@
     <string name="order_successful">Order successful</string>
     <string name="continue_shopping">Continue Shopping</string>
     <string name="pay_with_samsung_pay">Pay with Samsung Pay</string>
+
+    <!-- Failure popup: the raw error and gateway responses, for testers. -->
+    <string name="technical_details">Technical details</string>
+    <string name="technical_details_copy">Copy</string>
+    <string name="technical_details_share">Share</string>
+    <string name="technical_details_copied">Copied</string>
 </resources>

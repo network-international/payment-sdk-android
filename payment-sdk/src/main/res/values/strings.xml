@@ -190,22 +190,20 @@
 
     <!-- Payment Result Screen -->
     <string name="payment_result_success_title">You paid %1$s</string>
-    <string name="payment_result_success_title_slice">Total payable %1$s</string>
     <string name="payment_result_success_title_no_amount">Payment Successful</string>
     <string name="payment_result_failure_title">Something Went Wrong</string>
     <string name="payment_result_success_subtitle">Thank you! your payment has been received.</string>
     <string name="payment_result_failure_subtitle">Please try again later.</string>
-    <string name="payment_result_transaction_id">Reference number</string>
-    <string name="payment_result_reference_number">Reference Number</string>
-    <string name="payment_result_date_time">Transaction Date</string>
+    <string name="payment_result_transaction_id">Ref Number</string>
+    <string name="payment_result_reference_number">Ref Number</string>
+    <string name="payment_result_date_time">Date &amp; Time</string>
     <string name="payment_result_done">Done</string>
     <string name="select_payment_option_validation">Please select a payment option to proceed</string>
     <string name="card_already_saved">This card is already saved</string>
 
     <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
     <string name="slice_checking_eligibility">Checking Slice eligibility...</string>
-    <string name="slice_banner_title">Zero fees, Zero interest installments.</string>
-    <string name="slice_banner_subtitle">Split your purchases into easy installments</string>
+    <string name="slice_banner_title">Interest Free Installments</string>
     <string name="slice_pay_in_full">Pay in Full</string>
     <plurals name="slice_tab_months">
         <item quantity="one">%d month</item>

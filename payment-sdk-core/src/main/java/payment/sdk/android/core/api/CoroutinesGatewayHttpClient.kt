@@ -178,11 +178,13 @@ class CoroutinesGatewayHttpClient(
                     reader = connection.inputStream.bufferedReader()
                     val responseBody = reader.readText()
                     logResponse(responseCode, url, connection.headerFields, responseBody)
+                    SDKDiagnostics.record(method, url, responseCode, responseBody)
                     Pair(connection.headerFields, JSONObject(responseBody))
                 }
                 // No Content (common DELETE response)
                 HttpURLConnection.HTTP_NO_CONTENT -> {
                     logResponse(responseCode, url, connection.headerFields, "")
+                    SDKDiagnostics.record(method, url, responseCode, "")
                     Pair(connection.headerFields, JSONObject("{}"))
                 }
                 // Not Discerned
@@ -195,6 +197,7 @@ class CoroutinesGatewayHttpClient(
                         "Failed to read error body: ${e.message}"
                     }
                     logResponse(responseCode, url, connection.headerFields, errorBody)
+                    SDKDiagnostics.record(method, url, responseCode, errorBody)
                     val correlationId = findCorrelationId(connection.headerFields)
                     // Carries the status code so callers can tell an expired session from a
                     // provider refusal. The message is byte-for-byte what it always was.
@@ -206,6 +209,11 @@ class CoroutinesGatewayHttpClient(
                 }
             }
         } catch (e: Exception) {
+            // An HTTP error was recorded above with its body; this catches the calls that never
+            // got a status (timeout, no connection, unreadable response).
+            if (e !is SDKHttpException) {
+                SDKDiagnostics.record(method, url, null, "${e.javaClass.simpleName}: ${e.message}")
+            }
             throw e
         } finally {
             writer?.close()
