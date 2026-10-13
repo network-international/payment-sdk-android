@@ -1,5 +1,7 @@
 package payment.sdk.android.visaInstalments
 
+import android.content.Context
+import payment.sdk.android.SDKConfig
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -24,6 +26,10 @@ import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 import payment.sdk.android.sdk.R
 
 class VisaInstallmentsActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
     private val inputArgs: VisaInstallmentsLauncher.Config? by lazy {
         VisaInstallmentsLauncher.Config.fromIntent(intent = intent)
     }

@@ -1,5 +1,7 @@
 package payment.sdk.android.aaniPay
 
+import android.content.Context
+import payment.sdk.android.SDKConfig
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -34,6 +36,10 @@ import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
 
     private val inputArgs: AaniPayLauncher.Config? by lazy {
         AaniPayLauncher.Config.fromIntent(intent = intent)

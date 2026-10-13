@@ -2,6 +2,15 @@
 
 All notable changes to the Network International Payment SDK for Android are documented in this file.
 
+## [5.2.4] - 2026-10-13
+
+### Added
+- **`SDKConfig.setLanguage(language)`**: shows the SDK's screens in `"en"`, `"ar"` or `"fr"`
+  regardless of the app's locale, with right-to-left layout for Arabic. Applied to every SDK
+  activity (card payment, 3-D Secure, saved card, partial auth, Visa instalments, Aani,
+  unified payments page). Backported from 7.0.1. Without a call the SDK follows the app's
+  locale exactly as in 5.2.3.
+
 ## [5.2.0] - 2026-06-30
 
 Landscape / large-screen robustness and 3-D Secure reliability follow-up to 5.1.0.

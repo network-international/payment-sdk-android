@@ -1,6 +1,7 @@
 package payment.sdk.android.cardpayment.threedsecuretwo.webview
 
 
+import payment.sdk.android.SDKConfig
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
@@ -32,6 +33,10 @@ import java.util.Stack
 
 
 open class ThreeDSecureTwoWebViewActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
     private fun getIpUrl(stringVal: String, outletRef: String, orderRef: String, paymentRef: String): String {
         val slug =
             "/api/outlets/$outletRef/orders/$orderRef/payments/${paymentRef}/3ds2/requester-ip"
