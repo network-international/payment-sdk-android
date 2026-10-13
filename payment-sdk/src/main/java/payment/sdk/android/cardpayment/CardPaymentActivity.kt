@@ -32,6 +32,10 @@ import payment.sdk.android.sdk.R
 
 class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interactions {
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
+
     private lateinit var presenter: CardPaymentContract.Presenter
 
     private val partialAuthActivityLauncher = registerForActivityResult(

@@ -1,5 +1,6 @@
 package payment.sdk.android.savedCard
 
+import android.content.Context
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
@@ -45,6 +46,10 @@ import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.view.VisaInstalmentsView
 
 class SavedCardPaymentActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
 
     private val viewModel: SavedPaymentViewModel by viewModels { SavedPaymentViewModel.Factory }
 

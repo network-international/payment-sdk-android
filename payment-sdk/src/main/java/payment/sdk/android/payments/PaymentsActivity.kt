@@ -1,5 +1,6 @@
 package payment.sdk.android.payments
 
+import android.content.Context
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
@@ -58,6 +59,10 @@ import payment.sdk.android.payments.view.PaymentsScreen
 import payment.sdk.android.sdk.R
 
 class PaymentsActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
 
     private val viewModel: PaymentsViewModel by viewModels { PaymentsViewModel.Factory(args) }
 

@@ -1,5 +1,7 @@
 package payment.sdk.android.partialAuth
 
+import android.content.Context
+import payment.sdk.android.SDKConfig
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,6 +25,10 @@ import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.sdk.R
 
 class PartialAuthActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
     private val inputArgs: PartialAuthActivityArgs? by lazy {
         PartialAuthActivityArgs.fromIntent(intent = intent)
     }

@@ -1,5 +1,6 @@
 package payment.sdk.android.cardpayment.threedsecure
 
+import payment.sdk.android.SDKConfig
 import payment.sdk.android.sdk.R
 import android.app.Activity
 import android.content.Context
@@ -20,6 +21,10 @@ import java.net.URLEncoder
 import java.util.Stack
 
 open class ThreeDSecureWebViewActivity : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SDKConfig.localizedContext(newBase))
+    }
 
     private val toolbar: Toolbar by lazy {
         findViewById<Toolbar>(R.id.toolbar)
