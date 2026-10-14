@@ -216,7 +216,7 @@
     <string name="slice_interest_rate">Interest rate</string>
     <string name="slice_profit_rate">Profit rate</string>
     <string name="slice_processing_fees">Processing fees</string>
-    <string name="slice_installment_fees">Installment fees</string>
+    <string name="slice_installment_fees">Installment fee</string>
     <plurals name="slice_total_after_months">
         <item quantity="one">Total after %d month</item>
         <item quantity="other">Total after %d months</item>

@@ -28,7 +28,7 @@ class SliceOfferTest {
     }
 
     /**
-     * The value behind the "Installment fees" row: the planned commission the backend quotes for
+     * The value behind the "Installment fee" row: the planned commission the backend quotes for
      * the selected plan, in major units.
      */
     @Test

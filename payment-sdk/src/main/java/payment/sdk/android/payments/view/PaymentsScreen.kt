@@ -394,7 +394,7 @@ fun UnifiedPaymentPageScreen(
 
         // ── Pinned bottom bar ────────────────────────────────────────────────
         // The pay button shows what the shopper is actually debited: a selected Slice offer
-        // carrying a `commission` adds that Installment fees on top of the order total. The
+        // carrying a `commission` adds that Installment fee on top of the order total. The
         // order summary above keeps showing the original total.
         val payButtonAmount = payableAmountLabel(
             formattedAmount = formattedAmount,
@@ -617,7 +617,7 @@ private fun PaymentSectionsContent(
 
 /**
  * Amount shown on the pay button. Defaults to [formattedAmount] (the order total); when
- * [sliceOffer] carries a `commission`, that Installment fees is added on top, because the
+ * [sliceOffer] carries a `commission`, that Installment fee is added on top, because the
  * issuer debits it alongside the order. Falls back to [formattedAmount] whenever the raw
  * order value or currency isn't available to re-format.
  */
