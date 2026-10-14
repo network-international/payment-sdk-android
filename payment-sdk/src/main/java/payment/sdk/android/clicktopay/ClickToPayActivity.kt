@@ -257,7 +257,6 @@ class ClickToPayActivity : AppCompatActivity() {
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-                Log.d(TAG, "JS Console: ${consoleMessage?.message()} (${consoleMessage?.sourceId()}:${consoleMessage?.lineNumber()})")
                 return true
             }
 
