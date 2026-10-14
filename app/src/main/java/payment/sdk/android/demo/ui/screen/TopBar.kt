@@ -41,9 +41,11 @@ fun TopBar(
                     contentDescription = "Network International",
                     modifier = Modifier.height(28.dp)
                 )
+                // Was a hardcoded "Demo", which meant `topAppBarText` was accepted
+                // and then ignored — setting it at the call site changed nothing.
                 Text(
-                    text = "Demo",
-                    fontSize = 10.sp,
+                    text = topAppBarText,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

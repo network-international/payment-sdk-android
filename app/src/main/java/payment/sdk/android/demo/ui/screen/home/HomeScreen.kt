@@ -28,6 +28,7 @@ import payment.sdk.android.demo.isTablet
 import payment.sdk.android.demo.model.Product
 import payment.sdk.android.demo.ui.screen.Alert
 import payment.sdk.android.demo.ui.screen.CircularProgressDialog
+import payment.sdk.android.demo.ui.screen.TechnicalDetailsDialog
 import payment.sdk.android.demo.ui.screen.TopBar
 import payment.sdk.android.core.testId
 
@@ -37,6 +38,7 @@ fun HomeScreen(
     onSelectProduct: (Product) -> Unit,
     onAddProduct: (Product) -> Unit,
     onClickPayByCard: () -> Unit,
+    onClickGooglePay: () -> Unit = {},
     onClickSamsungPay: () -> Unit,
     closeDialog: () -> Unit,
     onClickEnvironment: () -> Unit,
@@ -61,7 +63,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopBar(
-                topAppBarText = "N-Genius Demo",
+                topAppBarText = "Native Test Shop",
                 onAddProduct = { showAddProductDialog = true },
                 onSettingClicked = onClickEnvironment,
                 onInfoClicked = onClickWhatYouNeed
@@ -101,6 +103,9 @@ fun HomeScreen(
                         total = state.total,
                         currency = state.currency,
                         onClickPayByCard = onClickPayByCard,
+                        onClickGooglePay = onClickGooglePay,
+                        onClickSamsungPay = onClickSamsungPay,
+                        showSamsungPay = state.isSamsungPayAvailable,
                     )
                 }
 
@@ -117,11 +122,21 @@ fun HomeScreen(
                     MainViewModelStateType.PAYMENT_PARTIALLY_AUTHORISED,
                     MainViewModelStateType.AUTHORIZED -> {
                         val (title, message) = state.state.getAlertMessage(state.message)
+                        var showTechnicalDetails by remember { mutableStateOf(false) }
                         Alert(
                             onConfirmation = closeDialog,
                             dialogTitle = title,
-                            dialogText = message
+                            dialogText = message,
+                            onTechnicalDetails = state.technicalDetails?.let {
+                                { showTechnicalDetails = true }
+                            }
                         )
+                        if (showTechnicalDetails && state.technicalDetails != null) {
+                            TechnicalDetailsDialog(
+                                report = state.technicalDetails,
+                                onDismiss = { showTechnicalDetails = false }
+                            )
+                        }
                     }
 
                     MainViewModelStateType.PAYMENT_PROCESSING -> { }

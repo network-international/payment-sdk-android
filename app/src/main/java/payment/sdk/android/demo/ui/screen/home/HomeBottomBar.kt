@@ -21,6 +21,9 @@ fun HomeBottomBar(
     total: Double,
     currency: String,
     onClickPayByCard: () -> Unit,
+    onClickGooglePay: () -> Unit = {},
+    onClickSamsungPay: () -> Unit = {},
+    showSamsungPay: Boolean = false,
 ) {
     Surface(
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -39,6 +42,28 @@ fun HomeBottomBar(
                 onClick = onClickPayByCard
             ) {
                 Text(text = "Pay $currency ${"%.2f".format(Locale.ENGLISH, total)}")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(42.dp)
+                    .testId("storefront_button_google_pay"),
+                onClick = onClickGooglePay
+            ) {
+                Text(text = "Google Pay")
+            }
+            if (showSamsungPay) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(42.dp)
+                        .testId("storefront_button_samsung_pay"),
+                    onClick = onClickSamsungPay
+                ) {
+                    Text(text = "Samsung Pay")
+                }
             }
             Spacer(modifier = Modifier.height(8.dp))
         }

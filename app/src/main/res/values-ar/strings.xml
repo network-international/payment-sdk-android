@@ -25,4 +25,10 @@
     <string name="order_successful">أمر ناجح</string>
     <string name="continue_shopping">مواصلة التسوق</string>
     <string name="pay_with_samsung_pay">ادفع مع Samsung Pay</string>
+
+    <!-- Failure popup: the raw error and gateway responses, for testers. -->
+    <string name="technical_details">التفاصيل التقنية</string>
+    <string name="technical_details_copy">نسخ</string>
+    <string name="technical_details_share">مشاركة</string>
+    <string name="technical_details_copied">تم النسخ</string>
 </resources>

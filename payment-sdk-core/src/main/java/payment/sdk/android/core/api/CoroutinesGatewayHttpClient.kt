@@ -15,7 +15,16 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSocketFactory
 
-class CoroutinesGatewayHttpClient : HttpClient {
+/**
+ * @param readTimeoutMs how long to wait for the response. The default suits ordinary gateway
+ * calls; callers that sit behind slow backend work (3DS challenge responses run fraud screening
+ * before answering) should raise it, because a client-side timeout leaves the caller unable to
+ * tell a failed payment from a slow one.
+ */
+class CoroutinesGatewayHttpClient(
+    private val readTimeoutMs: Int = DEFAULT_TIMEOUT_MS,
+    private val connectTimeoutMs: Int = DEFAULT_TIMEOUT_MS
+) : HttpClient {
 
     private val sslSocketFactoryDelegate: SSLSocketFactory by lazy {
         TLSSocketFactoryDelegate()
@@ -169,11 +178,13 @@ class CoroutinesGatewayHttpClient : HttpClient {
                     reader = connection.inputStream.bufferedReader()
                     val responseBody = reader.readText()
                     logResponse(responseCode, url, connection.headerFields, responseBody)
+                    SDKDiagnostics.record(method, url, responseCode, responseBody)
                     Pair(connection.headerFields, JSONObject(responseBody))
                 }
                 // No Content (common DELETE response)
                 HttpURLConnection.HTTP_NO_CONTENT -> {
                     logResponse(responseCode, url, connection.headerFields, "")
+                    SDKDiagnostics.record(method, url, responseCode, "")
                     Pair(connection.headerFields, JSONObject("{}"))
                 }
                 // Not Discerned
@@ -186,14 +197,23 @@ class CoroutinesGatewayHttpClient : HttpClient {
                         "Failed to read error body: ${e.message}"
                     }
                     logResponse(responseCode, url, connection.headerFields, errorBody)
+                    SDKDiagnostics.record(method, url, responseCode, errorBody)
                     val correlationId = findCorrelationId(connection.headerFields)
-                    throw IllegalStateException(
-                        "HTTP: $responseCode - $errorBody" +
+                    // Carries the status code so callers can tell an expired session from a
+                    // provider refusal. The message is byte-for-byte what it always was.
+                    throw SDKHttpException(
+                        statusCode = responseCode,
+                        message = "HTTP: $responseCode - $errorBody" +
                             (correlationId?.let { " (x-correlation-id: $it)" } ?: "")
                     )
                 }
             }
         } catch (e: Exception) {
+            // An HTTP error was recorded above with its body; this catches the calls that never
+            // got a status (timeout, no connection, unreadable response).
+            if (e !is SDKHttpException) {
+                SDKDiagnostics.record(method, url, null, "${e.javaClass.simpleName}: ${e.message}")
+            }
             throw e
         } finally {
             writer?.close()
@@ -246,6 +266,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
 
     companion object {
         private const val TAG = "NI-SDK-HTTP"
+
+        const val DEFAULT_TIMEOUT_MS = 30_000
     }
 
     private fun initConnection(
@@ -254,8 +276,8 @@ class CoroutinesGatewayHttpClient : HttpClient {
         isDoOutput: Boolean
     ) =
         connection.apply {
-            readTimeout = 30000
-            connectTimeout = 30000
+            readTimeout = readTimeoutMs
+            connectTimeout = connectTimeoutMs
             doOutput = isDoOutput
             useCaches = false
             val device = "${Build.MANUFACTURER}-${Build.MODEL}"

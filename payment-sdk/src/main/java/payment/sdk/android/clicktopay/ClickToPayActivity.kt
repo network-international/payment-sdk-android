@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.webkit.CookieManager
 import android.webkit.ConsoleMessage
 import android.webkit.RenderProcessGoneDetail
@@ -101,6 +103,7 @@ class ClickToPayActivity : AppCompatActivity() {
         inputArgs = args
 
         setContentView(R.layout.activity_click_to_pay)
+        applySystemBarPadding()
 
         setupViews()
         setupWebView()
@@ -119,6 +122,26 @@ class ClickToPayActivity : AppCompatActivity() {
 
         // Load HTML directly with proper base URL origin
         loadHtml()
+    }
+
+    /**
+     * Keeps the page clear of the status and navigation bars.
+     *
+     * From Android 15 the system draws every app edge to edge whether it opted
+     * in or not, so this full-bleed WebView rendered underneath the status bar —
+     * the Click to Pay page's own header sat behind the clock, the battery and
+     * the camera cutout. Padding the content frame moves every child down,
+     * including the Mastercard DCF popup container.
+     */
+    private fun applySystemBarPadding() {
+        val content = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
     }
 
     private fun setupViews() {

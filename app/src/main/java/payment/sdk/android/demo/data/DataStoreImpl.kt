@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import payment.sdk.android.demo.getPreferences
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.EnvironmentOverride
 import payment.sdk.android.demo.model.MerchantAttribute
 import payment.sdk.android.demo.model.Product
 import com.google.gson.Gson
@@ -59,19 +60,32 @@ class DataStoreImpl(private val context: Context) : DataStore {
         MerchantAttribute.saveMerchantAttribute(context, merchantAttributes)
     }
 
+    // Order action and type belong to the selected outlet, like the currency above: which
+    // actions and order types an outlet accepts is outlet configuration, so one app-wide
+    // value was necessarily wrong for every outlet but the one it was set for. Setting
+    // either rewrites the selected outlet; the legacy preference keys survive only as the
+    // migration source for environments saved before the move.
     override fun setOrderAction(action: String) {
-        context.getPreferences().edit { putString(KEY_ORDER_ACTION, action) }
+        val selected = Environment.getSelectedEnvironment(context)
+        if (selected != null) {
+            updateEnvironment(selected.copy(orderAction = action))
+        } else {
+            context.getPreferences().edit { putString(KEY_ORDER_ACTION, action) }
+        }
     }
 
-    override fun getOrderAction() =
-        context.getPreferences().getString(KEY_ORDER_ACTION, "SALE") ?: "SALE"
+    override fun getOrderAction() = Environment.selectedOrderAction(context)
 
     override fun setOrderType(action: String) {
-        context.getPreferences().edit { putString(KEY_ORDER_TYPE, action) }
+        val selected = Environment.getSelectedEnvironment(context)
+        if (selected != null) {
+            updateEnvironment(selected.copy(orderType = action))
+        } else {
+            context.getPreferences().edit { putString(KEY_ORDER_TYPE, action) }
+        }
     }
 
-    override fun getOrderType() =
-        context.getPreferences().getString(KEY_ORDER_TYPE, "SINGLE") ?: "SINGLE"
+    override fun getOrderType() = Environment.selectedOrderType(context)
 
     override fun addProduct(product: Product) {
         val products = Product.getProducts(context).toMutableList()
@@ -117,13 +131,25 @@ class DataStoreImpl(private val context: Context) : DataStore {
         }
     }
 
+    /**
+     * The currency now belongs to the selected outlet rather than the app as a whole, so that
+     * picking the Benefit outlet cannot leave the currency on AED and silently hide the option.
+     * Callers are unchanged; only where the value is stored has moved.
+     */
     override fun getCurrency(): AppCurrency {
-        val currency = context.getPreferences().getString(KEY_CURRENCY, "")
-        return AppCurrency.entries.firstOrNull { it.code == currency } ?: AppCurrency.AED
+        val code = Environment.selectedCurrency(context)
+        return AppCurrency.entries.firstOrNull { it.code == code } ?: AppCurrency.AED
     }
 
     override fun setCurrency(currency: AppCurrency) {
-        context.getPreferences().edit { putString(KEY_CURRENCY, currency.code) }
+        val selected = Environment.getSelectedEnvironment(context)
+        if (selected != null) {
+            updateEnvironment(selected.copy(currency = currency.code))
+        } else {
+            // Nothing selected yet: keep it in the legacy slot so the choice is not lost, and the
+            // first outlet added inherits it through Environment.legacyCurrency.
+            context.getPreferences().edit { putString(KEY_CURRENCY, currency.code) }
+        }
     }
 
     override fun setLanguage(language: AppLanguage) {
@@ -148,9 +174,41 @@ class DataStoreImpl(private val context: Context) : DataStore {
     }
 
     override fun getRegion(): Region {
+        if (EnvironmentOverride.isEnabled(context)) return getOverrideRegion()
         val code = context.getPreferences().getString(KEY_REGION, "")
         return Region.entries.firstOrNull { it.code == code } ?: Region.UAE
     }
+
+    override fun isOverrideEnabled() = EnvironmentOverride.isEnabled(context)
+
+    override fun setOverrideEnabled(enabled: Boolean) =
+        EnvironmentOverride.setEnabled(context, enabled)
+
+    override fun getOverrideRegion(): Region {
+        val code = EnvironmentOverride.region(context)
+        return Region.entries.firstOrNull { it.code == code } ?: Region.UAE
+    }
+
+    override fun setOverrideRegion(region: Region) =
+        EnvironmentOverride.setRegion(context, region.code)
+
+    override fun getOverrideCurrency(): AppCurrency {
+        val code = EnvironmentOverride.currency(context)
+        return AppCurrency.entries.firstOrNull { it.code == code } ?: AppCurrency.AED
+    }
+
+    override fun setOverrideCurrency(currency: AppCurrency) =
+        EnvironmentOverride.setCurrency(context, currency.code)
+
+    override fun getOverrideOrderAction() = EnvironmentOverride.orderAction(context)
+
+    override fun setOverrideOrderAction(action: String) =
+        EnvironmentOverride.setOrderAction(context, action)
+
+    override fun getOverrideOrderType() = EnvironmentOverride.orderType(context)
+
+    override fun setOverrideOrderType(type: String) =
+        EnvironmentOverride.setOrderType(context, type)
 
     override fun setSDKColor(key: String, hex: String) {
         context.getPreferences().edit { putString(key, hex) }

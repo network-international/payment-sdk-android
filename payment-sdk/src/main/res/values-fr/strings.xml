@@ -53,6 +53,7 @@
     <string name="message_loading_order_details">Chargement des détails de la commande…</string>
 
     <string name="authenticating_three_ds_two">Authentification via 3DS</string>
+    <string name="confirming_payment_three_ds_two">Confirmation de votre paiement…</string>
 
     <string name="cancel_payment_alert_title">Annuler le paiement</string>
     <string name="cancel_payment_alert_message">Êtes-vous sûr de vouloir annuler le paiement ?</string>
@@ -87,6 +88,10 @@
 
     <string name="aani">Payer avec AANI</string>
     <string name="qpay">Payer avec QPay</string>
+    <string name="benefit">Payer avec Benefit</string>
+    <string name="benefit_unavailable">Indisponible pour le moment. Veuillez choisir un autre moyen de paiement.</string>
+    <string name="pay_with_tamara">Payer avec Tamara</string>
+    <string name="pay_with_tabby">Payer avec Tabby</string>
     <string name="qpay_express_pay_with">Payer avec</string>
     <string name="aani_mobile_number">Numéro de mobile</string>
     <string name="aani_emirates_id">Emirates ID</string>
@@ -153,11 +158,38 @@
     <string name="payment_result_failure_title">Une erreur est survenue</string>
     <string name="payment_result_success_subtitle">Merci ! Votre paiement a été reçu.</string>
     <string name="payment_result_failure_subtitle">Veuillez réessayer plus tard.</string>
-    <string name="payment_result_transaction_id">Numéro de référence</string>
-    <string name="payment_result_reference_number">Numéro de référence</string>
-    <string name="payment_result_date_time">Date de transaction</string>
+    <string name="payment_result_transaction_id">N° de réf.</string>
+    <string name="payment_result_reference_number">N° de réf.</string>
+    <string name="payment_result_date_time">Date et heure</string>
     <string name="payment_result_done">Terminé</string>
     <string name="select_payment_option_validation">Veuillez sélectionner une option de paiement pour continuer</string>
     <string name="card_already_saved">Cette carte est déjà enregistrée</string>
 
+    <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
+    <string name="slice_checking_eligibility">Vérification de l\'éligibilité à Slice...</string>
+    <string name="slice_banner_title">Paiement échelonné sans intérêts</string>
+    <string name="slice_pay_in_full">Payer en totalité</string>
+    <plurals name="slice_tab_months">
+        <item quantity="one">%d mois</item>
+        <item quantity="other">%d mois</item>
+    </plurals>
+    <string name="slice_per_month">Par mois</string>
+    <string name="slice_badge_zero_interest">Sans intérêts</string>
+    <string name="slice_badge_zero_profit">Sans profit</string>
+    <string name="slice_badge_zero_fees">Sans frais</string>
+    <string name="slice_interest_rate">Taux d\'intérêt</string>
+    <string name="slice_profit_rate">Taux de profit</string>
+    <string name="slice_processing_fees">Frais de traitement</string>
+    <string name="slice_installment_fees">Frais d\'échelonnement</string>
+    <plurals name="slice_total_after_months">
+        <item quantity="one">Total après %d mois</item>
+        <item quantity="other">Total après %d mois</item>
+    </plurals>
+    <string name="slice_receipt_title">Votre achat a été échelonné avec Slice !</string>
+    <string name="slice_receipt_tenor">Durée</string>
+    <plurals name="slice_receipt_tenor_months">
+        <item quantity="one">%d mois</item>
+        <item quantity="other">%d mois</item>
+    </plurals>
+    <string name="slice_receipt_installment_amount">Montant de l\'échéance</string>
 </resources>

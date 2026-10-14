@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,8 @@ class CardPaymentInteractorTest {
 
     private val httpClient: HttpClient = mockk(relaxed = true)
 
+    private val app: Application = mockk(relaxed = true)
+
     private lateinit var sut: CardPaymentInteractor
 
     private val makeCardPaymentRequest = MakeCardPaymentRequest(
@@ -36,7 +39,7 @@ class CardPaymentInteractorTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = CardPaymentInteractor(httpClient)
+        sut = CardPaymentInteractor(httpClient, app)
     }
 
     @After

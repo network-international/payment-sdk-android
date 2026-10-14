@@ -15,6 +15,9 @@ class Order {
     var paymentMethods: PaymentMethods? = null
     var language: String = "en"
 
+    /** PURCHASE, AUTH, SALE… Benefit is only offered on PURCHASE orders. */
+    var action: String? = null
+
     @SerializedName(value = "visSavedCardMatchedCandidates")
     var savedCardVisMatchedCandidates: SavedCardVisMatchedCandidates? = null
 
@@ -117,6 +120,12 @@ class Order {
 
         @SerializedName(value = "payment:qpay")
         var qpay: Href? = null
+
+        @SerializedName(value = "payment:tamara")
+        var tamara: Href? = null
+
+        @SerializedName(value = "payment:tabby")
+        var tabby: Href? = null
     }
 
     @Keep
@@ -180,6 +189,52 @@ fun Order.getOrderId() = embedded?.payment?.firstOrNull()?.reference?.substringB
 
 /** Backend QPay endpoint that returns the QCB form fields. */
 fun Order.getQPayUrl() = embedded?.payment?.firstOrNull()?.links?.qpay?.href
+
+/**
+ * Benefit initiation endpoint. The gateway publishes no `payment:benefit` rel, so it is derived
+ * from the payment's own `self` href — that keeps the gateway host authoritative rather than
+ * hard-coding one per environment.
+ */
+fun Order.getBenefitUrl() = getSelfUrl()?.trimEnd('/')?.let { "$it/benefit" }
+
+/**
+ * Benefit is only accepted for a BHD purchase on an outlet that lists BENEFIT among its card
+ * schemes. Anything else is rejected by the gateway, so the option must not be offered.
+ */
+fun Order.isBenefitSupported() =
+    paymentMethods?.card?.any { it.equals("BENEFIT", ignoreCase = true) } == true &&
+            action.equals("PURCHASE", ignoreCase = true) &&
+            amount?.currencyCode.equals("BHD", ignoreCase = true)
+
+/**
+ * The buy-now-pay-later providers this order can be paid with, in the order they are offered.
+ *
+ * A provider qualifies purely on the outlet listing it among the order's APMs: which markets it
+ * lends in, whether it will lend to this shopper, and whether the basket suits it are all the
+ * provider's decisions, taken when the checkout is created, and the gateway reports those as a
+ * rejected initiation rather than an absent option.
+ */
+fun Order.supportedBnplProviders(): List<BnplProvider> {
+    val apms = paymentMethods?.apm ?: return emptyList()
+    return BnplProvider.entries.filter { provider ->
+        apms.any { it.equals(provider.apmName, ignoreCase = true) } && getBnplUrl(provider) != null
+    }
+}
+
+/**
+ * `payment:tamara` / `payment:tabby` when the gateway advertises it, otherwise derived from the
+ * payment's own `self` href the way the Benefit endpoint is — an outlet that lists the APM without
+ * the rel would otherwise lose the option.
+ */
+fun Order.getBnplUrl(provider: BnplProvider): String? {
+    val links = embedded?.payment?.firstOrNull()?.links
+    val advertised = when (provider) {
+        BnplProvider.TAMARA -> links?.tamara?.href
+        BnplProvider.TABBY -> links?.tabby?.href
+    }
+    advertised?.takeIf { it.isNotBlank() }?.let { return it }
+    return getSelfUrl()?.trimEnd('/')?.let { "$it/${provider.pathSegment}" }
+}
 
 fun Order.getSliceEligibilityCheckUrl() = embedded?.payment?.firstOrNull()?.links?.sliceEligibilityCheck?.href
 

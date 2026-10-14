@@ -78,10 +78,16 @@ import payment.sdk.android.cardpayment.card.PaymentCard
 import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.bnpl.BnplLauncher
+import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.CardMapping
 import payment.sdk.android.core.CardType
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.SliceOffer
+import java.util.Currency
+import kotlin.math.pow
 import payment.sdk.android.googlepay.GooglePayButton
 import payment.sdk.android.payments.GooglePayUiConfig
 import payment.sdk.android.payments.SliceCheckState
@@ -114,6 +120,10 @@ fun UnifiedPaymentPageScreen(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
+    isBenefitUnavailable: Boolean = false,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
     savedCards: List<SavedCard> = emptyList(),
     orderItems: List<OrderItem> = emptyList(),
     sliceCheckState: SliceCheckState = SliceCheckState.Idle,
@@ -122,13 +132,15 @@ fun UnifiedPaymentPageScreen(
     onCheckSavedCardEligibility: (savedCard: SavedCard) -> Unit = {},
     onResetSliceCheck: () -> Unit = {},
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String, sliceOffer: SliceOffer?, visaPlan: InstallmentPlan?) -> Unit,
-    onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?) -> Unit = { _, _ -> },
+    onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?, sliceOffer: SliceOffer?) -> Unit = { _, _, _ -> },
     isProcessing: Boolean,
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
+    onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
+    onClickBnpl: (BnplLauncher.Config) -> Unit = {},
     onClose: () -> Unit
 ) {
     // ── Selection state ──────────────────────────────────────────────────────
@@ -214,7 +226,9 @@ fun UnifiedPaymentPageScreen(
     val showGooglePay = showWallets && googlePayUiConfig != null
     val showSamsungPay = showWallets && isSamsungPayAvailable
     val showAani = showWallets && aaniConfig != null
-    val hasOtherOptions = showGooglePay || showSamsungPay || showAani || clickToPayConfig != null || qpayConfig != null
+    val hasOtherOptions = showGooglePay || showSamsungPay || showAani ||
+            clickToPayConfig != null || qpayConfig != null || benefitConfig != null ||
+            bnplConfigs.isNotEmpty()
 
     val logoResId = if (SDKConfig.merchantLogoResId != 0) SDKConfig.merchantLogoResId
     else R.drawable.network_international_logo
@@ -292,6 +306,10 @@ fun UnifiedPaymentPageScreen(
                     aaniConfig = aaniConfig,
                     clickToPayConfig = clickToPayConfig,
                     qpayConfig = qpayConfig,
+                    benefitConfig = benefitConfig,
+                    isBenefitUnavailable = isBenefitUnavailable,
+                    bnplConfigs = bnplConfigs,
+                    unavailableBnplProviders = unavailableBnplProviders,
                     savedCards = savedCards.takeLast(3),
                     orderItems = orderItems,
                     sliceCheckState = sliceCheckState,
@@ -375,6 +393,17 @@ fun UnifiedPaymentPageScreen(
         }
 
         // ── Pinned bottom bar ────────────────────────────────────────────────
+        // The pay button shows what the shopper is actually debited: a selected Slice offer
+        // carrying a `commission` adds that Installment fee on top of the order total. The
+        // order summary above keeps showing the original total.
+        val payButtonAmount = payableAmountLabel(
+            formattedAmount = formattedAmount,
+            orderValue = orderValue,
+            currencyCode = currencyCode,
+            // The offer selection survives switching to another payment method, and only a
+            // card payment actually submits the Slice request — so gate the label on CARD.
+            sliceOffer = cardSelectedSliceOffer.takeIf { selectedOption == PaymentOption.CARD }
+        )
         Divider(color = PgColors.borderRow, thickness = 0.5.dp)
         BottomPayBar(
             selectedOption = selectedOption,
@@ -383,10 +412,14 @@ fun UnifiedPaymentPageScreen(
             isCardFormValid = isCardFormValid,
             isProcessing = isProcessing,
             googlePayUiConfig = googlePayUiConfig,
-            formattedAmount = formattedAmount,
+            formattedAmount = payButtonAmount,
             aaniConfig = aaniConfig,
             clickToPayConfig = clickToPayConfig,
             qpayConfig = qpayConfig,
+            benefitConfig = benefitConfig,
+            isBenefitUnavailable = isBenefitUnavailable,
+            bnplConfigs = bnplConfigs,
+            unavailableBnplProviders = unavailableBnplProviders,
             cardPan = cardPan,
             cardCvv = cardCvv,
             cardExpiry = cardExpiry,
@@ -404,6 +437,8 @@ fun UnifiedPaymentPageScreen(
             onClickAaniPay = onClickAaniPay,
             onClickToPay = onClickToPay,
             onClickQPay = onClickQPay,
+            onClickBenefit = onClickBenefit,
+            onClickBnpl = onClickBnpl,
             onMakePayment = onMakePayment,
             onMakeSavedCardPayment = onMakeSavedCardPayment
         )
@@ -426,6 +461,10 @@ private fun PaymentSectionsContent(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
+    isBenefitUnavailable: Boolean = false,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
     savedCards: List<SavedCard>,
     orderItems: List<OrderItem>,
     sliceCheckState: SliceCheckState,
@@ -544,6 +583,7 @@ private fun PaymentSectionsContent(
     val belowGooglePay = showGooglePay && qpayExpress
     val hasRemainingOptions =
         belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
+            benefitConfig != null || bnplConfigs.isNotEmpty() ||
             (qpayConfig != null && !qpayExpress)
     if (hasRemainingOptions) {
         Spacer(Modifier.height(Spacing.sectionGap))
@@ -559,6 +599,10 @@ private fun PaymentSectionsContent(
             aaniConfig = if (showAani) aaniConfig else null,
             clickToPayConfig = clickToPayConfig,
             qpayConfig = if (qpayExpress) null else qpayConfig,
+            benefitConfig = benefitConfig,
+            isBenefitUnavailable = isBenefitUnavailable,
+            bnplConfigs = bnplConfigs,
+            unavailableBnplProviders = unavailableBnplProviders,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -569,6 +613,30 @@ private fun PaymentSectionsContent(
     }
 
     Spacer(Modifier.height(Spacing.sectionGap))
+}
+
+/**
+ * Amount shown on the pay button. Defaults to [formattedAmount] (the order total); when
+ * [sliceOffer] carries a `commission`, that Installment fee is added on top, because the
+ * issuer debits it alongside the order. Falls back to [formattedAmount] whenever the raw
+ * order value or currency isn't available to re-format.
+ */
+private fun payableAmountLabel(
+    formattedAmount: String,
+    orderValue: Double,
+    currencyCode: String,
+    sliceOffer: SliceOffer?
+): String {
+    val installmentFee = sliceOffer?.installmentFeeAmount ?: return formattedAmount
+    if (currencyCode.isEmpty()) return formattedAmount
+    return runCatching {
+        // `commission` is quoted in major units; the order value is in minor units.
+        val minorUnitScale = 10.0.pow(Currency.getInstance(currencyCode).defaultFractionDigits)
+        OrderAmount(
+            orderValue + Math.round(installmentFee * minorUnitScale),
+            currencyCode
+        ).formattedCurrencyString(true)
+    }.getOrDefault(formattedAmount)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -809,6 +877,10 @@ internal fun BottomPayBar(
     aaniConfig: AaniPayLauncher.Config?,
     clickToPayConfig: ClickToPayLauncher.Config?,
     qpayConfig: QPayLauncher.Config? = null,
+    benefitConfig: BenefitLauncher.Config? = null,
+    isBenefitUnavailable: Boolean = false,
+    bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+    unavailableBnplProviders: Set<BnplProvider> = emptySet(),
     cardPan: String,
     cardCvv: String,
     cardExpiry: TextFieldValue,
@@ -826,8 +898,10 @@ internal fun BottomPayBar(
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
+    onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
+    onClickBnpl: (BnplLauncher.Config) -> Unit = {},
     onMakePayment: (cardNumber: String, expiry: String, cvv: String, cardholderName: String, sliceOffer: SliceOffer?, visaPlan: InstallmentPlan?) -> Unit,
-    onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?) -> Unit
+    onMakeSavedCardPayment: (savedCard: SavedCard, cvv: String?, sliceOffer: SliceOffer?) -> Unit
 ) {
     val isSavedCardReady = selectedSavedCard != null &&
             (!selectedSavedCard.recaptureCsc || savedCardCvv.isNotBlank())
@@ -849,7 +923,11 @@ internal fun BottomPayBar(
         PaymentOption.SAVED_CARD -> isSavedCardReady && !isProcessing
         PaymentOption.AANI,
         PaymentOption.CLICK_TO_PAY,
-        PaymentOption.QPAY -> !isProcessing
+        PaymentOption.QPAY,
+        PaymentOption.TAMARA,
+        PaymentOption.TABBY -> !isProcessing
+        // Benefit could not be started this session, so the page must not offer to pay by it.
+        PaymentOption.BENEFIT -> !isProcessing && !isBenefitUnavailable
         PaymentOption.GOOGLE_PAY,
         PaymentOption.SAMSUNG_PAY,
         null -> false
@@ -935,12 +1013,22 @@ internal fun BottomPayBar(
                             cardSelectedSliceOffer,
                             cardSelectedVisaPlan
                         )
+                        // `cardSelectedSliceOffer` is shared by both card paths — selecting a
+                        // saved card runs the same eligibility check, so a plan picked here has
+                        // to travel with the payment rather than being silently dropped.
                         PaymentOption.SAVED_CARD -> selectedSavedCard?.let {
-                            onMakeSavedCardPayment(it, savedCardCvv.takeIf { v -> v.isNotBlank() })
+                            onMakeSavedCardPayment(
+                                it,
+                                savedCardCvv.takeIf { v -> v.isNotBlank() },
+                                cardSelectedSliceOffer
+                            )
                         }
                         PaymentOption.AANI -> aaniConfig?.let { onClickAaniPay(it) }
                         PaymentOption.CLICK_TO_PAY -> clickToPayConfig?.let { onClickToPay(it) }
                         PaymentOption.QPAY -> qpayConfig?.let { onClickQPay(it) }
+                        PaymentOption.BENEFIT -> benefitConfig?.let { onClickBenefit(it) }
+                        PaymentOption.TAMARA -> bnplConfigs[BnplProvider.TAMARA]?.let { onClickBnpl(it) }
+                        PaymentOption.TABBY -> bnplConfigs[BnplProvider.TABBY]?.let { onClickBnpl(it) }
                         else -> {}
                     }
                 },

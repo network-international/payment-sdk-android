@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ class AuthApiInteractorTest {
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 
     private val httpClient: HttpClient = mockk(relaxed = true)
+    private val app: Application = mockk(relaxed = true)
     private lateinit var sut: AuthApiInteractor
 
     private val authUrl = "authurl"
@@ -31,7 +33,7 @@ class AuthApiInteractorTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = AuthApiInteractor(httpClient)
+        sut = AuthApiInteractor(httpClient, app)
     }
 
     @After

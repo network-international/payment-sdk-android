@@ -60,6 +60,9 @@ dependencies {
     testImplementation "io.mockk:mockk:1.13.7"
     testImplementation 'com.flextrade.jfixture:jfixture:2.7.2'
     testImplementation "junit:junit:$junit"
+    // `returnDefaultValues = true` stubs android.jar, which is where org.json lives — so
+    // Body.Json.encode() would answer null. A real org.json lets tests assert request bodies.
+    testImplementation 'org.json:json:20231013'
 }
 repositories {
     mavenCentral()

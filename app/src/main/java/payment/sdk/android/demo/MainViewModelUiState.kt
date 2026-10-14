@@ -14,7 +14,9 @@ data class MainViewModelUiState(
     val orderReference: String? = null,
     val savedCard: SavedCard? = null,
     val savedCards: List<SavedCard> = listOf(),
-    val currency: String = ""
+    val currency: String = "",
+    /** Report behind the failure popup's "Technical details"; null when there is nothing to show. */
+    val technicalDetails: String? = null
 )
 
 data class MainViewModelEffect(
@@ -22,10 +24,11 @@ data class MainViewModelEffect(
     val type: PaymentType
 )
 
-enum class PaymentType {
-    SAMSUNG_PAY,
-    CARD,
-    SAVED_CARD,
+enum class PaymentType(val label: String) {
+    SAMSUNG_PAY("Samsung Pay"),
+    GOOGLE_PAY("Google Pay"),
+    CARD("Card (unified payment page)"),
+    SAVED_CARD("Saved card"),
 }
 
 enum class MainViewModelStateType {

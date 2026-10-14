@@ -258,7 +258,7 @@ class SavedCardPaymentActivity : ComponentActivity() {
                         UnifiedPaymentPageResult.Success
                     )
 
-                    "CAPTURED" -> finishWithData(
+                    "CAPTURED", "VERIFIED" -> finishWithData(
                         CardPaymentData(CardPaymentData.STATUS_PAYMENT_CAPTURED),
                         UnifiedPaymentPageResult.Success
                     )
