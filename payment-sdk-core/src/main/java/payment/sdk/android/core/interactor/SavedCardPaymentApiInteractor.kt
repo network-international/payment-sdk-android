@@ -24,6 +24,7 @@ class SavedCardPaymentApiInteractor(
             addProperty(KEY_CARDHOLDER_NAME, request.savedCard.cardholderName)
             request.cvv?.let { addProperty(KEY_CVV, it) }
             request.payerIp?.let { addProperty(KEY_PAYER_IP, it) }
+            PayerDeviceInfo.fields(app).forEach { (key, value) -> addProperty(key, value) }
             val visa = request.visaRequest
             if (visa != null) {
                 add(CardPaymentInteractor.PAYMENT_FIELD_VISA, com.google.gson.JsonObject().apply {

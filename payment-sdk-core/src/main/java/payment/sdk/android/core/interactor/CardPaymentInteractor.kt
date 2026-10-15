@@ -40,6 +40,7 @@ class CardPaymentInteractor(
         request.payerIp?.let {
             bodyMap.put(KEY_PAYER_IP, it)
         }
+        bodyMap.putAll(PayerDeviceInfo.fields(app))
         val deviceId = DeviceIdProvider.getDeviceId(app)
         val response = httpClient.put(
             url = request.paymentUrl,
