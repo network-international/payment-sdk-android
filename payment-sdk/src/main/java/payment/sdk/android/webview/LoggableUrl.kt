@@ -6,7 +6,7 @@ import android.net.Uri
  * Parameters that are ours, describe no one, and are the whole point of reading these logs: which
  * return leg a redirect was, and which method it belonged to.
  */
-private val LOGGABLE_QUERY_PARAMS = setOf("ni_sdk_result", "payment_method")
+private val LOGGABLE_QUERY_PARAMS = setOf("ni_sdk_result", "payment_method", "outcome")
 
 /**
  * Renders a payment URL safe to write to the device log.

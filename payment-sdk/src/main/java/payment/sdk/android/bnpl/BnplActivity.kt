@@ -80,6 +80,22 @@ class BnplActivity : AppCompatActivity() {
      */
     private var providerReference: String? = null
 
+    /**
+     * What to report if the order is still not final on the next read. Set only when the gateway
+     * rejected the accept call: with no provider payment to finalise, the order will not move, so
+     * waiting out the full polling window would only keep the payer staring at a spinner.
+     */
+    private var resultIfNotFinal: BnplLauncher.Result? = null
+
+    /**
+     * Set when the payer chose Cancel on the provider's page but the way back lost our marker. The
+     * gateway's Tamara test checkout submits the payer's choice as `outcome` to its own `notify`
+     * step and then returns to the success address with only `code`, so the return itself looks the
+     * same for approve, decline and cancel. Accepting after a cancel fails the order, so a return
+     * that follows a cancel goes back to the payment page instead, as the web paypage does.
+     */
+    private var payerCancelledOnProvider = false
+
     private val provider: BnplProvider get() = args.provider
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -236,11 +252,13 @@ class BnplActivity : AppCompatActivity() {
         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
             val url = request?.url?.toString()
             Log.d(TAG, "${provider.apmName}: navigating to ${redactUrlForLog(url)}")
+            noteProviderOutcome(url)
             return handleIfReturn(url)
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
             super.onPageStarted(view, url, favicon)
+            noteProviderOutcome(url)
             // shouldOverrideUrlLoading is never invoked for `loadUrl`, for server redirects or for
             // form POSTs — which is most of what this flow does — so the return leg is caught here
             // too, before the dead paypage hop can render.
@@ -320,6 +338,17 @@ class BnplActivity : AppCompatActivity() {
     }
 
     /**
+     * Records a cancel the payer submitted on the provider's page. Only a `notify` step carrying
+     * `outcome=cancel` counts; anything else leaves the order to decide.
+     */
+    private fun noteProviderOutcome(url: String?) {
+        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return
+        if (uri.path?.endsWith("/notify") != true) return
+        val outcome = runCatching { uri.getQueryParameter("outcome") }.getOrNull() ?: return
+        payerCancelledOnProvider = outcome.equals("cancel", ignoreCase = true)
+    }
+
+    /**
      * Catches a return leg wherever it surfaces. The URL points at the paypage, whose session was
      * consumed when the payment started in the SDK rather than there, so it would render a dead
      * "payment link is not exist" page — the navigation is stopped rather than allowed.
@@ -341,7 +370,7 @@ class BnplActivity : AppCompatActivity() {
     private fun finaliseReturn(leg: ReturnLeg, referenceFromUrl: String?) {
         if (didDispatchResult || didStartPolling) return
 
-        if (leg == ReturnLeg.CANCEL) {
+        if (leg == ReturnLeg.CANCEL || (leg == ReturnLeg.UNKNOWN && payerCancelledOnProvider)) {
             Log.d(TAG, "${provider.apmName}: payer cancelled on the provider's page")
             finishWith(BnplLauncher.Result.CanceledOnProvider)
             return
@@ -360,13 +389,29 @@ class BnplActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            val accepted = BnplApiInteractor(httpClient).acceptBnpl(
+            val status = BnplApiInteractor(httpClient).acceptBnplStatus(
                 url = args.acceptUrl,
                 accessToken = args.accessToken,
                 idField = provider.acceptIdField,
                 idValue = reference
             )
-            if (!accepted) Log.e(TAG, "${provider.apmName}: accept call failed")
+            if (status != BnplApiInteractor.ACCEPTED) {
+                Log.e(TAG, "${provider.apmName}: accept call failed httpStatus=$status")
+            }
+            // A 4xx is the gateway saying there is no provider payment to finalise for this order
+            // (e.g. Tabby's "Back to merchant", which returns without our marker). The order still
+            // gets one read in case it already settled; if it has not, the payer is not left
+            // waiting. A network error, 5xx, auth failure or throttle says nothing about the
+            // payment, so the full window still applies.
+            if (status in 400..499 && status !in setOf(401, 403, 408, 429)) {
+                resultIfNotFinal = when (leg) {
+                    ReturnLeg.UNKNOWN -> BnplLauncher.Result.CanceledOnProvider
+                    ReturnLeg.FAILURE -> BnplLauncher.Result.Failed(
+                        "Payment was not completed on ${provider.apmName}"
+                    )
+                    else -> null
+                }
+            }
             startPollingIfNeeded()
         }
     }
@@ -392,6 +437,11 @@ class BnplActivity : AppCompatActivity() {
                 if (state != null) lastState = state
                 Log.d(TAG, "${provider.apmName}: poll attempt=${attempt + 1} state=$state")
                 resultFor(state)?.let {
+                    finishWith(it)
+                    return@launch
+                }
+                resultIfNotFinal?.let {
+                    Log.d(TAG, "${provider.apmName}: accept was rejected and the order is still $state — not waiting further")
                     finishWith(it)
                     return@launch
                 }

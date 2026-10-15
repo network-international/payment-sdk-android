@@ -5,6 +5,7 @@ import payment.sdk.android.core.BnplInitResponse
 import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.api.Body
 import payment.sdk.android.core.api.HttpClient
+import payment.sdk.android.core.api.SDKHttpException
 import payment.sdk.android.core.api.SDKHttpResponse
 
 /**
@@ -55,9 +56,28 @@ class BnplApiInteractor(private val httpClient: HttpClient) {
         accessToken: String,
         idField: String,
         idValue: String
-    ): Boolean {
+    ): Boolean = acceptBnplStatus(url, accessToken, idField, idValue) == ACCEPTED
+
+    /**
+     * As [acceptBnpl], but says how it went: [ACCEPTED], the HTTP status the gateway refused it with,
+     * or [NO_RESPONSE] when no status came back at all (a network failure).
+     */
+    suspend fun acceptBnplStatus(
+        url: String,
+        accessToken: String,
+        idField: String,
+        idValue: String
+    ): Int {
         val response = httpClient.post(url, headers(accessToken), Body.Json(mapOf(idField to idValue)))
-        return response is SDKHttpResponse.Success
+        return when (response) {
+            is SDKHttpResponse.Success -> ACCEPTED
+            is SDKHttpResponse.Failed -> SDKHttpException.statusCodeOf(response.error) ?: NO_RESPONSE
+        }
+    }
+
+    companion object {
+        const val ACCEPTED = 200
+        const val NO_RESPONSE = -1
     }
 
     private fun headers(accessToken: String) = mapOf(
