@@ -103,7 +103,7 @@ open class NumericMaskedEditText : ConstraintLayout, CardPaymentContract.Statefu
     @SuppressLint("SetTextI18n")
     override fun onNewText(rawTextValue: String, maskedTextValue: String, cursorPosition: Int) {
         val padded = maskedTextValue + placeHolder.substring(maskedTextValue.length)
-        hintView.text = padded
+        hintView.text = FieldColors.placeholderText(hintView, padded, maskedTextValue.length)
         editView.setText(maskedTextValue)
         editView.setSelection(cursorPosition)
 
