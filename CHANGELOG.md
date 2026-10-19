@@ -2,6 +2,14 @@
 
 All notable changes to the Network International Payment SDK for Android are documented in this file.
 
+## [5.2.5] - 2026-10-19
+
+### Fixed
+- **Card number label alignment in Arabic.** With a right-to-left language (e.g.
+  `SDKConfig.setLanguage("ar")`) the floating label above the card number, expiry and CVV
+  fields ("رقم بطاقة الدفع") was aligned to the field's left edge; it now aligns to the
+  field's right edge. Left-to-right languages are unchanged.
+
 ## [5.2.4] - 2026-10-13
 
 ### Added

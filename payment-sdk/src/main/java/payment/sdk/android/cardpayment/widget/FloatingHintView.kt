@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.util.LayoutDirection
 import android.view.View
 import android.widget.TextView
+import androidx.core.view.doOnLayout
 
 internal class FloatingHintView @JvmOverloads constructor(
         context: Context,
@@ -28,7 +29,19 @@ internal class FloatingHintView @JvmOverloads constructor(
         layoutDirection = LayoutDirection.LTR
     }
 
+    /**
+     * Aligns the hint with the start edge of [v]: its left edge in LTR, its right edge in RTL
+     * (e.g. Arabic via SDKConfig.setLanguage). Waits for [v] to be laid out, since the first
+     * field can gain focus before it has a position.
+     */
     fun animateToAlignViewStart(v: View) {
-        x = v.x
+        v.doOnLayout { target ->
+            x = if (target.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+                hint.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+                target.x + target.width - hint.measuredWidth
+            } else {
+                target.x
+            }
+        }
     }
 }
