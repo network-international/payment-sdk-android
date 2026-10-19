@@ -74,8 +74,10 @@ open class NumericMaskedEditText : ConstraintLayout, CardPaymentContract.Statefu
         super.onFinishInflate()
         hintView = getChildAt(0) as AppCompatTextView
         hintView.text = placeHolder
+        FieldColors.applyPlaceholder(hintView)
 
         editView = getChildAt(1) as AppCompatEditText
+        FieldColors.applyText(editView)
         editView.inputType = InputType.TYPE_CLASS_NUMBER
         editView.onFocusChangeListener = View.OnFocusChangeListener { v: View?, hasFocus: Boolean ->
             if (!hasFocus) {

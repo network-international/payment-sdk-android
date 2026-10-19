@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.common.applySystemWindowInsetsAsPadding
@@ -215,6 +215,7 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
     private fun setToolBar() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar3)
         toolbar.setNavigationIcon(R.drawable.ic_back_button)
+        toolbar.navigationIcon?.mutate()?.setTint(ContextCompat.getColor(this, R.color.payment_sdk_toolbar_icon_color))
         toolbar.setNavigationOnClickListener {
             if (SDKConfig.showCancelAlert) {
                 showDialog()
@@ -224,7 +225,7 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
             }
         }
         toolbar.setTitle(R.string.make_payment)
-        toolbar.setTitleTextColor(Color.WHITE)
+        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.payment_sdk_toolbar_text_color))
     }
 
 

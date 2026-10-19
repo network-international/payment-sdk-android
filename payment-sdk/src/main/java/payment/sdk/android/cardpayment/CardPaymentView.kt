@@ -75,6 +75,8 @@ internal class CardPaymentView constructor(
 
     private val cardHolderEdit: EditText =
             root.findViewById<EditText>(R.id.edit_card_holder).apply {
+                FieldColors.applyText(this)
+                FieldColors.applyPlaceholderAsHint(this)
                 addTextChangedListener(
                         object : TextWatcherAdapter() {
                             override fun afterTextChanged(s: Editable?) {

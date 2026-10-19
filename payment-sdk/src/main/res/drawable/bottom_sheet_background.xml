@@ -8,6 +8,6 @@
         <corners
             android:topLeftRadius="6dp"
             android:topRightRadius="6dp" />
-        <solid android:color="@color/light_grey" />
+        <solid android:color="@color/payment_sdk_page_background_color" />
     </shape>
 </inset>

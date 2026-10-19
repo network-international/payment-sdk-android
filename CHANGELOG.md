@@ -4,7 +4,22 @@ All notable changes to the Network International Payment SDK for Android are doc
 
 ## [5.2.5] - 2026-10-19
 
+### Added
+Card payment screen colours that iOS already offered, as colour resources an app overrides in
+its own `res/values/colors.xml`. Every default keeps the current look.
+- `payment_sdk_card_text_color`: card preview digits and labels (iOS `cardPreviewLabelColor`).
+- `payment_sdk_page_background_color`: payment sheet background (iOS `payPageBackgroundColor`).
+- `payment_sdk_text_field_text_color` / `payment_sdk_text_field_placeholder_color`: typed text
+  and placeholders in the input fields (iOS `textFieldLabelColor` / `textFieldPlaceholderColor`).
+  Transparent (the default) leaves the system colour.
+- `payment_sdk_pay_button_text_color_highlighted`: pay button text while pressed
+  (iOS `payButtonTitleColorHighlighted`).
+
 ### Fixed
+- `payment_sdk_toolbar_text_color` and `payment_sdk_toolbar_icon_color` were ignored on the card
+  payment screen (title and back arrow were always white).
+- The card holder label now follows `payment_sdk_floating_hint_color` like the other field labels
+  (same default blue).
 - **Card number label alignment in Arabic.** With a right-to-left language (e.g.
   `SDKConfig.setLanguage("ar")`) the floating label above the card number, expiry and CVV
   fields ("رقم بطاقة الدفع") was aligned to the field's left edge; it now aligns to the

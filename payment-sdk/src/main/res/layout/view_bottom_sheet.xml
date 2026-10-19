@@ -42,7 +42,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="12dp"
         android:text="@string/card_cardholder_label_title"
-        android:textColor="@color/blue"
+        android:textColor="@color/payment_sdk_floating_hint_color"
         android:visibility="invisible" />
 
     <include layout="@layout/view_card_holder_input" />
@@ -66,7 +66,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:background="@color/payment_sdk_pay_button_background_color"
-        android:textColor="@color/payment_sdk_pay_button_text_color"
+        android:textColor="@color/payment_sdk_pay_button_text"
         android:layout_margin="16dp"
         android:text="@string/pay_button_title"
         android:visibility="gone" />
