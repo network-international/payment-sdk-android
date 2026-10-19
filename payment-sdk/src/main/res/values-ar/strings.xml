@@ -64,7 +64,7 @@
     <string name="error_card_not_supported">البطاقة غير مدعومة لهذه المعاملة</string>
 
     <!-- Progress Message when authorizing payment url -->
-    <string name="message_authorizing">يجيز …</string>
+    <string name="message_authorizing">جارٍ التحقق …</string>
 
     <!-- Progress Message when loading order details -->
     <string name="message_loading_order_details">جارٍ تحميل تفاصيل الطلب …</string>
