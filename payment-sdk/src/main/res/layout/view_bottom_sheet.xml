@@ -3,6 +3,7 @@
      title bar with Cancel, card preview, label/field rows between dividers, error text,
      pay button. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -17,7 +18,8 @@
         android:minHeight="?android:attr/actionBarSize"
         android:contentInsetStart="0dp"
         android:contentInsetEnd="0dp"
-        android:theme="@style/SdkTheme.ToolBarTheme">
+        app:contentInsetStart="0dp"
+        app:contentInsetEnd="0dp">
 
         <FrameLayout
             android:layout_width="match_parent"

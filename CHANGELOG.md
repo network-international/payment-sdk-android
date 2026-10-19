@@ -12,6 +12,9 @@ All notable changes to the Network International Payment SDK for Android are doc
   between dividers, validation messages under the form, and a pay button that enables once every field
   is valid. The CVV is masked. Payment, 3-D Secure, Visa instalments and card detection are unchanged.
   This also fixes the Arabic layout: labels and fields mirror like iOS.
+- The title bar follows iOS by default: white, black title, blue Cancel. The
+  `payment_sdk_toolbar_*` colours are shared with the other screens, so this screen uses the iOS
+  look while they are still at their SDK defaults; any colour the app sets is used as before.
 - Defaults that only this screen uses now follow iOS: page background white, field labels black,
   placeholders grey, pay button text 60% white while pressed. Colours shared with the other screens
   (title bar, pay button background, card gradient, loader) keep their current defaults.

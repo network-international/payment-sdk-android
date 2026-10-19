@@ -212,6 +212,7 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
 
     private fun setToolBar() {
         // Title and Cancel live in the toolbar layout, as on iOS (centred title, Cancel at the end).
+        applyTitleBarColors()
         findViewById<android.view.View>(R.id.toolbar_cancel).setOnClickListener {
             if (SDKConfig.showCancelAlert) {
                 showDialog()
@@ -222,6 +223,22 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         }
     }
 
+
+    /**
+     * The title bar colours are shared with the SDK's other screens, whose defaults are a black bar
+     * with white text. This screen follows iOS instead: while a colour is still the SDK default, use
+     * the iOS one (white bar, black title, blue Cancel). A colour the app sets always wins.
+     */
+    private fun applyTitleBarColors() {
+        fun color(id: Int, sdkDefault: Int, iosDefault: Int): Int =
+            androidx.core.content.ContextCompat.getColor(this, id).let { if (it == sdkDefault) iosDefault else it }
+        findViewById<android.view.View>(R.id.toolbar3).setBackgroundColor(
+            color(R.color.payment_sdk_toolbar_color, SDK_TITLE_BAR, IOS_TITLE_BAR))
+        findViewById<android.widget.TextView>(R.id.toolbar_title).setTextColor(
+            color(R.color.payment_sdk_toolbar_text_color, SDK_TITLE_TEXT, IOS_TITLE_TEXT))
+        findViewById<android.widget.TextView>(R.id.toolbar_cancel).setTextColor(
+            color(R.color.payment_sdk_toolbar_icon_color, SDK_TITLE_ICON, IOS_TITLE_BUTTON))
+    }
 
     private fun finishWithData(cardPaymentData: CardPaymentData) {
         val intent = Intent().apply {
@@ -264,6 +281,14 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         private const val THREE_D_SECURE_REQUEST_KEY: Int = 100
         private const val THREE_D_SECURE_TWO_REQUEST_KEY: Int = 110
         private const val VISA_INSTALMENT_SELECTION_KEY: Int = 120
+
+        // SDK defaults of payment_sdk_toolbar_* (values/colors.xml) and the iOS look used instead.
+        private const val SDK_TITLE_BAR = 0xFF000000.toInt()
+        private const val SDK_TITLE_TEXT = 0xFFFFFFFF.toInt()
+        private const val SDK_TITLE_ICON = 0xFFFFFFFF.toInt()
+        private const val IOS_TITLE_BAR = 0xFFFFFFFF.toInt()
+        private const val IOS_TITLE_TEXT = 0xFF000000.toInt()
+        private const val IOS_TITLE_BUTTON = 0xFF007AFF.toInt()
 
         private const val URL_KEY = "gateway-payment-url"
         private const val CODE = "code"
