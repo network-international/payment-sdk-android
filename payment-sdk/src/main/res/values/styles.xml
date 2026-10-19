@@ -29,4 +29,39 @@
         <item name="colorControlNormal">@color/payment_sdk_toolbar_icon_color</item>
         <item name="android:textColorPrimary">@color/payment_sdk_toolbar_text_color</item>
     </style>
+
+    <!-- Card payment form rows (iOS layout: 60dp rows, label column, borderless fields) -->
+    <style name="SdkTheme.CardFormRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="SdkTheme.CardFormLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minWidth">100dp</item>
+        <item name="android:layout_marginEnd">20dp</item>
+        <item name="android:textColor">@color/payment_sdk_floating_hint_color</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="SdkTheme.CardFormField">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@null</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColorHint">@color/payment_sdk_text_field_placeholder_color</item>
+        <item name="android:textAlignment">viewStart</item>
+        <!-- Follow the screen direction so typed digits sit next to the label in Arabic, as on iOS. -->
+        <item name="android:textDirection">locale</item>
+    </style>
+
+    <style name="SdkTheme.CardFormDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/payment_sdk_divider_color</item>
+    </style>
 </resources>

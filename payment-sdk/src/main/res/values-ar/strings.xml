@@ -111,4 +111,16 @@
     <string name="partial_auth_message_with_org">تمت الموافقة من قبل البنك %1$s على %2$s بدلاً من المبلغ الكامل لـ %3$s</string>
     <string name="partial_auth_message">تمت الموافقة من قبل البنك على %1$s بدلاً من المبلغ الكامل لـ %2$s</string>
     <string name="partial_auth_message_question">هل ترغب في المضي قدما مع المبلغ المخفض؟</string>
+
+    <!-- Card payment form (same wording as the iOS SDK) -->
+    <string name="card_form_number_label">رقم</string>
+    <string name="card_form_number_placeholder">رقم البطاقة</string>
+    <string name="card_form_expires_label">تاريخ الانتهاء شهر/سنة</string>
+    <string name="card_form_month_placeholder">شهر</string>
+    <string name="card_form_year_placeholder">عام</string>
+    <string name="card_form_cvv_label">رقم التحقق</string>
+    <string name="card_form_cvv_placeholder">رقم التحقق</string>
+    <string name="card_form_name_label">اسم</string>
+    <string name="card_form_name_placeholder">اسم حامل البطاقة</string>
+    <string name="card_form_cancel">إلغاء</string>
 </resources>

@@ -12,8 +12,6 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.common.applySystemWindowInsetsAsPadding
@@ -213,10 +211,8 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
     }
 
     private fun setToolBar() {
-        val toolbar = findViewById<Toolbar>(R.id.toolbar3)
-        toolbar.setNavigationIcon(R.drawable.ic_back_button)
-        toolbar.navigationIcon?.mutate()?.setTint(ContextCompat.getColor(this, R.color.payment_sdk_toolbar_icon_color))
-        toolbar.setNavigationOnClickListener {
+        // Title and Cancel live in the toolbar layout, as on iOS (centred title, Cancel at the end).
+        findViewById<android.view.View>(R.id.toolbar_cancel).setOnClickListener {
             if (SDKConfig.showCancelAlert) {
                 showDialog()
             } else {
@@ -224,8 +220,6 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
                 finish()
             }
         }
-        toolbar.setTitle(R.string.make_payment)
-        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.payment_sdk_toolbar_text_color))
     }
 
 

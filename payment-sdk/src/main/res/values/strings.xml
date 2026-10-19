@@ -121,4 +121,15 @@
     <string name="aani_tap_notification">Tap the notification received in your app to complete the payment.</string>
     <string name="aani_note_do_not_close">NOTE: Please do not close the app while the timer is running.</string>
 
+    <!-- Card payment form (same wording as the iOS SDK) -->
+    <string name="card_form_number_label">Number</string>
+    <string name="card_form_number_placeholder">Card Number</string>
+    <string name="card_form_expires_label">Expires</string>
+    <string name="card_form_month_placeholder">MM</string>
+    <string name="card_form_year_placeholder">YY</string>
+    <string name="card_form_cvv_label">CVV</string>
+    <string name="card_form_cvv_placeholder">Secure Code</string>
+    <string name="card_form_name_label">Name</string>
+    <string name="card_form_name_placeholder">Cardholder Name</string>
+    <string name="card_form_cancel">Cancel</string>
 </resources>

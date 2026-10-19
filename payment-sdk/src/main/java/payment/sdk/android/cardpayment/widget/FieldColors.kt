@@ -14,8 +14,12 @@ import payment.sdk.android.sdk.R
  */
 internal object FieldColors {
 
+    /** Typed text colour; when not set, the label colour, as iOS does. */
     fun applyText(view: TextView) {
-        colorOrNull(view, R.color.payment_sdk_text_field_text_color)?.let(view::setTextColor)
+        view.setTextColor(
+            colorOrNull(view, R.color.payment_sdk_text_field_text_color)
+                ?: ContextCompat.getColor(view.context, R.color.payment_sdk_floating_hint_color)
+        )
     }
 
     fun applyPlaceholder(view: TextView) {

@@ -4,26 +4,30 @@ All notable changes to the Network International Payment SDK for Android are doc
 
 ## [5.2.5] - 2026-10-19
 
-### Added
-Card payment screen colours that iOS already offered, as colour resources an app overrides in
-its own `res/values/colors.xml`. Every default keeps the current look.
-- `payment_sdk_card_text_color`: card preview digits and labels (iOS `cardPreviewLabelColor`).
-- `payment_sdk_page_background_color`: payment sheet background (iOS `payPageBackgroundColor`).
-- `payment_sdk_text_field_text_color` / `payment_sdk_text_field_placeholder_color`: typed text
-  and placeholders in the input fields (iOS `textFieldLabelColor` / `textFieldPlaceholderColor`).
-  Transparent (the default) leaves the system colour.
-- `payment_sdk_pay_button_text_color_highlighted`: pay button text while pressed
-  (iOS `payButtonTitleColorHighlighted`).
+### Changed
+- **Card payment screen redesigned to match the iOS SDK.** Applies to the screen opened by
+  `PaymentClient.launchCardPayment` (the one the React Native SDK uses); the unified payments page,
+  saved card and other screens are unchanged. Same structure and spacing as iOS: centred title with
+  Cancel, card preview (OCR-A font), all fields visible at once in Number / Expires / CVV / Name rows
+  between dividers, validation messages under the form, and a pay button that enables once every field
+  is valid. The CVV is masked. Payment, 3-D Secure, Visa instalments and card detection are unchanged.
+  This also fixes the Arabic layout: labels and fields mirror like iOS.
+- Defaults that only this screen uses now follow iOS: page background white, field labels black,
+  placeholders grey, pay button text 60% white while pressed. Colours shared with the other screens
+  (title bar, pay button background, card gradient, loader) keep their current defaults.
 
-### Fixed
-- `payment_sdk_toolbar_text_color` and `payment_sdk_toolbar_icon_color` were ignored on the card
-  payment screen (title and back arrow were always white).
-- The card holder label now follows `payment_sdk_floating_hint_color` like the other field labels
-  (same default blue).
-- **Card number label alignment in Arabic.** With a right-to-left language (e.g.
-  `SDKConfig.setLanguage("ar")`) the floating label above the card number, expiry and CVV
-  fields ("رقم بطاقة الدفع") was aligned to the field's left edge; it now aligns to the
-  field's right edge. Left-to-right languages are unchanged.
+### Added
+Card payment screen colours matching the iOS `NISdkColors` options, as colour resources an app overrides
+in its own `res/values/colors.xml`:
+- `payment_sdk_card_text_color` (iOS `cardPreviewLabelColor`)
+- `payment_sdk_page_background_color` (iOS `payPageBackgroundColor`)
+- `payment_sdk_text_field_text_color` (iOS `textFieldTextColor`; when not set, the label colour)
+- `payment_sdk_text_field_placeholder_color` (iOS `textFieldPlaceholderColor`)
+- `payment_sdk_divider_color` (iOS `payPageDividerColor`)
+- `payment_sdk_pay_button_text_color_highlighted` (iOS `payButtonTitleColorHighlighted`)
+
+`payment_sdk_floating_hint_color` now colours the field labels (iOS `textFieldLabelColor`),
+`payment_sdk_toolbar_text_color` the title and `payment_sdk_toolbar_icon_color` the Cancel button.
 
 ## [5.2.4] - 2026-10-13
 

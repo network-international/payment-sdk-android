@@ -20,14 +20,15 @@
     <color name="payment_sdk_card_end_color">#020202</color>
     <color name="payment_sdk_card_start_color">#43474A</color>
 
-    <color name="payment_sdk_floating_hint_color">@color/blue</color>
+    <color name="payment_sdk_floating_hint_color">#000000</color>
     <color name="payment_sdk_progress_loader_color">@color/progress_green</color>
 
     <!-- Matching the iOS NISdkColors options. Defaults keep the existing look. -->
-    <color name="payment_sdk_pay_button_text_color_highlighted">@color/payment_sdk_pay_button_text_color</color>
+    <color name="payment_sdk_pay_button_text_color_highlighted">#99FFFFFF</color>
     <color name="payment_sdk_card_text_color">#FFFFFF</color>
-    <color name="payment_sdk_page_background_color">@color/light_grey</color>
-    <!-- Transparent means "not set": the field keeps the system's default colour. -->
+    <color name="payment_sdk_page_background_color">#FFFFFF</color>
+    <!-- Transparent means "not set": typed text then uses the label colour, as on iOS. -->
     <color name="payment_sdk_text_field_text_color">#00000000</color>
-    <color name="payment_sdk_text_field_placeholder_color">#00000000</color>
+    <color name="payment_sdk_text_field_placeholder_color">#808080</color>
+    <color name="payment_sdk_divider_color">#DBDBDC</color>
 </resources>
