@@ -1,74 +1,277 @@
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card payment form. Same structure and spacing as the iOS SDK's card payment screen:
+     title bar with Cancel, card preview, label/field rows between dividers, error text,
+     pay button. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/payment_sdk_page_background_color"
     android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/SdkTheme.ToolBarTheme"
-        android:minHeight="?android:attr/actionBarSize" />
+        android:background="@color/payment_sdk_toolbar_color"
+        android:minHeight="?android:attr/actionBarSize"
+        android:contentInsetStart="0dp"
+        android:contentInsetEnd="0dp"
+        app:contentInsetStart="0dp"
+        app:contentInsetEnd="0dp">
 
-    <include layout="@layout/view_card_preview" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize">
 
-    <payment.sdk.android.cardpayment.widget.FloatingHintView
-        android:id="@+id/floating_hint_view"
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/make_payment"
+                android:textColor="@color/payment_sdk_toolbar_text_color"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/toolbar_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/card_form_cancel"
+                android:textColor="@color/payment_sdk_toolbar_icon_color"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Card preview -->
+    <LinearLayout
+        android:id="@+id/card_preview"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_margin="30dp"
+        android:background="@drawable/card_form_background"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <ImageView
+            android:id="@+id/logo_view"
+            android:layout_width="60dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:importantForAccessibility="no"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/card_number"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:autoSizeMaxTextSize="20sp"
+            android:autoSizeMinTextSize="12sp"
+            android:autoSizeTextType="uniform"
+            android:fontFamily="@font/payment_sdk_ocr_a"
+            android:gravity="center_vertical|start"
+            android:maxLines="1"
+            android:paddingStart="10dp"
+            android:textColor="@color/payment_sdk_card_text_color"
+            android:textDirection="ltr"
+            android:textSize="20sp"
+            tools:text="---- ---- ---- ----" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/card_holder_name"
+                android:textAlignment="viewStart"
+                android:textDirection="locale"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="@font/payment_sdk_ocr_a"
+                android:maxLines="1"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textColor="@color/payment_sdk_card_text_color"
+                android:textSize="13sp"
+                tools:text="---" />
+
+            <TextView
+                android:id="@+id/card_expire_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/payment_sdk_ocr_a"
+                android:paddingEnd="10dp"
+                android:textColor="@color/payment_sdk_card_text_color"
+                android:textDirection="ltr"
+                android:textSize="13sp"
+                tools:text="--/--" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Form rows -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/payment_sdk_divider_color" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
 
-    <include layout="@layout/view_card_input" />
+        <LinearLayout style="@style/SdkTheme.CardFormRow">
+
+            <TextView
+                style="@style/SdkTheme.CardFormLabel"
+                android:labelFor="@id/edit_card_number"
+                android:text="@string/card_form_number_label" />
+
+            <EditText
+                android:id="@+id/edit_card_number"
+                style="@style/SdkTheme.CardFormField"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:autofillHints="creditCardNumber"
+                android:hint="@string/card_form_number_placeholder"
+                android:imeOptions="actionNext"
+                android:inputType="number" />
+        </LinearLayout>
+
+        <View style="@style/SdkTheme.CardFormDivider" />
+
+        <LinearLayout style="@style/SdkTheme.CardFormRow">
+
+            <TextView
+                style="@style/SdkTheme.CardFormLabel"
+                android:labelFor="@id/edit_expire_month"
+                android:text="@string/card_form_expires_label" />
+
+            <EditText
+                android:id="@+id/edit_expire_month"
+                style="@style/SdkTheme.CardFormField"
+                android:layout_width="wrap_content"
+                android:autofillHints="creditCardExpirationMonth"
+                android:hint="@string/card_form_month_placeholder"
+                android:imeOptions="actionNext"
+                android:inputType="number"
+                android:maxLength="2"
+                android:minWidth="36dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:importantForAccessibility="no"
+                android:text="/"
+                android:textColor="@color/payment_sdk_divider_color"
+                android:textSize="17sp"
+                tools:ignore="HardcodedText" />
+
+            <EditText
+                android:id="@+id/edit_expire_year"
+                style="@style/SdkTheme.CardFormField"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:autofillHints="creditCardExpirationYear"
+                android:hint="@string/card_form_year_placeholder"
+                android:imeOptions="actionNext"
+                android:inputType="number"
+                android:maxLength="2" />
+        </LinearLayout>
+
+        <View style="@style/SdkTheme.CardFormDivider" />
+
+        <LinearLayout style="@style/SdkTheme.CardFormRow">
+
+            <TextView
+                style="@style/SdkTheme.CardFormLabel"
+                android:labelFor="@id/edit_cvv"
+                android:text="@string/card_form_cvv_label" />
+
+            <EditText
+                android:id="@+id/edit_cvv"
+                style="@style/SdkTheme.CardFormField"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:autofillHints="creditCardSecurityCode"
+                android:hint="@string/card_form_cvv_placeholder"
+                android:imeOptions="actionNext"
+                android:inputType="numberPassword"
+                android:maxLength="3" />
+        </LinearLayout>
+
+        <View style="@style/SdkTheme.CardFormDivider" />
+
+        <LinearLayout style="@style/SdkTheme.CardFormRow">
+
+            <TextView
+                style="@style/SdkTheme.CardFormLabel"
+                android:labelFor="@id/edit_card_holder"
+                android:text="@string/card_form_name_label" />
+
+            <EditText
+                android:id="@+id/edit_card_holder"
+                style="@style/SdkTheme.CardFormField"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:autofillHints="name"
+                android:digits="abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ.-'/"
+                android:hint="@string/card_form_name_placeholder"
+                android:imeOptions="actionDone"
+                android:inputType="textCapCharacters|textNoSuggestions"
+                android:maxLength="32" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/payment_sdk_divider_color" />
 
     <TextView
-        android:id="@+id/top_error_message"
+        android:id="@+id/error_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/dark_red"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="30dp"
         android:gravity="center"
-        android:padding="4dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textColor="@color/white"
-        android:textSize="@dimen/error_text_font_size"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/card_holder_name_hint_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="12dp"
-        android:text="@string/card_cardholder_label_title"
-        android:textColor="@color/blue"
-        android:visibility="invisible" />
-
-    <include layout="@layout/view_card_holder_input" />
-
-    <TextView
-        android:id="@+id/bottom_error_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/dark_red"
-        android:gravity="center"
-        android:padding="4dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textColor="@color/white"
-        android:textSize="@dimen/error_text_font_size"
-        android:visibility="gone" />
+        android:minHeight="50dp"
+        android:textColor="@color/red"
+        android:textSize="15sp" />
 
     <Button
         android:id="@+id/pay_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:background="@color/payment_sdk_pay_button_background_color"
-        android:textColor="@color/payment_sdk_pay_button_text_color"
-        android:layout_margin="16dp"
-        android:text="@string/pay_button_title"
-        android:visibility="gone" />
-</androidx.appcompat.widget.LinearLayoutCompat>
-
+        android:layout_height="50dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="30dp"
+        android:background="@drawable/card_form_pay_button"
+        android:enabled="false"
+        android:stateListAnimator="@null"
+        android:textAllCaps="false"
+        android:textColor="@color/payment_sdk_pay_button_text"
+        android:textSize="20sp"
+        tools:text="Pay AED 1.00" />
+</LinearLayout>

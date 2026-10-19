@@ -74,8 +74,10 @@ open class NumericMaskedEditText : ConstraintLayout, CardPaymentContract.Statefu
         super.onFinishInflate()
         hintView = getChildAt(0) as AppCompatTextView
         hintView.text = placeHolder
+        FieldColors.applyPlaceholder(hintView)
 
         editView = getChildAt(1) as AppCompatEditText
+        FieldColors.applyText(editView)
         editView.inputType = InputType.TYPE_CLASS_NUMBER
         editView.onFocusChangeListener = View.OnFocusChangeListener { v: View?, hasFocus: Boolean ->
             if (!hasFocus) {
@@ -101,7 +103,7 @@ open class NumericMaskedEditText : ConstraintLayout, CardPaymentContract.Statefu
     @SuppressLint("SetTextI18n")
     override fun onNewText(rawTextValue: String, maskedTextValue: String, cursorPosition: Int) {
         val padded = maskedTextValue + placeHolder.substring(maskedTextValue.length)
-        hintView.text = padded
+        hintView.text = FieldColors.placeholderText(hintView, padded, maskedTextValue.length)
         editView.setText(maskedTextValue)
         editView.setSelection(cursorPosition)
 
