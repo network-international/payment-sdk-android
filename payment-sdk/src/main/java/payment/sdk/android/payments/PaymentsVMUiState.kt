@@ -44,9 +44,10 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         /** Providers whose checkout could not be opened this session; their rows say so. */
         val unavailableBnplProviders: Set<BnplProvider> = emptySet(),
         /**
-         * Providers this basket is too small for, mapped to their formatted minimum ("AED 10").
-         * The row still shows — it says why on selection rather than disappearing.
+         * The subset of [unavailableBnplProviders] the gateway turned down over the order amount.
+         * Their rows say so specifically, since the payer can act on it; the rest read as an outage.
          */
+        val amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,

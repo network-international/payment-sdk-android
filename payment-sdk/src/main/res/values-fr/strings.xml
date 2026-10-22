@@ -91,7 +91,12 @@
     <string name="benefit">Payer avec Benefit</string>
     <string name="benefit_unavailable">Indisponible pour le moment. Veuillez choisir un autre moyen de paiement.</string>
     <string name="pay_with_tamara">Payer avec Tamara</string>
-    <string name="pay_with_tabby">Payer avec Tabby</string>
+    <string name="pay_with_tabby">Payer plus tard avec Tabby</string>
+    <string name="tabby_description">Sans frais. Payez avec n\'importe quelle carte</string>
+    <string name="tamara">Tamara</string>
+    <string name="tabby">Tabby</string>
+    <string name="bnpl_unavailable_amount">%1$s n\'est pas disponible pour ce montant. Veuillez choisir un autre moyen de paiement.</string>
+    <string name="bnpl_unavailable">%1$s est indisponible pour le moment. Veuillez choisir un autre moyen de paiement.</string>
     <string name="qpay_express_pay_with">Payer avec</string>
     <string name="aani_mobile_number">Numéro de mobile</string>
     <string name="aani_emirates_id">Emirates ID</string>

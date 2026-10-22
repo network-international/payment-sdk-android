@@ -57,6 +57,7 @@ fun OtherPaymentOptionsSection(
     isBenefitUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
     onGooglePay: () -> Unit,
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
@@ -182,9 +183,15 @@ fun OtherPaymentOptionsSection(
             PaymentOptionRow(
                 selected = selectedOption == provider.paymentOption,
                 label = stringResource(provider.labelRes),
-                // A provider that could not be reached greys out so it cannot be tapped again.
-                // Why it is unavailable is reported to the merchant through the payment result,
-                // not written under the row.
+                description = provider.descriptionRes?.let { stringResource(it) },
+                // A provider that could not be reached greys out so it cannot be tapped again, and
+                // says why under the title.
+                notice = when {
+                    !unavailable -> null
+                    provider in amountRefusedBnplProviders ->
+                        stringResource(R.string.bnpl_unavailable_amount, stringResource(provider.nameRes))
+                    else -> stringResource(R.string.bnpl_unavailable, stringResource(provider.nameRes))
+                },
                 enabled = !unavailable,
                 trailingIcon = {
                     Image(
@@ -213,6 +220,19 @@ private val BnplProvider.labelRes: Int
     get() = when (this) {
         BnplProvider.TAMARA -> R.string.pay_with_tamara
         BnplProvider.TABBY -> R.string.pay_with_tabby
+    }
+
+private val BnplProvider.nameRes: Int
+    get() = when (this) {
+        BnplProvider.TAMARA -> R.string.tamara
+        BnplProvider.TABBY -> R.string.tabby
+    }
+
+/** Line under the title, for providers whose brand guidelines ask for one. */
+private val BnplProvider.descriptionRes: Int?
+    get() = when (this) {
+        BnplProvider.TAMARA -> null
+        BnplProvider.TABBY -> R.string.tabby_description
     }
 
 private val BnplProvider.logoRes: Int
@@ -276,6 +296,7 @@ private fun PaymentOptionRow(
     label: String,
     onSelect: () -> Unit,
     trailingIcon: @Composable () -> Unit = {},
+    description: String? = null,
     notice: String? = null,
     enabled: Boolean = true
 ) {
@@ -300,6 +321,13 @@ private fun PaymentOptionRow(
                 style = PgType.bodyRowTitle,
                 color = PgColors.textPrimary
             )
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = PgType.bodyRowSubtitle,
+                    color = PgColors.textSecondary
+                )
+            }
             if (notice != null) {
                 Text(
                     text = notice,

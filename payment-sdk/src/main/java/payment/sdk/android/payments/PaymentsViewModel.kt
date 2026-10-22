@@ -198,10 +198,20 @@ internal class UnifiedPaymentPageViewModel(
      * untouched, so the payer keeps every other method — and it stops responding so a second tap
      * cannot bounce them off the same dead option.
      */
-    fun markBnplUnavailable(provider: BnplProvider) {
+    fun markBnplUnavailable(provider: BnplProvider, error: String) {
+        // The gateway words amount refusals itself ("order amount too high"), so its message is the
+        // only signal; it is matched loosely and never shown verbatim.
+        val isAmountRefusal = error.contains("amount", ignoreCase = true)
         _uiState.update { state ->
             if (state is UnifiedPaymentPageVMUiState.Authorized) {
-                state.copy(unavailableBnplProviders = state.unavailableBnplProviders + provider)
+                state.copy(
+                    unavailableBnplProviders = state.unavailableBnplProviders + provider,
+                    amountRefusedBnplProviders = if (isAmountRefusal) {
+                        state.amountRefusedBnplProviders + provider
+                    } else {
+                        state.amountRefusedBnplProviders
+                    }
+                )
             } else {
                 state
             }

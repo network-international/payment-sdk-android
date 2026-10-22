@@ -201,7 +201,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             // The checkout never opened, so nothing is owed and every other method is still
             // available. Ending the payment here would cost the merchant a sale over a provider
             // outage, so the payer returns to the page with that row marked unavailable instead.
-            is BnplLauncher.Result.Unavailable -> viewModel.markBnplUnavailable(result.provider)
+            is BnplLauncher.Result.Unavailable -> viewModel.markBnplUnavailable(result.provider, result.error)
             // Nothing was recorded against the payment, so the order is still payable — stay put.
             BnplLauncher.Result.Canceled -> {}
             // Cancelling on the provider's own page is the payer changing their mind, not a payment
@@ -443,6 +443,7 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             isBenefitUnavailable = authState.isBenefitUnavailable,
                             bnplConfigs = authState.bnplConfigs,
                             unavailableBnplProviders = authState.unavailableBnplProviders,
+                            amountRefusedBnplProviders = authState.amountRefusedBnplProviders,
                             isProcessing = isProcessing,
                             onClickAaniPay = { config ->
                                 aaniPayLauncher.launch(config)
