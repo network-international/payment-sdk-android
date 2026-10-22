@@ -119,9 +119,15 @@
     <string name="aani">Pay with AANI</string>
     <string name="qpay">Pay with QPay</string>
     <string name="benefit">Pay by Benefit</string>
-    <string name="benefit_unavailable">Unavailable right now. Please choose another payment method.</string>
+    <string name="benefit_unavailable">Failed connection to Benefit. Please try again by choosing a different payment method.</string>
+    <string name="benefit_payment_in_progress">A payment is in progress. To choose another payment method, use Cancel on the Benefit page.</string>
     <string name="pay_with_tamara">Pay with Tamara</string>
-    <string name="pay_with_tabby">Pay with Tabby</string>
+    <string name="pay_with_tabby">Pay later with Tabby</string>
+    <string name="tabby_description">No fees. Pay with any card</string>
+    <string name="tamara">Tamara</string>
+    <string name="tabby">Tabby</string>
+    <string name="bnpl_unavailable_amount">%1$s isn\'t available for this order amount. Please choose a different payment method.</string>
+    <string name="bnpl_unavailable">%1$s is unavailable right now. Please choose a different payment method.</string>
     <string name="qpay_express_pay_with">Pay with</string>
     <string name="aani_mobile_number">Mobile number</string>
     <string name="aani_emirates_id">Emirates ID</string>

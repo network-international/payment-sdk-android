@@ -124,6 +124,7 @@ fun UnifiedPaymentPageScreen(
     isBenefitUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
     savedCards: List<SavedCard> = emptyList(),
     orderItems: List<OrderItem> = emptyList(),
     sliceCheckState: SliceCheckState = SliceCheckState.Idle,
@@ -148,6 +149,15 @@ fun UnifiedPaymentPageScreen(
     // this on each entry into composition, so navigating away and back gets a
     // clean default rather than a leaked prior selection.
     var selectedOption by remember { mutableStateOf<PaymentOption?>(PaymentOption.CARD) }
+    // A provider that just failed to open must not stay selected, or the Pay button would send the
+    // payer straight back into the checkout that was refused.
+    LaunchedEffect(unavailableBnplProviders) {
+        val stillSelected = unavailableBnplProviders.any {
+            (it == BnplProvider.TAMARA && selectedOption == PaymentOption.TAMARA) ||
+                (it == BnplProvider.TABBY && selectedOption == PaymentOption.TABBY)
+        }
+        if (stillSelected) selectedOption = null
+    }
     var selectedSavedCard by remember { mutableStateOf<SavedCard?>(null) }
     var savedCardCvv by remember { mutableStateOf("") }
     var isOrderSummaryExpanded by remember { mutableStateOf(true) }
@@ -310,6 +320,7 @@ fun UnifiedPaymentPageScreen(
                     isBenefitUnavailable = isBenefitUnavailable,
                     bnplConfigs = bnplConfigs,
                     unavailableBnplProviders = unavailableBnplProviders,
+                    amountRefusedBnplProviders = amountRefusedBnplProviders,
                     savedCards = savedCards.takeLast(3),
                     orderItems = orderItems,
                     sliceCheckState = sliceCheckState,
@@ -420,6 +431,7 @@ fun UnifiedPaymentPageScreen(
             isBenefitUnavailable = isBenefitUnavailable,
             bnplConfigs = bnplConfigs,
             unavailableBnplProviders = unavailableBnplProviders,
+            amountRefusedBnplProviders = amountRefusedBnplProviders,
             cardPan = cardPan,
             cardCvv = cardCvv,
             cardExpiry = cardExpiry,
@@ -465,6 +477,7 @@ private fun PaymentSectionsContent(
     isBenefitUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
     savedCards: List<SavedCard>,
     orderItems: List<OrderItem>,
     sliceCheckState: SliceCheckState,
@@ -603,6 +616,7 @@ private fun PaymentSectionsContent(
             isBenefitUnavailable = isBenefitUnavailable,
             bnplConfigs = bnplConfigs,
             unavailableBnplProviders = unavailableBnplProviders,
+            amountRefusedBnplProviders = amountRefusedBnplProviders,
             onGooglePay = onGooglePay,
             onSamsungPay = onSamsungPay,
             onClickAaniPay = onClickAaniPay,
@@ -881,6 +895,7 @@ internal fun BottomPayBar(
     isBenefitUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+    amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
     cardPan: String,
     cardCvv: String,
     cardExpiry: TextFieldValue,
@@ -923,9 +938,9 @@ internal fun BottomPayBar(
         PaymentOption.SAVED_CARD -> isSavedCardReady && !isProcessing
         PaymentOption.AANI,
         PaymentOption.CLICK_TO_PAY,
-        PaymentOption.QPAY,
-        PaymentOption.TAMARA,
-        PaymentOption.TABBY -> !isProcessing
+        PaymentOption.QPAY -> !isProcessing
+        PaymentOption.TAMARA -> !isProcessing && BnplProvider.TAMARA !in unavailableBnplProviders
+        PaymentOption.TABBY -> !isProcessing && BnplProvider.TABBY !in unavailableBnplProviders
         // Benefit could not be started this session, so the page must not offer to pay by it.
         PaymentOption.BENEFIT -> !isProcessing && !isBenefitUnavailable
         PaymentOption.GOOGLE_PAY,

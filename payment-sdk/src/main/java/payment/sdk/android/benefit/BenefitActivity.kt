@@ -14,6 +14,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ProgressBar
+import android.widget.Toast
+import payment.sdk.android.sdk.R
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -53,6 +55,9 @@ class BenefitActivity : AppCompatActivity() {
     private var sawReturnCallback = false
     private var didStartPolling = false
     private var didDispatchResult = false
+
+    /** Set while a back press is being checked against the order before the payer may leave. */
+    private var isVerifyingBeforeLeaving = false
 
     /** True when the payment WebView runs on the SDK's own isolated web profile (see Q2). */
     private var isWebSessionIsolated = false
@@ -143,11 +148,24 @@ class BenefitActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                // Frozen while anything is loading or being resolved: the cover is up exactly when
+                // a page is loading, a payment is being processed, or the result is being read, and
+                // leaving then could abandon a payment Benefit is already taking.
+                if (didDispatchResult || didStartPolling || isVerifyingBeforeLeaving ||
+                    coverView.visibility == View.VISIBLE
+                ) {
+                    Log.d(TAG, "back ignored while the payment is loading or processing")
+                    return
+                }
                 // Backing out after the callback would discard a payment that already went through.
                 if (sawReturnCallback) {
                     startPollingIfNeeded()
                 } else if (payerCancelled) {
                     finishWith(BenefitLauncher.Result.CanceledOnProvider)
+                } else if (didReachBenefitHost) {
+                    // Benefit can settle a payment without the WebView ever seeing the callback, so
+                    // the order decides whether the payer is leaving an untouched order or a paid one.
+                    verifyBeforeLeaving()
                 } else {
                     // Nothing recorded against the payment yet, so the order is still payable.
                     finishWith(BenefitLauncher.Result.Canceled)
@@ -433,6 +451,46 @@ class BenefitActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Reads the order once before letting the payer leave Benefit's page. A payment that already
+     * went through ends the flow as a success instead of handing the payer back to a payment page
+     * whose order is spent; an attempt the gateway already failed returns them as a cancellation;
+     * an untouched order is a plain cancel. If the order cannot be read, the payer stays on
+     * Benefit's page rather than being let go on a guess.
+     */
+    private fun verifyBeforeLeaving() {
+        isVerifyingBeforeLeaving = true
+        showCover()
+        lifecycleScope.launch {
+            val order = GetOrderApiInteractor(httpClient).getOrder(args.orderUrl, args.accessToken)
+            isVerifyingBeforeLeaving = false
+            if (order == null) {
+                Log.e(TAG, "could not read the order on back; staying on Benefit's page")
+                scheduleReveal()
+                return@launch
+            }
+            val state = order.embedded?.payment?.firstOrNull()?.state.orEmpty().uppercase()
+            Log.d(TAG, "back pressed on Benefit's page, order state=$state")
+            when {
+                state in TERMINAL_SUCCESS_STATES -> finishWith(BenefitLauncher.Result.Success)
+                state == STATE_POST_AUTH_REVIEW -> finishWith(BenefitLauncher.Result.PostAuthReview)
+                state in TERMINAL_FAILURE_STATES -> finishWith(BenefitLauncher.Result.CanceledOnProvider)
+                state in UNTOUCHED_STATES -> finishWith(BenefitLauncher.Result.Canceled)
+                else -> {
+                    // PENDING or any other in-flight state: Benefit may already be taking the
+                    // payment, and leaving now would strand it. Benefit's own Cancel is the safe
+                    // way back — it reaches the gateway, which returns the payer to the page.
+                    scheduleReveal()
+                    Toast.makeText(
+                        this@BenefitActivity,
+                        R.string.benefit_payment_in_progress,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
     /** Re-cover the WebView and cancel any pending reveal. */
     private fun showCover() {
         revealRunnable?.let { mainHandler.removeCallbacks(it) }
@@ -477,5 +535,8 @@ class BenefitActivity : AppCompatActivity() {
         private const val STATE_POST_AUTH_REVIEW = "POST_AUTH_REVIEW"
         private val TERMINAL_SUCCESS_STATES = setOf("CAPTURED", "AUTHORISED", "PURCHASED", "VERIFIED")
         private val TERMINAL_FAILURE_STATES = setOf("FAILED", "DECLINED", "CANCELLED", "REVERSED")
+
+        /** Nothing has been attempted against the order yet, so the payer may simply leave. */
+        private val UNTOUCHED_STATES = setOf("", "STARTED")
     }
 }

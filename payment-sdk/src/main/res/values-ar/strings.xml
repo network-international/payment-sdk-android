@@ -105,9 +105,15 @@
     <string name="aani">الدفع عبر آني</string>
     <string name="qpay">ادفع باستخدام كيو باي</string>
     <string name="benefit">الدفع عبر بنفت</string>
-    <string name="benefit_unavailable">غير متاح حالياً. يرجى اختيار طريقة دفع أخرى.</string>
+    <string name="benefit_unavailable">تعذر الاتصال بخدمة Benefit. يرجى اختيار طريقة دفع اخرى و المحاولة مرة اخرى.</string>
+    <string name="benefit_payment_in_progress">هناك عملية دفع قيد التنفيذ. لاختيار طريقة دفع أخرى، استخدم زر الإلغاء في صفحة بنفت.</string>
     <string name="pay_with_tamara">الدفع عبر تمارا</string>
-    <string name="pay_with_tabby">الدفع عبر تابي</string>
+    <string name="pay_with_tabby">ادفع لاحقاً مع تابي</string>
+    <string name="tabby_description">بدون رسوم. ادفع بأي بطاقة</string>
+    <string name="tamara">تمارا</string>
+    <string name="tabby">تابي</string>
+    <string name="bnpl_unavailable_amount">%1$s غير متاح لقيمة هذا الطلب. يرجى اختيار طريقة دفع أخرى.</string>
+    <string name="bnpl_unavailable">%1$s غير متاح حالياً. يرجى اختيار طريقة دفع أخرى.</string>
     <string name="qpay_express_pay_with">ادفع باستخدام</string>
     <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>
