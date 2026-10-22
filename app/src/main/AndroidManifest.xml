@@ -45,6 +45,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The scanner ships locked to landscape. Returning from it rotates MainActivity back to
+             portrait, which recreates it and drops the scan's confirm dialog before it can be
+             tapped. Keeping the scanner in portrait means there is no rotation to survive. -->
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:screenOrientation" />
     </application>
 
 </manifest>
