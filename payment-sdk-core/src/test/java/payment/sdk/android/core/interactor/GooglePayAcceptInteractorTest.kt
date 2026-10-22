@@ -1,5 +1,6 @@
 package payment.sdk.android.core.interactor
 
+import android.app.Application
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -24,6 +25,7 @@ class GooglePayAcceptInteractorTest {
     private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 
     private val httpClient: HttpClient = mockk(relaxed = true)
+    private val app: Application = mockk(relaxed = true)
     private lateinit var sut: GooglePayAcceptInteractor
 
     val acceptUrl = "https://example.com/google-pay/accept"
@@ -33,7 +35,7 @@ class GooglePayAcceptInteractorTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        sut = GooglePayAcceptInteractor(httpClient)
+        sut = GooglePayAcceptInteractor(httpClient, app)
     }
 
     @After

@@ -75,6 +75,7 @@
     <string name="message_loading_order_details">جارٍ تحميل تفاصيل الطلب …</string>
 
     <string name="authenticating_three_ds_two">Authenticating using 3DS</string>
+    <string name="confirming_payment_three_ds_two">جارٍ تأكيد عملية الدفع…</string>
 
     <string name="cancel_payment_alert_title">إلغاء الدفع</string>
     <string name="cancel_payment_alert_message">هل أنت متأكد أنك تريد إلغاء الدفع؟</string>
@@ -103,6 +104,16 @@
 
     <string name="aani">الدفع عبر آني</string>
     <string name="qpay">ادفع باستخدام كيو باي</string>
+    <string name="benefit">الدفع عبر بنفت</string>
+    <string name="benefit_unavailable">تعذر الاتصال بخدمة Benefit. يرجى اختيار طريقة دفع اخرى و المحاولة مرة اخرى.</string>
+    <string name="benefit_payment_in_progress">هناك عملية دفع قيد التنفيذ. لاختيار طريقة دفع أخرى، استخدم زر الإلغاء في صفحة بنفت.</string>
+    <string name="pay_with_tamara">الدفع عبر تمارا</string>
+    <string name="pay_with_tabby">ادفع لاحقاً مع تابي</string>
+    <string name="tabby_description">بدون رسوم. ادفع بأي بطاقة</string>
+    <string name="tamara">تمارا</string>
+    <string name="tabby">تابي</string>
+    <string name="bnpl_unavailable_amount">%1$s غير متاح لقيمة هذا الطلب. يرجى اختيار طريقة دفع أخرى.</string>
+    <string name="bnpl_unavailable">%1$s غير متاح حالياً. يرجى اختيار طريقة دفع أخرى.</string>
     <string name="qpay_express_pay_with">ادفع باستخدام</string>
     <string name="aani_mobile_number">رقم الهاتف</string>
     <string name="aani_emirates_id">الهوية الإماراتية</string>
@@ -171,9 +182,49 @@
     <string name="payment_result_success_subtitle">شكراً لك! تم استلام دفعتك.</string>
     <string name="payment_result_failure_subtitle">يرجى المحاولة مرة أخرى لاحقاً.</string>
     <string name="payment_result_transaction_id">رقم المرجع</string>
-    <string name="payment_result_reference_number">الرقم المرجعي</string>
-    <string name="payment_result_date_time">تاريخ المعاملة</string>
+    <string name="payment_result_reference_number">رقم المرجع</string>
+    <string name="payment_result_date_time">التاريخ والوقت</string>
     <string name="payment_result_done">تم</string>
     <string name="select_payment_option_validation">يرجى اختيار خيار الدفع للمتابعة</string>
     <string name="card_already_saved">هذه البطاقة محفوظة بالفعل</string>
+
+    <!-- Slice instalments. "Slice" is a brand name and stays in English in every locale. -->
+    <string name="slice_checking_eligibility">جارٍ التحقق من الأهلية لـ Slice...</string>
+    <string name="slice_banner_title">أقساط بدون فوائد</string>
+    <string name="slice_pay_in_full">الدفع بالكامل</string>
+    <plurals name="slice_tab_months">
+        <item quantity="zero">%d شهر</item>
+        <item quantity="one">شهر واحد</item>
+        <item quantity="two">شهران</item>
+        <item quantity="few">%d أشهر</item>
+        <item quantity="many">%d شهرًا</item>
+        <item quantity="other">%d شهر</item>
+    </plurals>
+    <string name="slice_per_month">شهريًا</string>
+    <string name="slice_badge_zero_interest">بدون فوائد</string>
+    <string name="slice_badge_zero_profit">بدون أرباح</string>
+    <string name="slice_badge_zero_fees">بدون رسوم</string>
+    <string name="slice_interest_rate">معدل الفائدة</string>
+    <string name="slice_profit_rate">معدل الربح</string>
+    <string name="slice_processing_fees">رسوم المعالجة</string>
+    <string name="slice_installment_fees">رسوم التقسيط</string>
+    <plurals name="slice_total_after_months">
+        <item quantity="zero">الإجمالي بعد %d شهر</item>
+        <item quantity="one">الإجمالي بعد شهر واحد</item>
+        <item quantity="two">الإجمالي بعد شهرين</item>
+        <item quantity="few">الإجمالي بعد %d أشهر</item>
+        <item quantity="many">الإجمالي بعد %d شهرًا</item>
+        <item quantity="other">الإجمالي بعد %d شهر</item>
+    </plurals>
+    <string name="slice_receipt_title">تم تقسيط مشترياتك بنجاح عبر Slice!</string>
+    <string name="slice_receipt_tenor">المدة</string>
+    <plurals name="slice_receipt_tenor_months">
+        <item quantity="zero">%d شهر</item>
+        <item quantity="one">شهر واحد</item>
+        <item quantity="two">شهران</item>
+        <item quantity="few">%d أشهر</item>
+        <item quantity="many">%d شهرًا</item>
+        <item quantity="other">%d شهر</item>
+    </plurals>
+    <string name="slice_receipt_installment_amount">قيمة القسط</string>
 </resources>

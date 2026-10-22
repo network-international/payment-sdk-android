@@ -70,6 +70,21 @@
             android:screenOrientation="portrait"
             android:exported="false"
             android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.benefit.BenefitActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.bnpl.BnplActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
+            android:name="payment.sdk.android.googlepay.GooglePayActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
     </application>
 
 </manifest>

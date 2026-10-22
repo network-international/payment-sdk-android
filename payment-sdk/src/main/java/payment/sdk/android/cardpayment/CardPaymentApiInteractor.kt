@@ -9,6 +9,7 @@ import org.json.JSONObject
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.BrowserData
 import payment.sdk.android.core.*
 import payment.sdk.android.core.interactor.DeviceIdProvider
+import payment.sdk.android.core.interactor.PayerDeviceInfo
 import payment.sdk.android.core.interactor.VisaRequest
 
 internal class CardPaymentApiInteractor(private val httpClient: HttpClient, context: Context) : PaymentApiInteractor {
@@ -89,6 +90,7 @@ internal class CardPaymentApiInteractor(private val httpClient: HttpClient, cont
         payerIp?.let {
             bodyMap.put(PAYMENT_FIELD_PAYER_IP, it)
         }
+        bodyMap.putAll(PayerDeviceInfo.fields(appContext))
         visRequest?.let {
             bodyMap.put(
                 PAYMENT_FIELD_VISA, mapOf(

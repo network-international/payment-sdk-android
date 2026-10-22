@@ -24,6 +24,7 @@ class SavedCardPaymentApiInteractor(
             addProperty(KEY_CARDHOLDER_NAME, request.savedCard.cardholderName)
             request.cvv?.let { addProperty(KEY_CVV, it) }
             request.payerIp?.let { addProperty(KEY_PAYER_IP, it) }
+            PayerDeviceInfo.fields(app).forEach { (key, value) -> addProperty(key, value) }
             val visa = request.visaRequest
             if (visa != null) {
                 add(CardPaymentInteractor.PAYMENT_FIELD_VISA, com.google.gson.JsonObject().apply {
@@ -34,6 +35,15 @@ class SavedCardPaymentApiInteractor(
             } else {
                 // Explicit null — matches the iOS body shape.
                 add(CardPaymentInteractor.PAYMENT_FIELD_VISA, com.google.gson.JsonNull.INSTANCE)
+            }
+            // Unlike `vis`, the key is omitted entirely when no plan was picked — the same
+            // shape the /card route sends, which the gateway already accepts.
+            request.sliceRequest?.let { slice ->
+                add(CardPaymentInteractor.PAYMENT_FIELD_SLICE, com.google.gson.JsonObject().apply {
+                    addProperty("period", slice.period)
+                    addProperty("rate", slice.rate)
+                    addProperty("fee", slice.fee)
+                })
             }
         }
         // Use StringBody with a Gson-serialized payload so the explicit
@@ -83,7 +93,12 @@ data class SavedCardPaymentApiRequest(
     val savedCard: SavedCard,
     val payerIp: String?,
     val cvv: String?,
-    val visaRequest: VisaRequest? = null
+    val visaRequest: VisaRequest? = null,
+    /**
+     * Selected Slice installment plan. Sent under `slice`, exactly as the manual-card route
+     * sends it — a saved card is as eligible for a plan as a freshly-typed one.
+     */
+    val sliceRequest: payment.sdk.android.core.SliceRequest? = null
 )
 
 sealed class SavedCardResponse {

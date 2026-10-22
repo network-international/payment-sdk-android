@@ -5,6 +5,9 @@ import com.google.android.gms.wallet.PaymentsClient
 import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
+import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.bnpl.BnplLauncher
+import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureTwoDto
 import payment.sdk.android.cardpayment.threedsecuretwo.webview.PartialAuthIntent
@@ -33,6 +36,18 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val aaniConfig: AaniPayLauncher.Config? = null,
         val clickToPayConfig: ClickToPayLauncher.Config? = null,
         val qpayConfig: QPayLauncher.Config? = null,
+        val benefitConfig: BenefitLauncher.Config? = null,
+        /** Set when Benefit could not be started this session; its row says so. */
+        val isBenefitUnavailable: Boolean = false,
+        /** One entry per buy-now-pay-later provider the order supports, in display order. */
+        val bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
+        /** Providers whose checkout could not be opened this session; their rows say so. */
+        val unavailableBnplProviders: Set<BnplProvider> = emptySet(),
+        /**
+         * The subset of [unavailableBnplProviders] the gateway turned down over the order amount.
+         * Their rows say so specifically, since the payer can act on it; the rest read as an outage.
+         */
+        val amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
         val isSamsungPayAvailable: Boolean = false,
         val showWallets: Boolean,
         val selfUrl: String,

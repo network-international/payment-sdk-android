@@ -65,6 +65,26 @@ interface DataStore {
 
     fun getRegion(): Region
 
+    fun isOverrideEnabled(): Boolean
+
+    fun setOverrideEnabled(enabled: Boolean)
+
+    fun getOverrideRegion(): Region
+
+    fun setOverrideRegion(region: Region)
+
+    fun getOverrideCurrency(): AppCurrency
+
+    fun setOverrideCurrency(currency: AppCurrency)
+
+    fun getOverrideOrderAction(): String
+
+    fun setOverrideOrderAction(action: String)
+
+    fun getOverrideOrderType(): String
+
+    fun setOverrideOrderType(type: String)
+
     fun setSDKColor(key: String, hex: String)
 
     fun getSDKColor(key: String, default: String): String

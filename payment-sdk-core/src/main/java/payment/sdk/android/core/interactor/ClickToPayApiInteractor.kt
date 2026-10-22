@@ -50,6 +50,7 @@ class ClickToPayApiInteractor(
             srcDigitalCardId?.let {
                 bodyMap["srcDigitalCardId"] = it
             }
+            bodyMap.putAll(PayerDeviceInfo.fields(app))
 
             val headers = mutableMapOf(
                 "Content-Type" to "application/json",

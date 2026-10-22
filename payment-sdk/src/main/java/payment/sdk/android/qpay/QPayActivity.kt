@@ -10,11 +10,9 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
-import android.webkit.CookieManager
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
-import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
@@ -22,11 +20,14 @@ import android.widget.ProgressBar
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import payment.sdk.android.webview.applyPaymentWindowInsets
+import payment.sdk.android.webview.redactUrlForLog
 import kotlinx.coroutines.launch
 import payment.sdk.android.core.api.CoroutinesGatewayHttpClient
 import payment.sdk.android.core.interactor.GetOrderApiInteractor
 import payment.sdk.android.core.interactor.QPayApiInteractor
 import payment.sdk.android.core.interactor.QPayApiResponse
+import payment.sdk.android.webview.PaymentWebSession
 
 /**
  * Activity that drives the QPay (QCB Doha Bank EZConnect) checkout in a WebView.
@@ -56,6 +57,9 @@ class QPayActivity : AppCompatActivity() {
     private var didStartRefetch = false
     private var didDispatchResult = false
 
+    /** True when the payment WebView runs on the SDK's own isolated web profile (see Q2). */
+    private var isWebSessionIsolated = false
+
     private val mainHandler = Handler(Looper.getMainLooper())
     /// Pending "reveal the WebView" work. Each navigation hop cancels it and re-shows the cover.
     private var revealRunnable: Runnable? = null
@@ -83,6 +87,8 @@ class QPayActivity : AppCompatActivity() {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
+            // Shows through the padding the insets add below, and the providers' pages are white.
+            setBackgroundColor(android.graphics.Color.WHITE)
         }
 
         webView = WebView(this).apply {
@@ -101,6 +107,8 @@ class QPayActivity : AppCompatActivity() {
             }
             webViewClient = qpayWebViewClient
         }
+        isWebSessionIsolated = PaymentWebSession.isolate(webView)
+        PaymentWebSession.configureCookies(webView, isWebSessionIsolated)
         container.addView(webView)
 
         progressBar = ProgressBar(this).apply {
@@ -122,6 +130,7 @@ class QPayActivity : AppCompatActivity() {
         coverView.addView(progressBar)
         container.addView(coverView)
         setContentView(container)
+        applyPaymentWindowInsets(container)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -129,35 +138,7 @@ class QPayActivity : AppCompatActivity() {
             }
         })
 
-        resetWebSession()
         startCheckout()
-    }
-
-    /**
-     * Start every QPay payment from a clean web session.
-     *
-     * The paypage keeps `paypage_browser_session_id` and `paypage_used_auth_codes` in localStorage,
-     * and the gateway sets session cookies. Android's WebView storage is process-global and
-     * persistent, so without this a failed payment leaves stale state behind and the *next* order
-     * reuses the dead session → "your session has expired or marked as invalid". Clearing cookies +
-     * web storage here guarantees each order gets a fresh session.
-     *
-     * Note: this clears WebView cookies/localStorage for the whole app, which is acceptable — the
-     * SDK's WebView flows (QPay, 3DS) all expect to start from a clean session.
-     */
-    private fun resetWebSession() {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptCookie(true)
-        // QCB <-> paypage is a cross-origin POST; allow third-party cookies so the session survives
-        // *within* this single flow.
-        cookieManager.setAcceptThirdPartyCookies(webView, true)
-        cookieManager.removeAllCookies(null)
-        cookieManager.flush()
-        WebStorage.getInstance().deleteAllData()
-        webView.clearCache(true)
-        webView.clearFormData()
-        webView.clearHistory()
-        debug("web session reset (cookies + web storage cleared)")
     }
 
     private fun startCheckout() {
@@ -181,7 +162,13 @@ class QPayActivity : AppCompatActivity() {
                         finishWith(QPayLauncher.Result.Failed("Missing redirectUri or payPageUrl"))
                         return@launch
                     }
-                    Log.d(TAG, "Loading auto-submit form, baseUrl=$baseUrl action=${r.redirectUri}")
+                    Log.d(TAG, "Loading auto-submit form, baseUrl=${redactUrlForLog(baseUrl)} action=${redactUrlForLog(r.redirectUri)}")
+                    // Start from a clean session, scoped to the SDK — never the host app (Q2).
+                    val origins = listOfNotNull(
+                        PaymentWebSession.originOf(baseUrl),        // paypage origin
+                        PaymentWebSession.originOf(r.redirectUri)   // QCB gateway
+                    )
+                    PaymentWebSession.reset(isWebSessionIsolated, origins)
                     webView.loadDataWithBaseURL(
                         baseUrl,
                         html,

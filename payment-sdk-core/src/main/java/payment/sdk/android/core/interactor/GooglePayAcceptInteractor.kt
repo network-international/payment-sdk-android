@@ -19,7 +19,7 @@ class GooglePayAcceptInteractor(private val httpClient: HttpClient, private val 
                 TransactionServiceHttpAdapter.HEADER_FINGERPRINT to deviceId
             ), body = Body.Json(mapOf(
                 "token" to token
-            )),
+            ) + PayerDeviceInfo.fields(app)),
         )
     }
 }

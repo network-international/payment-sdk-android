@@ -9,6 +9,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import payment.sdk.android.demo.data.DataStore
 import payment.sdk.android.demo.data.DataStoreImpl
 import payment.sdk.android.demo.model.Environment
+import payment.sdk.android.demo.model.ScannedEnvironment
 import payment.sdk.android.demo.model.MerchantAttribute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,7 +60,8 @@ class EnvironmentViewModel(
                 environments = dataStore.getEnvironments(),
                 selectedEnvironment = dataStore.getSelectedEnvironment(),
                 merchantAttributes = dataStore.getMerchantAttributes(),
-                orderAction = dataStore.getOrderAction()
+                orderAction = dataStore.getOrderAction(),
+                override = readOverride(),
             )
         }
         // Load saved SDK colors
@@ -74,6 +76,13 @@ class EnvironmentViewModel(
     fun setSDKColor(key: String, hex: String) {
         dataStore.setSDKColor(key, hex)
         _sdkColors.update { it.toMutableMap().apply { put(key, hex) } }
+        applySDKColors()
+    }
+
+    /// Restores every colour to the SDK's own default.
+    fun resetSDKColors() {
+        sdkColorDefs.forEach { dataStore.setSDKColor(it.key, it.defaultHex) }
+        _sdkColors.value = sdkColorDefs.associate { it.key to it.defaultHex }
         applySDKColors()
     }
 
@@ -109,7 +118,67 @@ class EnvironmentViewModel(
 
     fun onDeleteEnvironment(environment: Environment) {
         dataStore.deleteEnvironment(environment)
-        _state.update { it.copy(environments = dataStore.getEnvironments()) }
+        // A selection pointing at the deleted outlet would leave the app looking
+        // configured while every read silently fell back to the legacy globals.
+        val remaining = dataStore.getEnvironments()
+        if (dataStore.getSelectedEnvironment()?.id == environment.id) {
+            remaining.firstOrNull()?.let { dataStore.setSelectedEnvironment(it) }
+        }
+        _state.update {
+            it.copy(
+                environments = remaining,
+                selectedEnvironment = dataStore.getSelectedEnvironment(),
+            )
+        }
+    }
+
+    /**
+     * Imports a pasted or scanned payload. Returns a summary line, or null when no line
+     * matched — the caller decides how loudly to say so.
+     */
+    fun importPayload(payload: String): String? {
+        val batch = ScannedEnvironment.parseAll(payload)
+        if (batch.environments.isEmpty()) return null
+        val r = importEnvironments(batch.environments.map { it.toEnvironment() })
+        val skipped = if (batch.rejected > 0) ", ${batch.rejected} line(s) skipped" else ""
+        return "${r.added} added, ${r.replaced} updated$skipped."
+    }
+
+    /** Outcome of a bulk QR import, for the summary shown to the tester. */
+    data class ImportResult(val added: Int, val replaced: Int)
+
+    /**
+     * Adds a batch of scanned environments. An outlet already present (same reference
+     * and type) is replaced rather than duplicated, keeping its id so a selection
+     * pointing at it stays valid — re-scanning a refreshed bulk code updates keys in
+     * place. Selects the first if nothing is selected yet: a fresh install should be
+     * ready to pay after one scan.
+     */
+    fun importEnvironments(scanned: List<Environment>): ImportResult {
+        var added = 0
+        var replaced = 0
+        scanned.forEach { env ->
+            val existing = dataStore.getEnvironments().firstOrNull {
+                it.outletReference == env.outletReference && it.type == env.type
+            }
+            if (existing != null) {
+                dataStore.updateEnvironment(env.copy(id = existing.id))
+                replaced++
+            } else {
+                dataStore.saveEnvironment(env)
+                added++
+            }
+        }
+        if (dataStore.getSelectedEnvironment() == null) {
+            dataStore.getEnvironments().firstOrNull()?.let { dataStore.setSelectedEnvironment(it) }
+        }
+        _state.update {
+            it.copy(
+                environments = dataStore.getEnvironments(),
+                selectedEnvironment = dataStore.getSelectedEnvironment()
+            )
+        }
+        return ImportResult(added, replaced)
     }
 
     fun saveEnvironment(environment: Environment) {
@@ -140,35 +209,42 @@ class EnvironmentViewModel(
         _state.update { it.copy(selectedEnvironment = environment) }
     }
 
-    fun getOrderAction(): OrderAction {
-        val code = dataStore.getOrderAction()
-        return OrderAction.entries.firstOrNull { it.code == code } ?: OrderAction.SALE
-    }
-
-    fun setOrderAction(action: OrderAction) {
-        dataStore.setOrderAction(action.code)
-        _state.update { it.copy(orderAction = action.code) }
-    }
-
-    fun getOrderType(): OrderType {
-        val code = dataStore.getOrderType()
-        return OrderType.entries.firstOrNull { it.code == code } ?: OrderType.SINGLE
-    }
-
-    fun setOrderType(type: OrderType) {
-        dataStore.setOrderType(type.code)
-        _state.update { it.copy(orderType = type.code) }
-    }
-
     fun updateMerchantAttribute(merchantAttribute: MerchantAttribute) {
         dataStore.updateMerchantAttribute(merchantAttribute)
         _state.update { it.copy(merchantAttributes = dataStore.getMerchantAttributes()) }
     }
 
-    fun getCurrency() = dataStore.getCurrency()
+    private fun readOverride() = OverrideState(
+        enabled = dataStore.isOverrideEnabled(),
+        region = dataStore.getOverrideRegion(),
+        currency = dataStore.getOverrideCurrency(),
+        orderAction = dataStore.getOverrideOrderAction(),
+        orderType = dataStore.getOverrideOrderType(),
+    )
 
-    fun setCurrency(currency: AppCurrency) {
-        dataStore.setCurrency(currency)
+    fun setOverrideEnabled(enabled: Boolean) {
+        dataStore.setOverrideEnabled(enabled)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideRegion(region: Region) {
+        dataStore.setOverrideRegion(region)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideCurrency(currency: AppCurrency) {
+        dataStore.setOverrideCurrency(currency)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideOrderAction(action: OrderAction) {
+        dataStore.setOverrideOrderAction(action.code)
+        _state.update { it.copy(override = readOverride()) }
+    }
+
+    fun setOverrideOrderType(type: OrderType) {
+        dataStore.setOverrideOrderType(type.code)
+        _state.update { it.copy(override = readOverride()) }
     }
 
     fun getLanguage() = dataStore.getLanguage()
@@ -177,11 +253,6 @@ class EnvironmentViewModel(
         dataStore.setLanguage(language)
     }
 
-    fun getRegion() = dataStore.getRegion()
-
-    fun setRegion(region: Region) {
-        dataStore.setRegion(region)
-    }
 
     companion object {
         fun provideFactory(

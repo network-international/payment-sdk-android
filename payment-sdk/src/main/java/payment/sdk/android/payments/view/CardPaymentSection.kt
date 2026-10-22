@@ -442,23 +442,32 @@ fun CardPaymentSection(
                     testTag = "sdk_card_field_cardholderName"
                 )
 
-                if (sliceCheckState is SliceCheckState.Available) {
-                    SliceInstallmentSection(
-                        offers = sliceCheckState.offers,
-                        onOfferSelected = { onSliceOfferSelected(it) },
-                        pillBleedStart = Spacing.pageH + PgSize.radioOuter + 12.dp,
-                        pillBleedEnd = Spacing.pageH,
-                        showSelectionError = showPaymentOptionError,
-                        isIslamic = sliceCheckState.isIslamic,
-                    )
-                }
-
                 Spacer(Modifier.height(Spacing.sectionGap))
             }
         }
 
-        // Visa installment section is rendered at section level (outside the manual-form
-        // AnimatedVisibility) so it appears for both manual entry AND saved-card selection.
+        // Slice and Visa installment sections are rendered at section level (outside the
+        // manual-form AnimatedVisibility) so they appear for both manual entry AND saved-card
+        // selection. Slice sits above Visa, matching its priority; the two are mutually
+        // exclusive in practice because Visa is only checked when Slice returns nothing.
+        if (sliceCheckState is SliceCheckState.Available) {
+            Column(
+                modifier = Modifier.padding(horizontal = Spacing.pageH)
+            ) {
+                SliceInstallmentSection(
+                    offers = sliceCheckState.offers,
+                    onOfferSelected = { onSliceOfferSelected(it) },
+                    // The section now sits beside the Visa slot rather than inside the manual
+                    // form, so the radio-button indent is no longer in the padding chain.
+                    pillBleedStart = Spacing.pageH,
+                    pillBleedEnd = Spacing.pageH,
+                    showSelectionError = showPaymentOptionError,
+                    isIslamic = sliceCheckState.isIslamic,
+                )
+                Spacer(Modifier.height(Spacing.sectionGap))
+            }
+        }
+
         if (visCheckState is VisCheckState.Available) {
             Column(
                 modifier = Modifier.padding(horizontal = Spacing.pageH)

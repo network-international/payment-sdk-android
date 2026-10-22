@@ -113,7 +113,7 @@ internal class GooglePayUiConfigFactoryTest {
             merchantInfo = merchantInfo,
             merchantGatewayId = "merchantGatewayId",
             isMerchantCertificatePresent = true,
-            merchantOrigin = TODO()
+            merchantOrigin = "merchant.example.com"
         )
         val paymentDataRequestJson = """
                 {

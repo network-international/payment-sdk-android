@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import payment.sdk.android.PaymentClient
 import payment.sdk.android.core.SavedCard
+import payment.sdk.android.core.api.SDKDiagnostics
 import payment.sdk.android.demo.http.OkHttpClientAdapter
 import payment.sdk.android.demo.data.DataStore
 import payment.sdk.android.demo.data.DataStoreImpl
@@ -58,6 +59,9 @@ class MainViewModel(
     private var _effect = MutableSharedFlow<MainViewModelEffect>()
 
     val effect = _effect.asSharedFlow()
+
+    /** The payment in progress, named for the technical-details report. */
+    private var currentFlow: String = ""
 
     init {
         _uiState.update {
@@ -154,7 +158,20 @@ class MainViewModel(
     }
 
     fun closeDialog() {
-        _uiState.update { it.copy(state = MainViewModelStateType.INIT) }
+        _uiState.update { it.copy(state = MainViewModelStateType.INIT, technicalDetails = null) }
+    }
+
+    /** Failure [state] with [message], plus the report behind its "Technical details" button. */
+    private fun fail(state: MainViewModelStateType, message: String, flow: String = currentFlow) {
+        val shown = state.getAlertMessage(message).second
+        val report = TechnicalReport.build(
+            flow = flow,
+            environment = dataStore.getSelectedEnvironment(),
+            orderReference = uiState.value.orderReference,
+            message = shown,
+            error = message.ifBlank { null }
+        )
+        _uiState.update { it.copy(state = state, message = message, technicalDetails = report) }
     }
 
     fun onAddProduct(product: Product) {
@@ -204,22 +221,27 @@ class MainViewModel(
     }
 
     fun onFailure(error: String) {
-        _uiState.update { it.copy(state = MainViewModelStateType.ERROR, message = error) }
+        fail(MainViewModelStateType.ERROR, error)
     }
 
     fun createOrder(paymentType: PaymentType, orderRequest: OrderRequest) {
         getEnvironment()?.let { environment ->
             _uiState.update {
-                it.copy(state = MainViewModelStateType.LOADING, message = "Creating Order...")
+                it.copy(
+                    state = MainViewModelStateType.LOADING,
+                    message = "Creating Order...",
+                    orderReference = null
+                )
             }
+            // A new payment: its report should hold only its own gateway calls.
+            SDKDiagnostics.clear()
+            currentFlow = paymentType.label
             viewModelScope.launch(dispatcher) {
                 val result = createOrderApiInteractor.createOrder(environment, orderRequest)
 
                 when (result) {
                     is Result.Error -> {
-                        _uiState.update {
-                            it.copy(state = MainViewModelStateType.ERROR, message = result.message)
-                        }
+                        fail(MainViewModelStateType.ERROR, result.message, "Create order ($currentFlow)")
                     }
 
                     is Result.Success -> {
@@ -245,13 +267,11 @@ class MainViewModel(
                 it.copy(state = MainViewModelStateType.PAYMENT_CANCELLED)
             }
 
-            is UnifiedPaymentPageResult.Failed -> _uiState.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_FAILED, message = result.error)
-            }
+            is UnifiedPaymentPageResult.Failed ->
+                fail(MainViewModelStateType.PAYMENT_FAILED, result.error)
 
-            UnifiedPaymentPageResult.PartialAuthDeclineFailed -> _uiState.update {
-                it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED)
-            }
+            UnifiedPaymentPageResult.PartialAuthDeclineFailed ->
+                fail(MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINE_FAILED, "")
 
             UnifiedPaymentPageResult.PartialAuthDeclined -> _uiState.update {
                 it.copy(state = MainViewModelStateType.PAYMENT_PARTIAL_AUTH_DECLINED)

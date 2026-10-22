@@ -19,7 +19,40 @@ data class Environment(
     val apiKey: String,
     val outletReference: String,
     val realm: String,
+    /**
+     * Gateway region this outlet lives on. UAE and KSA are physically separate deployments with
+     * their own identity endpoints, so an outlet's credentials only work against one of them.
+     */
     val region: Region,
+    /**
+     * Currency this outlet transacts in. Alternative payment methods follow the acquirer, so the
+     * currency and the available methods travel together: a BHD outlet is the Benefit one, a QAR
+     * outlet is the QPay one. Pairing them here makes a mismatched combination unrepresentable.
+     *
+     * Null on environments saved before the currency moved onto the outlet; [currencyCode]
+     * resolves those against the old app-wide setting.
+     */
+    val currency: String? = null,
+    /**
+     * Order action (SALE / PURCHASE / AUTH) this outlet is exercised with. Which actions an
+     * outlet accepts is outlet configuration — Slice, for one, only supports PURCHASE — so
+     * pairing it with the outlet stops one global picker from being wrong for every other.
+     *
+     * Null on environments saved before it moved onto the outlet; [orderActionCode] resolves
+     * those against the old app-wide setting.
+     */
+    val orderAction: String? = null,
+    /**
+     * Order type (SINGLE / RECURRING / UNSCHEDULED / INSTALLMENT), enabled per outlet like
+     * the action. Null on environments saved before the move; see [orderTypeCode].
+     */
+    val orderType: String? = null,
+    /**
+     * Payment methods the gateway offered for this outlet, captured on import.
+     * Informational: shown on the tile so an outlet's capabilities are visible without
+     * opening it or starting a payment. Null for an outlet added by hand.
+     */
+    val paymentMethods: List<String>? = null,
     /**
      * Merchant identifier used by the Click to Pay config endpoint
      * (`/config/merchants/{merchantId}/configs/vctp`). Distinct from [outletReference].
@@ -53,7 +86,50 @@ data class Environment(
             context.getPreferences().edit().putString(KEY_SAVED_ENVIRONMENT_ID, environmentId)
                 .apply()
         }
+
+        /**
+         * Currency of the currently selected outlet — the single source of truth for an order's
+         * currency. Falls back to [legacyCurrency] for outlets saved before the migration, and to
+         * AED when nothing is selected yet.
+         */
+        fun selectedCurrency(context: Context): String =
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.currency(context)
+            else getSelectedEnvironment(context)?.currencyCode(context) ?: legacyCurrency(context)
+
+        // All three defer to the QA override while it is on; see [EnvironmentOverride].
+        fun selectedOrderAction(context: Context): String =
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.orderAction(context)
+            else getSelectedEnvironment(context)?.orderActionCode(context) ?: legacyOrderAction(context)
+
+        fun selectedOrderType(context: Context): String =
+            if (EnvironmentOverride.isEnabled(context)) EnvironmentOverride.orderType(context)
+            else getSelectedEnvironment(context)?.orderTypeCode(context) ?: legacyOrderType(context)
+
+        /**
+         * The app-wide currency setting that used to be independent of the selected outlet — which
+         * is what forced a tester to set BHD by hand before Benefit would appear. Read only so
+         * environments saved by an older build can inherit it.
+         */
+        fun legacyCurrency(context: Context): String =
+            context.getPreferences().getString(KEY_CURRENCY, null) ?: "AED"
+
+        fun legacyOrderAction(context: Context): String =
+            context.getPreferences().getString(KEY_ORDER_ACTION, null) ?: "SALE"
+
+        fun legacyOrderType(context: Context): String =
+            context.getPreferences().getString(KEY_ORDER_TYPE, null) ?: "SINGLE"
+
+        private const val KEY_CURRENCY = "currency"
+        private const val KEY_ORDER_ACTION = "order_action"
+        private const val KEY_ORDER_TYPE = "order_type"
     }
+
+    /** This outlet's currency, resolving a pre-migration null against the old app-wide setting. */
+    fun currencyCode(context: Context): String = currency ?: legacyCurrency(context)
+
+    fun orderActionCode(context: Context): String = orderAction ?: legacyOrderAction(context)
+
+    fun orderTypeCode(context: Context): String = orderType ?: legacyOrderType(context)
 
     fun getGatewayUrl(): String {
         if (region == Region.UAE) {
