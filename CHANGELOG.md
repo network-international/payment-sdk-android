@@ -2,6 +2,30 @@
 
 All notable changes to the Network International Payment SDK for Android are documented in this file.
 
+## [5.2.6] - 2026-10-29
+
+### Changed
+- **Dark mode.** Every SDK screen now follows the system light/dark setting (it follows the app's
+  night mode, so an app that forces light keeps the SDK light). Previously the card screen and its
+  loader were always light, which showed as a white page in a dark app. Light mode looks as before.
+  Colours an app overrides keep their value in both modes; to set a different dark value, also
+  override it in `res/values-night/colors.xml`.
+- **Currency symbols.** Amounts in AED and SAR show the UAE Dirham and Saudi Riyal symbols instead of
+  the letters: pay buttons, saved card, Visa instalments, partial authorisation and Aani. The riyal
+  symbol no longer depends on the outlet's Saudi payment setting. The symbol takes the text colour.
+
+### Fixed
+- The title colour now follows `payment_sdk_toolbar_text_color`. On the card screen it was always
+  white (5.2.3) or replaced by the iOS default when it matched the SDK default (5.2.5); the other
+  screens used the pay button text colour.
+- The newer card screen's pay button text now uses `payment_sdk_pay_button_text_color` (it was
+  always white).
+
+### Added
+- `payment_sdk_pay_button_disabled_background_color` and `payment_sdk_pay_button_disabled_text_color`
+  (iOS `payButtonDisabledBackgroundColor` / `payButtonDisabledTitleColor`): the pay button while it
+  is disabled. When not set, the button keeps its previous disabled look.
+
 ## [5.2.5] - 2026-10-19
 
 ### Changed

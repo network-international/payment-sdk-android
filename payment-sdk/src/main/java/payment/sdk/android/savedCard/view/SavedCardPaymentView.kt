@@ -26,6 +26,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -38,6 +39,7 @@ import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.SavedCard
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.savedCard.isAmex
+import payment.sdk.android.sdk.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -58,7 +60,7 @@ internal fun SavedCardPaymentView(
     var isErrorCvv by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
-            .background(Color.White)
+            .background(colorResource(id = R.color.payment_sdk_surface_color))
             .fillMaxSize()
     ) {
         Column(

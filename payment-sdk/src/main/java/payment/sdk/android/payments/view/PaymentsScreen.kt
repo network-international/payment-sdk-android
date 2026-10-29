@@ -59,6 +59,9 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.cardpayment.card.CardDetector
 import payment.sdk.android.cardpayment.card.CardValidator
 import payment.sdk.android.cardpayment.card.PaymentCard
+import payment.sdk.android.cardpayment.widget.payButtonBackgroundColor
+import payment.sdk.android.cardpayment.widget.payButtonTextColor
+import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.savedCard.view.CreditCardBack
 import payment.sdk.android.savedCard.view.CreditCardView
 import payment.sdk.android.cardpayment.theme.SDKTextFieldColors
@@ -110,7 +113,7 @@ fun PaymentsScreen(
 
     Column(
         modifier
-            .background(Color(0xFFF1F1F1))
+            .background(colorResource(id = R.color.payment_sdk_field_background_color))
     ) {
         Column(
             modifier = Modifier
@@ -157,7 +160,7 @@ fun PaymentsScreen(
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(8.dp),
                     elevation = 8.dp,
-                    color = Color.White
+                    color = colorResource(id = R.color.payment_sdk_surface_color)
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 8.dp)
@@ -235,7 +238,7 @@ fun PaymentsScreen(
                         )
 
                         val animated = animateColorAsState(
-                            if (isFormValid) colorResource(id = R.color.payment_sdk_pay_button_background_color) else Color.Gray,
+                            payButtonBackgroundColor(isFormValid),
                             label = ""
                         )
                         TextButton(
@@ -265,9 +268,9 @@ fun PaymentsScreen(
                                 R.string.pay_button_title,
                                 formattedAmount
                             ) else stringResource(R.string.make_payment)
-                            Text(
+                            CurrencyAmountText(
                                 text = title,
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+                                color = payButtonTextColor(isFormValid)
                             )
                         }
                     }
@@ -281,7 +284,7 @@ fun PaymentsScreen(
                         .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(8.dp),
                     elevation = 8.dp,
-                    color = Color.White
+                    color = colorResource(id = R.color.payment_sdk_surface_color)
                 ) {
                     Column {
                         Text(
@@ -328,7 +331,7 @@ fun PaymentsScreen(
                                 colors = ButtonDefaults.textButtonColors(
                                     contentColor = Color.White,
                                 ),
-                                border = BorderStroke(width = 1.dp, Color.Gray),
+                                border = BorderStroke(width = 1.dp, colorResource(id = R.color.payment_sdk_border_color)),
                                 elevation = ButtonDefaults.elevation(0.dp, 0.dp, 0.dp),
                                 shape = RoundedCornerShape(percent = 15),
                             ) {

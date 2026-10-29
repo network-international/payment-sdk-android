@@ -21,9 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import payment.sdk.android.aaniPay.model.AaniIDType
+import payment.sdk.android.sdk.R
 
 @Composable
 internal fun AliasTypeView(
@@ -43,10 +45,10 @@ internal fun AliasTypeView(
             enabled = false,
             modifier = Modifier.fillMaxSize(),
             colors = TextFieldDefaults.textFieldColors(
-                disabledTextColor = Color.Black,
-                disabledLabelColor = Color.Black,
+                disabledTextColor = colorResource(id = R.color.payment_sdk_default_label_color),
+                disabledLabelColor = colorResource(id = R.color.payment_sdk_default_label_color),
                 backgroundColor = Color.Transparent,
-                disabledTrailingIconColor = Color.Black,
+                disabledTrailingIconColor = colorResource(id = R.color.payment_sdk_default_label_color),
             ),
             textStyle = MaterialTheme.typography.subtitle1,
             trailingIcon = {

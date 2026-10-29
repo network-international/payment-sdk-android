@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -68,9 +69,9 @@ fun VisaPlanTermsView(
                             onTermsAccepted(it)
                         },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFF1D33C3),
-                            uncheckedColor = Color(0xFF808080),
-                            disabledColor = Color.Gray,
+                            checkedColor = colorResource(id = R.color.payment_sdk_accent_color),
+                            uncheckedColor = colorResource(id = R.color.payment_sdk_border_color),
+                            disabledColor = colorResource(id = R.color.payment_sdk_disabled_color),
                         ),
                     )
                 } else {
@@ -79,7 +80,7 @@ fun VisaPlanTermsView(
                             .padding(13.dp)
                             .size(20.dp)
                             .clip(shape = RoundedCornerShape(2.dp))
-                            .background(Color.Gray),
+                            .background(colorResource(id = R.color.payment_sdk_disabled_color)),
                     ) {}
                 }
 
@@ -96,7 +97,7 @@ fun VisaPlanTermsView(
                             id = R.string.visa_read_more
                         ),
                         style = TextStyle(
-                            color = Color(0xFF1D33C3),
+                            color = colorResource(id = R.color.payment_sdk_accent_color),
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -143,7 +144,7 @@ fun VisaPlanTermsView(
 @Composable
 fun VisaPlanTermsViewView_Preview() {
     SDKTheme {
-        Box(modifier = Modifier.background(Color.White)) {
+        Box(modifier = Modifier.background(colorResource(id = R.color.payment_sdk_surface_color))) {
             VisaPlanTermsView(
                 isTermsAccepted = false,
                 termsExpanded = true,

@@ -13,7 +13,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -22,6 +21,7 @@ import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
 class PartialAuthActivity : ComponentActivity() {
@@ -45,32 +45,34 @@ class PartialAuthActivity : ComponentActivity() {
             return
         }
         setContent {
-            Scaffold(
-                backgroundColor = Color.White,
-                topBar = {
-                    TopAppBar(
-                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
-                        title = {
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(id = R.string.paypage_title_awaiting_partial_auth_approval),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color),
-                                textAlign = TextAlign.Center
-                            )
-                        },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+            SDKTheme {
+                Scaffold(
+                    backgroundColor = colorResource(id = R.color.payment_sdk_surface_color),
+                    topBar = {
+                        TopAppBar(
+                            modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
+                            title = {
+                                Text(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    text = stringResource(id = R.string.paypage_title_awaiting_partial_auth_approval),
+                                    color = colorResource(id = R.color.payment_sdk_toolbar_text_color),
+                                    textAlign = TextAlign.Center
+                                )
+                            },
+                            backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                        )
+                    },
+                ) { contentPadding ->
+                    PartialAuthView(
+                        modifier = Modifier
+                            .padding(contentPadding)
+                            .screenContentInsets(),
+                        args = args,
+                        onResult = { result ->
+                            finishWithData(result)
+                        }
                     )
-                },
-            ) { contentPadding ->
-                PartialAuthView(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .screenContentInsets(),
-                    args = args,
-                    onResult = { result ->
-                        finishWithData(result)
-                    }
-                )
+                }
             }
         }
     }

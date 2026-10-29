@@ -41,6 +41,7 @@ internal class CardPaymentView constructor(
 
     private val errorView: TextView = root.findViewById(R.id.error_message)
     private val payButton: Button = root.findViewById(R.id.pay_button)
+    private var amountTitleShown = false
 
     private lateinit var presenter: CardPaymentContract.Presenter
     private var progressDialog: AlertDialog? = null
@@ -122,12 +123,14 @@ internal class CardPaymentView constructor(
         payButton.text = context.getString(R.string.pay_button_title, "").trim()
     }
 
-    private fun payButtonTitle(): String {
+    private fun payButtonTitle(): CharSequence {
         val amount = if (SDKConfig.showOrderAmount) {
             val isLTR = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
             runCatching { presenter.getOrderInfo().formattedCurrencyString(isLTR) }.getOrElse { "" }
         } else ""
-        return context.getString(R.string.pay_button_title, amount).trim()
+        // "Pay 10.0 SAR": the currency code is drawn as its symbol, in the button's text colour.
+        return CurrencySymbols.replace(context, context.getString(R.string.pay_button_title, amount).trim(),
+            payButton.currentTextColor, payButton.textSize)
     }
 
     // --- Card preview -------------------------------------------------------------------
@@ -169,7 +172,7 @@ internal class CardPaymentView constructor(
 
     override fun focusInCardNumber() {
         // Called once the order has loaded; the presenter stores the amount right after this call.
-        root.post { payButton.text = payButtonTitle() }
+        root.post { amountTitleShown = true; payButton.text = payButtonTitle() }
         numberEdit.requestFocus()
         showKeyboard(numberEdit)
     }
@@ -204,7 +207,9 @@ internal class CardPaymentView constructor(
         updatePreview()
         val valid = isNumberValid() && isExpiryValid() && cvvInput.full && holderInput.full
         payButton.isEnabled = valid
-        payButton.alpha = if (valid) 1f else 0.5f
+        PayButtonColors.apply(payButton, valid)
+        // Rebuild so the currency symbol takes the new text colour.
+        if (amountTitleShown) payButton.text = payButtonTitle()
         renderErrors()
     }
 

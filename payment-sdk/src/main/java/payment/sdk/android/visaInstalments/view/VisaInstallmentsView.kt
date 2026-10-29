@@ -13,10 +13,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import payment.sdk.android.sdk.R
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.payments.theme.SDKTheme
@@ -31,7 +32,7 @@ fun VisaInstalmentsView(
     var selectedPlan by remember { mutableStateOf<InstallmentPlan?>(null) }
     var isValid by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.background(Color.White)) {
+    Column(modifier = modifier.background(colorResource(id = R.color.payment_sdk_surface_color))) {
         VisaHeaderView(modifier = Modifier.padding(8.dp), cardNumber = cardNumber)
         LazyColumn(
             modifier = Modifier

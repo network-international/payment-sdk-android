@@ -226,18 +226,27 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
 
     /**
      * The title bar colours are shared with the SDK's other screens, whose defaults are a black bar
-     * with white text. This screen follows iOS instead: while a colour is still the SDK default, use
-     * the iOS one (white bar, black title, blue Cancel). A colour the app sets always wins.
+     * with white text. This screen follows iOS instead: while the app has not set a colour, use the
+     * iOS one (light or dark). A colour the app sets always wins, whatever its value.
      */
     private fun applyTitleBarColors() {
-        fun color(id: Int, sdkDefault: Int, iosDefault: Int): Int =
-            androidx.core.content.ContextCompat.getColor(this, id).let { if (it == sdkDefault) iosDefault else it }
         findViewById<android.view.View>(R.id.toolbar3).setBackgroundColor(
-            color(R.color.payment_sdk_toolbar_color, SDK_TITLE_BAR, IOS_TITLE_BAR))
+            titleBarColor(R.color.payment_sdk_toolbar_color, R.color.payment_sdk_default_toolbar_color,
+                R.color.payment_sdk_card_title_bar_color))
         findViewById<android.widget.TextView>(R.id.toolbar_title).setTextColor(
-            color(R.color.payment_sdk_toolbar_text_color, SDK_TITLE_TEXT, IOS_TITLE_TEXT))
+            titleBarColor(R.color.payment_sdk_toolbar_text_color, R.color.payment_sdk_default_toolbar_text_color,
+                R.color.payment_sdk_default_label_color))
         findViewById<android.widget.TextView>(R.id.toolbar_cancel).setTextColor(
-            color(R.color.payment_sdk_toolbar_icon_color, SDK_TITLE_ICON, IOS_TITLE_BUTTON))
+            titleBarColor(R.color.payment_sdk_toolbar_icon_color, R.color.payment_sdk_default_toolbar_icon_color,
+                R.color.payment_sdk_card_title_button_color))
+    }
+
+    /** [id] still points at the SDK's [sdkDefault] unless the app overrode it; then use [iosDefault]. */
+    private fun titleBarColor(id: Int, sdkDefault: Int, iosDefault: Int): Int {
+        val value = android.util.TypedValue()
+        resources.getValue(id, value, false)
+        val appSet = !(value.type == android.util.TypedValue.TYPE_REFERENCE && value.data == sdkDefault)
+        return androidx.core.content.ContextCompat.getColor(this, if (appSet) id else iosDefault)
     }
 
     private fun finishWithData(cardPaymentData: CardPaymentData) {
@@ -281,14 +290,6 @@ class CardPaymentActivity : AppCompatActivity(), CardPaymentContract.Interaction
         private const val THREE_D_SECURE_REQUEST_KEY: Int = 100
         private const val THREE_D_SECURE_TWO_REQUEST_KEY: Int = 110
         private const val VISA_INSTALMENT_SELECTION_KEY: Int = 120
-
-        // SDK defaults of payment_sdk_toolbar_* (values/colors.xml) and the iOS look used instead.
-        private const val SDK_TITLE_BAR = 0xFF000000.toInt()
-        private const val SDK_TITLE_TEXT = 0xFFFFFFFF.toInt()
-        private const val SDK_TITLE_ICON = 0xFFFFFFFF.toInt()
-        private const val IOS_TITLE_BAR = 0xFFFFFFFF.toInt()
-        private const val IOS_TITLE_TEXT = 0xFF000000.toInt()
-        private const val IOS_TITLE_BUTTON = 0xFF007AFF.toInt()
 
         private const val URL_KEY = "gateway-payment-url"
         private const val CODE = "code"
