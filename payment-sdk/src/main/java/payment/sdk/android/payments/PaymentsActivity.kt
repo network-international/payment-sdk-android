@@ -1,6 +1,7 @@
 package payment.sdk.android.payments
 
 import android.content.Context
+import android.view.View
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
@@ -222,7 +223,8 @@ class PaymentsActivity : AppCompatActivity() {
                             VisaInstalmentsView(
                                 instalmentPlans = InstallmentPlan.fromVisaPlans(
                                     visState.visaPlans,
-                                    visState.orderAmount
+                                    visState.orderAmount,
+                                    resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_LTR
                                 ),
                                 cardNumber = visState.makeCardPaymentRequest.pan
                             ) { plan ->

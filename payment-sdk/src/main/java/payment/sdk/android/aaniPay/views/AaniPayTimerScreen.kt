@@ -1,6 +1,7 @@
 package payment.sdk.android.aaniPay.views
 
-import android.view.View
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.TextUtilsCompat
 import kotlinx.coroutines.delay
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.payments.view.CurrencyAmountText
@@ -40,7 +40,7 @@ internal fun AaniPayTimerScreen(amount: Double, currencyCode: String) {
     val minutes = remainingTime / 60
     val seconds = remainingTime % 60
     val isLtr =
-        TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
+        LocalLayoutDirection.current == LayoutDirection.Ltr
     val formattedAmount = OrderAmount(amount, currencyCode).formattedCurrencyString2Decimal(isLtr)
     LaunchedEffect(Unit) {
         while (remainingTime > 0) {

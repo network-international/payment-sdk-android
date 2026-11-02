@@ -2,6 +2,17 @@
 
 All notable changes to the Network International Payment SDK for Android are documented in this file.
 
+## [5.2.7] - 2026-11-02
+
+### Fixed
+- **Arabic pay button read amount-first.** The Arabic text put the amount before "إدفع" (Pay), so
+  in the right-to-left button the word sat at the left end. It now reads "إدفع" first.
+- **Currency symbol on the wrong side of the amount in Arabic.** The symbol image joined the word
+  next to it instead of the number; it now stays on the left of the amount, as the code "SAR" did.
+- **Amount order with `SDKConfig.setLanguage`.** Pay button, saved card, Visa instalments, partial
+  authorisation and Aani chose the amount order from the device locale, so an Arabic SDK screen on
+  an English phone used the English order. They now follow the screen's layout direction.
+
 ## [5.2.6] - 2026-10-29
 
 ### Changed

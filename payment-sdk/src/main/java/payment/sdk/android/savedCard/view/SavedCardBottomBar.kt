@@ -1,6 +1,7 @@
 package payment.sdk.android.savedCard.view
 
-import android.view.View
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,12 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.text.TextUtilsCompat
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.sdk.R
-import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -54,7 +53,7 @@ internal fun SavedCardViewBottomBar(
         elevation = 16.dp
     ) {
         val isLTR =
-            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
+            LocalLayoutDirection.current == LayoutDirection.Ltr
         TextButton(
             modifier = Modifier
                 .fillMaxWidth()

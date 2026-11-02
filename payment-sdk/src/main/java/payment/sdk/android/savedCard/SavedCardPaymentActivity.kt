@@ -1,6 +1,7 @@
 package payment.sdk.android.savedCard
 
 import android.content.Context
+import android.view.View
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
@@ -156,7 +157,8 @@ class SavedCardPaymentActivity : ComponentActivity() {
                                     .screenContentInsets(),
                                 instalmentPlans = InstallmentPlan.fromVisaPlans(
                                     response.visaPlans,
-                                    response.orderAmount
+                                    response.orderAmount,
+                                    resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_LTR
                                 ),
                                 cardNumber = response.cardNumber
                             ) { plan ->

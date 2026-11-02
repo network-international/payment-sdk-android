@@ -17,6 +17,9 @@ interface CardPaymentContract {
 
         val cardHolder: StatefulInput
 
+        /** Whether the payment screen is laid out left to right; follows the SDK language. */
+        val isLayoutLTR: Boolean
+
         fun setPresenter(presenter: Presenter)
 
         fun setFloatingHintText(text: String)

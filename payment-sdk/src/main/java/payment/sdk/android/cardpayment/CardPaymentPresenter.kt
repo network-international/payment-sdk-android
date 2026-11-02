@@ -265,7 +265,7 @@ internal class CardPaymentPresenter(
                 success = { isEligible, plans ->
                     if (isEligible) {
                         interactions.launchVisaInstalment(
-                            installmentPlans = InstallmentPlan.fromVisaPlans(plans, orderAmount),
+                            installmentPlans = InstallmentPlan.fromVisaPlans(plans, orderAmount, view.isLayoutLTR),
                             cardNumber = view.cardNumber.rawTxt
                         )
                     } else {

@@ -9,8 +9,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.content.ContextCompat
-import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
 import payment.sdk.android.SDKConfig
 import payment.sdk.android.cardpayment.card.SpacingPatterns
 import payment.sdk.android.cardpayment.validation.Luhn
@@ -65,6 +63,8 @@ internal class CardPaymentView constructor(
 
     override val cardNumber: CardPaymentContract.StatefulInput get() = numberInput
     override val expireDate: CardPaymentContract.StatefulInput get() = expiryInput
+    override val isLayoutLTR: Boolean
+        get() = context.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_LTR
     override val cvv: CardPaymentContract.StatefulInput get() = cvvInput
     override val cardHolder: CardPaymentContract.StatefulInput get() = holderInput
 
@@ -125,8 +125,7 @@ internal class CardPaymentView constructor(
 
     private fun payButtonTitle(): CharSequence {
         val amount = if (SDKConfig.showOrderAmount) {
-            val isLTR = TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-            runCatching { presenter.getOrderInfo().formattedCurrencyString(isLTR) }.getOrElse { "" }
+            runCatching { presenter.getOrderInfo().formattedCurrencyString(isLayoutLTR) }.getOrElse { "" }
         } else ""
         // "Pay 10.0 SAR": the currency code is drawn as its symbol, in the button's text colour.
         return CurrencySymbols.replace(context, context.getString(R.string.pay_button_title, amount).trim(),

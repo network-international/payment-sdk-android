@@ -16,6 +16,13 @@ internal object CurrencySymbols {
 
     class Symbol(val drawable: Int, val aspectRatio: Float)
 
+    /**
+     * Left-to-right mark placed on both sides of a symbol. Text layout treats an image span as a
+     * direction-neutral object, so in Arabic it would join the word before it ("إدفع ⃁ 450.0" read
+     * right to left); the marks keep it with the amount, as the Latin code "SAR" was.
+     */
+    const val LTR_MARK = "\u200E"
+
     val symbols = mapOf(
         "AED" to Symbol(R.drawable.ic_aed_symbol, 330f / 288f),
         "SAR" to Symbol(R.drawable.btn_riyal, 1124.1f / 1256.4f),
@@ -55,10 +62,12 @@ internal object CurrencySymbols {
             val height = (textSizePx * 0.75f).toInt()
             drawable.setBounds(0, 0, (height * symbol.aspectRatio).toInt(), height)
             drawable.setTint(color)
+            builder.append(LTR_MARK)
             val start = builder.length
             builder.append(code)
             builder.setSpan(ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BASELINE), start, builder.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            builder.append(LTR_MARK)
         }
         return builder
     }
