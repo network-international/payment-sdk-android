@@ -1,6 +1,7 @@
 package payment.sdk.android.partialAuth.view
 
-import android.view.View
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.text.TextUtilsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import payment.sdk.android.cardpayment.CardPaymentData
 import payment.sdk.android.partialAuth.PartialAuthViewModel
@@ -44,7 +44,6 @@ import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.sdk.R
-import java.util.Locale
 
 @Composable
 fun PartialAuthView(
@@ -59,7 +58,7 @@ fun PartialAuthView(
         }
     }
     val isLTR =
-        TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_LTR
+        LocalLayoutDirection.current == LayoutDirection.Ltr
 
     var isLoading by remember { mutableStateOf(false) }
 

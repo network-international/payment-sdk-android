@@ -10,7 +10,7 @@
     <string name="cancel_button">إلغا</string>
 
     <!-- Button used to complete the payment. -->
-    <string name="pay_button_title">%1s إدفع</string>
+    <string name="pay_button_title">إدفع %1s</string>
 
     <!-- Title name in payment page -->
     <string name="make_payment">الدفع</string>

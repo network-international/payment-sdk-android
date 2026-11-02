@@ -1,8 +1,6 @@
 package payment.sdk.android.visaInstalments.model
 
 import android.os.Parcelable
-import androidx.core.text.TextUtilsCompat
-import androidx.core.view.ViewCompat
 import kotlinx.parcelize.Parcelize
 import payment.sdk.android.core.OrderAmount
 import payment.sdk.android.core.TermsAndCondition
@@ -24,9 +22,8 @@ data class InstallmentPlan(
     val termsExpanded: Boolean = false
 ) : Parcelable {
     companion object {
-        fun fromVisaPlans(visaPlans: VisaPlans, orderAmount: OrderAmount): List<InstallmentPlan> {
-            val isLTR =
-                TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+        /** [isLTR]: the layout direction of the screen showing the plans, which follows the SDK language. */
+        fun fromVisaPlans(visaPlans: VisaPlans, orderAmount: OrderAmount, isLTR: Boolean): List<InstallmentPlan> {
             val remotePlans = visaPlans.matchedPlans.map { matchedPlans ->
                 val terms = matchedPlans.termsAndConditions
                     .firstOrNull { it.languageCode == Locale.getDefault().isO3Language }

@@ -47,7 +47,13 @@ fun CurrencyAmountText(
     val annotated = remember(text) {
         buildAnnotatedString {
             CurrencySymbols.split(text).forEach { (part, code) ->
-                if (code == null) append(part) else appendInlineContent(code, code)
+                if (code == null) {
+                    append(part)
+                } else {
+                    append(CurrencySymbols.LTR_MARK)
+                    appendInlineContent(code, code)
+                    append(CurrencySymbols.LTR_MARK)
+                }
             }
         }
     }
