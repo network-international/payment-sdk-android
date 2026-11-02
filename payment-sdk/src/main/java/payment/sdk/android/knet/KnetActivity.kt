@@ -168,6 +168,7 @@ class KnetActivity : AppCompatActivity() {
                 args.knetUrl
             } else {
                 val state = order.embedded?.payment?.firstOrNull()?.state.orEmpty().uppercase()
+                Log.d(TAG, "starting KNET, order state=$state, knet link=${order.getKnetUrl() != null}")
                 when {
                     state in TERMINAL_SUCCESS_STATES -> {
                         Log.d(TAG, "order already paid (state=$state); not starting another attempt")
@@ -256,6 +257,14 @@ class KnetActivity : AppCompatActivity() {
 
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
+            // KNET's cancel page is a dead end: it shows "Payment Page validation failed due to
+            // invalid Order Status: CANCELED" and never redirects back. Once it has loaded KNET has
+            // recorded the cancel, so the payer goes straight back to the payment page — the cover
+            // raised in onPageStarted keeps that page from ever showing.
+            if (payerCancelled) {
+                resolveAfterLeavingKnet()
+                return
+            }
             if (sawReturnCallback || hasLeftKnet(url)) {
                 resolveAfterLeavingKnet()
                 return
