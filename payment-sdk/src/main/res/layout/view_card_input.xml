@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="48dp"
     android:layout_marginTop="8dp"
-    android:background="@color/white"
+    android:background="@color/payment_sdk_page_background_color"
     tools:showIn="@layout/view_bottom_sheet">
 
     <payment.sdk.android.cardpayment.widget.NumericMaskedEditText

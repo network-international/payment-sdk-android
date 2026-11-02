@@ -33,6 +33,7 @@ import payment.sdk.android.aaniPay.model.AaniPayVMState
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.sdk.R
 
 class AaniPayActivity : AppCompatActivity() {
@@ -67,75 +68,77 @@ class AaniPayActivity : AppCompatActivity() {
         }
 
         setContent {
-            val state by viewModel.state.collectAsState()
+            SDKTheme {
+                val state by viewModel.state.collectAsState()
 
-            Scaffold(topBar = {
-                TopAppBar(
-                    modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
-                    title = {
-                    Text(
-                        text = stringResource(R.string.aani),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                    )
-                },
-                    backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
-                    navigationIcon = {
-                        if (state !is AaniPayVMState.Pooling) {
-                            IconButton(onClick = { finishWithData(AaniPayLauncher.Result.Canceled) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
-                                    contentDescription = "Back"
+                Scaffold(topBar = {
+                    TopAppBar(
+                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
+                        title = {
+                        Text(
+                            text = stringResource(R.string.aani),
+                            color = colorResource(id = R.color.payment_sdk_toolbar_text_color)
+                        )
+                    },
+                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                        navigationIcon = {
+                            if (state !is AaniPayVMState.Pooling) {
+                                IconButton(onClick = { finishWithData(AaniPayLauncher.Result.Canceled) }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                        contentDescription = "Back"
+                                    )
+                                }
+                            }
+                        })
+                }) { contentPadding ->
+                    Column(
+                        modifier = Modifier
+                            .padding(contentPadding)
+                            .screenContentInsets()
+                    ) {
+                        when (state) {
+                            is AaniPayVMState.Init -> {
+                                AaniPayScreen { alias, value ->
+                                    viewModel.onSubmit(
+                                        args = args,
+                                        alias = alias,
+                                        value = value,
+                                        accessToken = args.accessToken,
+                                        payerIp = args.payerIp
+                                    )
+                                }
+                            }
+
+                            is AaniPayVMState.Error -> {
+                                finishWithData(AaniPayLauncher.Result.Failed((state as AaniPayVMState.Error).message))
+                            }
+
+                            is AaniPayVMState.Pooling -> {
+                                AaniPayTimerScreen(
+                                    (state as AaniPayVMState.Pooling).amount,
+                                    (state as AaniPayVMState.Pooling).currencyCode
                                 )
+                                try {
+                                    startActivity(Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse((state as AaniPayVMState.Pooling).deepLink)
+                                    ).apply {
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    })
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
-                        }
-                    })
-            }) { contentPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .screenContentInsets()
-                ) {
-                    when (state) {
-                        is AaniPayVMState.Init -> {
-                            AaniPayScreen { alias, value ->
-                                viewModel.onSubmit(
-                                    args = args,
-                                    alias = alias,
-                                    value = value,
-                                    accessToken = args.accessToken,
-                                    payerIp = args.payerIp
-                                )
+
+                            is AaniPayVMState.Loading -> {
+                                CircularProgressDialog((state as AaniPayVMState.Loading).message)
                             }
-                        }
 
-                        is AaniPayVMState.Error -> {
-                            finishWithData(AaniPayLauncher.Result.Failed((state as AaniPayVMState.Error).message))
-                        }
-
-                        is AaniPayVMState.Pooling -> {
-                            AaniPayTimerScreen(
-                                (state as AaniPayVMState.Pooling).amount,
-                                (state as AaniPayVMState.Pooling).currencyCode
-                            )
-                            try {
-                                startActivity(Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse((state as AaniPayVMState.Pooling).deepLink)
-                                ).apply {
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                })
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                            AaniPayVMState.Success -> {
+                                finishWithData(AaniPayLauncher.Result.Success)
                             }
-                        }
-
-                        is AaniPayVMState.Loading -> {
-                            CircularProgressDialog((state as AaniPayVMState.Loading).message)
-                        }
-
-                        AaniPayVMState.Success -> {
-                            finishWithData(AaniPayLauncher.Result.Success)
                         }
                     }
                 }

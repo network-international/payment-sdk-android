@@ -18,7 +18,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -64,7 +63,7 @@ fun CircularProgressDialog(message: LoadingMessage) {
                     .widthIn(max = 400.dp)
                     .fillMaxWidth()
                     .height(80.dp)
-                    .background(Color.White),
+                    .background(colorResource(id = R.color.payment_sdk_surface_color)),
                 elevation = 16.dp,
                 shape = RoundedCornerShape(4.dp)
             ) {
@@ -76,7 +75,7 @@ fun CircularProgressDialog(message: LoadingMessage) {
                     Spacer(modifier = Modifier.width(16.dp))
                     CircularProgressIndicator(color = colorResource(id = R.color.payment_sdk_progress_loader_color))
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(text = messageText, color = Color.Gray)
+                    Text(text = messageText, color = colorResource(id = R.color.payment_sdk_secondary_label_color))
                 }
             }
         }

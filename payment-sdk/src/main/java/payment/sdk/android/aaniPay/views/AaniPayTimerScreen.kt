@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.TextUtilsCompat
 import kotlinx.coroutines.delay
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.sdk.R
 import java.util.Locale
 
@@ -63,7 +63,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
+        CurrencyAmountText(
             text = stringResource(R.string.aani_paying_amount, amount),
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
@@ -100,7 +100,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
             style = TextStyle(
                 fontWeight = FontWeight.W400,
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = colorResource(id = R.color.payment_sdk_secondary_label_color),
                 textAlign = TextAlign.Center
             )
         )
@@ -110,7 +110,7 @@ internal fun TimerView(modifier: Modifier, minutes: Int, seconds: Int, amount: S
 @Preview
 @Composable
 fun TimerViewPreview() {
-    Box(modifier = Modifier.background(Color.White)) {
+    Box(modifier = Modifier.background(colorResource(id = R.color.payment_sdk_surface_color))) {
         TimerView(Modifier, 6, 0, "AED 100")
     }
 }

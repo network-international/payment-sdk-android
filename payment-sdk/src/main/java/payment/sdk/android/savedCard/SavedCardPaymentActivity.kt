@@ -38,6 +38,7 @@ import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
 import payment.sdk.android.payments.PaymentsResult
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.savedCard.model.SavedCardPaymentState
 import payment.sdk.android.savedCard.model.SavedCardPaymentsVMEffects
 import payment.sdk.android.savedCard.view.SavedCardPaymentView
@@ -72,98 +73,100 @@ class SavedCardPaymentActivity : ComponentActivity() {
         initEffects()
 
         setContent {
-            val state by viewModel.state.collectAsState()
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
-                        title = {
-                            Text(
-                                text = stringResource(id = R.string.make_payment),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                            )
-                        },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                if (SDKConfig.showCancelAlert) {
-                                    showDialog()
-                                } else {
-                                    setResult(RESULT_CANCELED, Intent())
-                                    finish()
+            SDKTheme {
+                val state by viewModel.state.collectAsState()
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
+                            title = {
+                                Text(
+                                    text = stringResource(id = R.string.make_payment),
+                                    color = colorResource(id = R.color.payment_sdk_toolbar_text_color)
+                                )
+                            },
+                            backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                            navigationIcon = {
+                                IconButton(onClick = {
+                                    if (SDKConfig.showCancelAlert) {
+                                        showDialog()
+                                    } else {
+                                        setResult(RESULT_CANCELED, Intent())
+                                        finish()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                        contentDescription = "Back"
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
-                                    contentDescription = "Back"
+                            }
+                        )
+                    },
+                ) { contentPadding ->
+                    when (state) {
+                        is SavedCardPaymentState.CaptureCvv -> {
+                            val capturedState = (state as SavedCardPaymentState.CaptureCvv)
+                            SavedCardPaymentView(
+                                modifier = Modifier
+                                    .padding(contentPadding)
+                                    .screenContentInsets(),
+                                savedCard = capturedState.savedCardPaymentRequest.savedCard,
+                                orderAmount = capturedState.orderAmount
+                            ) { cvv ->
+                                viewModel.doSavedCardPayment(
+                                    orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
+                                    paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie,
+                                    visaPlans = (state as SavedCardPaymentState.CaptureCvv).visaPlans,
+                                    orderAmount = capturedState.orderAmount,
+                                    savedCardPaymentRequest = capturedState.savedCardPaymentRequest.copy(
+                                        cvv = cvv
+                                    )
                                 )
                             }
                         }
-                    )
-                },
-            ) { contentPadding ->
-                when (state) {
-                    is SavedCardPaymentState.CaptureCvv -> {
-                        val capturedState = (state as SavedCardPaymentState.CaptureCvv)
-                        SavedCardPaymentView(
-                            modifier = Modifier
-                                .padding(contentPadding)
-                                .screenContentInsets(),
-                            savedCard = capturedState.savedCardPaymentRequest.savedCard,
-                            orderAmount = capturedState.orderAmount
-                        ) { cvv ->
-                            viewModel.doSavedCardPayment(
-                                orderUrl = (state as SavedCardPaymentState.CaptureCvv).orderUrl,
-                                paymentCookie = (state as SavedCardPaymentState.CaptureCvv).paymentCookie,
-                                visaPlans = (state as SavedCardPaymentState.CaptureCvv).visaPlans,
-                                orderAmount = capturedState.orderAmount,
-                                savedCardPaymentRequest = capturedState.savedCardPaymentRequest.copy(
-                                    cvv = cvv
+
+                        SavedCardPaymentState.Init -> viewModel.authorize(
+                            payPageUrl = inputArgs.paymentUrl,
+                            authorizationUrl = inputArgs.authorizationUrl,
+                            cvv = inputArgs.cvv
+                        )
+
+                        is SavedCardPaymentState.InitiatePartialAuth -> {
+                            val partialAuthState = (state as SavedCardPaymentState.InitiatePartialAuth)
+                            PartialAuthView(
+                                modifier = Modifier
+                                    .padding(contentPadding)
+                                    .screenContentInsets(),
+                                args = PartialAuthActivityArgs.getArgs(
+                                    partialAuthState.partialAuthIntent
                                 )
-                            )
+                            ) { result ->
+                                finishWithData(result, result.getCardPaymentsState())
+                            }
                         }
-                    }
 
-                    SavedCardPaymentState.Init -> viewModel.authorize(
-                        payPageUrl = inputArgs.paymentUrl,
-                        authorizationUrl = inputArgs.authorizationUrl,
-                        cvv = inputArgs.cvv
-                    )
-
-                    is SavedCardPaymentState.InitiatePartialAuth -> {
-                        val partialAuthState = (state as SavedCardPaymentState.InitiatePartialAuth)
-                        PartialAuthView(
-                            modifier = Modifier
-                                .padding(contentPadding)
-                                .screenContentInsets(),
-                            args = PartialAuthActivityArgs.getArgs(
-                                partialAuthState.partialAuthIntent
-                            )
-                        ) { result ->
-                            finishWithData(result, result.getCardPaymentsState())
-                        }
-                    }
-
-                    is SavedCardPaymentState.Loading -> CircularProgressDialog((state as SavedCardPaymentState.Loading).message)
-                    is SavedCardPaymentState.ShowVisaPlans -> {
-                        val response = (state as SavedCardPaymentState.ShowVisaPlans)
-                        VisaInstalmentsView(
-                            modifier = Modifier
-                                .padding(contentPadding)
-                                .screenContentInsets(),
-                            instalmentPlans = InstallmentPlan.fromVisaPlans(
-                                response.visaPlans,
-                                response.orderAmount
-                            ),
-                            cardNumber = response.cardNumber
-                        ) { plan ->
-                            viewModel.initiateVisPayment(
-                                plan,
-                                response.savedCardPaymentRequest,
-                                response.orderUrl,
-                                response.paymentCookie
-                            )
+                        is SavedCardPaymentState.Loading -> CircularProgressDialog((state as SavedCardPaymentState.Loading).message)
+                        is SavedCardPaymentState.ShowVisaPlans -> {
+                            val response = (state as SavedCardPaymentState.ShowVisaPlans)
+                            VisaInstalmentsView(
+                                modifier = Modifier
+                                    .padding(contentPadding)
+                                    .screenContentInsets(),
+                                instalmentPlans = InstallmentPlan.fromVisaPlans(
+                                    response.visaPlans,
+                                    response.orderAmount
+                                ),
+                                cardNumber = response.cardNumber
+                            ) { plan ->
+                                viewModel.initiateVisPayment(
+                                    plan,
+                                    response.savedCardPaymentRequest,
+                                    response.orderUrl,
+                                    response.paymentCookie
+                                )
+                            }
                         }
                     }
                 }

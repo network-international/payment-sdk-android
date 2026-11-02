@@ -44,6 +44,7 @@ import payment.sdk.android.common.screenContentInsets
 import payment.sdk.android.common.topAppBarInsets
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
+import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_REQUEST_KEY
 import payment.sdk.android.savedCard.SavedCardPaymentActivity.Companion.THREE_D_SECURE_TWO_REQUEST_KEY
 import payment.sdk.android.cardpayment.threedsecure.ThreeDSecureWebViewActivity
@@ -134,129 +135,131 @@ class PaymentsActivity : AppCompatActivity() {
         }
         initEffects()
         setContent {
-            val state by viewModel.uiState.collectAsState()
-            val isProcessing by viewModel.isProcessing.collectAsState()
-            Scaffold(
-                backgroundColor = Color(0xFFD6D6D6),
-                topBar = {
-                    TopAppBar(
-                        modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
-                        title = {
-                            Text(
-                                text = stringResource(id = state.title),
-                                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                            )
-                        },
-                        backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
-                        navigationIcon = {
-                            if (state.enableBackButton) {
-                                IconButton(onClick = {
-                                    finishWithData(PaymentsResult.Cancelled)
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
-                                        contentDescription = "Back"
-                                    )
+            SDKTheme {
+                val state by viewModel.uiState.collectAsState()
+                val isProcessing by viewModel.isProcessing.collectAsState()
+                Scaffold(
+                    backgroundColor = colorResource(id = R.color.payment_sdk_screen_background_color),
+                    topBar = {
+                        TopAppBar(
+                            modifier = Modifier.topAppBarInsets(colorResource(id = R.color.payment_sdk_toolbar_color)),
+                            title = {
+                                Text(
+                                    text = stringResource(id = state.title),
+                                    color = colorResource(id = R.color.payment_sdk_toolbar_text_color)
+                                )
+                            },
+                            backgroundColor = colorResource(id = R.color.payment_sdk_toolbar_color),
+                            navigationIcon = {
+                                if (state.enableBackButton) {
+                                    IconButton(onClick = {
+                                        finishWithData(PaymentsResult.Cancelled)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            tint = colorResource(id = R.color.payment_sdk_toolbar_icon_color),
+                                            contentDescription = "Back"
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    )
-                },
-            ) { contentPadding ->
-                when (state) {
-                    is PaymentsVMUiState.Authorized -> {
-                        val authState = (state as PaymentsVMUiState.Authorized)
-                        PaymentsScreen(
-                            modifier = Modifier
-                                .padding(contentPadding)
-                                .screenContentInsets(),
-                            supportedCards = authState.supportedCards.toMutableSet().apply {
-                                add(CardType.Visa)
-                            },
-                            googlePayUiConfig = authState.googlePayUiConfig,
-                            onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
-                                viewModel.makeCardPayment(
-                                    selfUrl = authState.selfUrl,
-                                    cardPaymentUrl = authState.cardPaymentUrl,
-                                    accessToken = authState.accessToken,
-                                    paymentCookie = authState.paymentCookie,
-                                    cardNumber = cardNumber,
-                                    expiry = expiry,
-                                    cvv = cvv,
-                                    cardholderName = cardholderName,
-                                    orderUrl = authState.orderUrl,
-                                    amount = authState.amount,
-                                    currencyCode = authState.currencyCode,
-                                    payerIp = authState.payerIp
-                                )
-                            },
-                            formattedAmount = authState.orderAmount,
-                            showWallets = authState.showWallets,
-                            onGooglePay = {
-                                viewModel.startGooglePayProcess()
-                                authState.googlePayUiConfig?.task?.addOnCompleteListener(
-                                    paymentDataLauncher::launch
-                                )
-                            },
-                            aaniConfig = authState.aaniConfig,
-                            isProcessing = isProcessing,
-                            onClickAaniPay = { config ->
-                                aaniPayLauncher.launch(config)
-                            }
                         )
-                    }
-
-                    PaymentsVMUiState.Init -> {
-                        viewModel.authorize()
-                    }
-
-                    is PaymentsVMUiState.Loading -> {
-                        CircularProgressDialog((state as PaymentsVMUiState.Loading).message)
-                    }
-
-                    is PaymentsVMUiState.ShowVisaPlans -> {
-                        val visState = (state as PaymentsVMUiState.ShowVisaPlans)
-                        VisaInstalmentsView(
-                            instalmentPlans = InstallmentPlan.fromVisaPlans(
-                                visState.visaPlans,
-                                visState.orderAmount
-                            ),
-                            cardNumber = visState.makeCardPaymentRequest.pan
-                        ) { plan ->
-                            viewModel.makeVisPayment(
-                                makeCardPaymentRequest = visState.makeCardPaymentRequest,
-                                selectedPlan = plan,
-                                orderUrl = visState.orderUrl
+                    },
+                ) { contentPadding ->
+                    when (state) {
+                        is PaymentsVMUiState.Authorized -> {
+                            val authState = (state as PaymentsVMUiState.Authorized)
+                            PaymentsScreen(
+                                modifier = Modifier
+                                    .padding(contentPadding)
+                                    .screenContentInsets(),
+                                supportedCards = authState.supportedCards.toMutableSet().apply {
+                                    add(CardType.Visa)
+                                },
+                                googlePayUiConfig = authState.googlePayUiConfig,
+                                onMakePayment = { cardNumber, expiry, cvv, cardholderName ->
+                                    viewModel.makeCardPayment(
+                                        selfUrl = authState.selfUrl,
+                                        cardPaymentUrl = authState.cardPaymentUrl,
+                                        accessToken = authState.accessToken,
+                                        paymentCookie = authState.paymentCookie,
+                                        cardNumber = cardNumber,
+                                        expiry = expiry,
+                                        cvv = cvv,
+                                        cardholderName = cardholderName,
+                                        orderUrl = authState.orderUrl,
+                                        amount = authState.amount,
+                                        currencyCode = authState.currencyCode,
+                                        payerIp = authState.payerIp
+                                    )
+                                },
+                                formattedAmount = authState.orderAmount,
+                                showWallets = authState.showWallets,
+                                onGooglePay = {
+                                    viewModel.startGooglePayProcess()
+                                    authState.googlePayUiConfig?.task?.addOnCompleteListener(
+                                        paymentDataLauncher::launch
+                                    )
+                                },
+                                aaniConfig = authState.aaniConfig,
+                                isProcessing = isProcessing,
+                                onClickAaniPay = { config ->
+                                    aaniPayLauncher.launch(config)
+                                }
                             )
                         }
-                    }
 
-                    is PaymentsVMUiState.InitiatePartialAuth -> {
-                        val partialAuthState = (state as PaymentsVMUiState.InitiatePartialAuth)
-                        PartialAuthView(
-                            args = PartialAuthActivityArgs.getArgs(
-                                partialAuthState.partialAuthIntent
-                            )
-                        ) { result ->
-                            finishWithData(result.getCardPaymentsState())
+                        PaymentsVMUiState.Init -> {
+                            viewModel.authorize()
+                        }
+
+                        is PaymentsVMUiState.Loading -> {
+                            CircularProgressDialog((state as PaymentsVMUiState.Loading).message)
+                        }
+
+                        is PaymentsVMUiState.ShowVisaPlans -> {
+                            val visState = (state as PaymentsVMUiState.ShowVisaPlans)
+                            VisaInstalmentsView(
+                                instalmentPlans = InstallmentPlan.fromVisaPlans(
+                                    visState.visaPlans,
+                                    visState.orderAmount
+                                ),
+                                cardNumber = visState.makeCardPaymentRequest.pan
+                            ) { plan ->
+                                viewModel.makeVisPayment(
+                                    makeCardPaymentRequest = visState.makeCardPaymentRequest,
+                                    selectedPlan = plan,
+                                    orderUrl = visState.orderUrl
+                                )
+                            }
+                        }
+
+                        is PaymentsVMUiState.InitiatePartialAuth -> {
+                            val partialAuthState = (state as PaymentsVMUiState.InitiatePartialAuth)
+                            PartialAuthView(
+                                args = PartialAuthActivityArgs.getArgs(
+                                    partialAuthState.partialAuthIntent
+                                )
+                            ) { result ->
+                                finishWithData(result.getCardPaymentsState())
+                            }
                         }
                     }
                 }
-            }
 
-            if (isProcessing) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {}
-                        .background(Color.Black.copy(alpha = 0.3f)), // Increased alpha for better visual "disabled" look
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressDialog(message = LoadingMessage.PAYMENT)
+                if (isProcessing) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {}
+                            .background(Color.Black.copy(alpha = 0.3f)), // Increased alpha for better visual "disabled" look
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressDialog(message = LoadingMessage.PAYMENT)
+                    }
                 }
             }
         }

@@ -27,8 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -55,7 +55,7 @@ internal fun AaniPayScreen(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
-            .background(Color.White),
+            .background(colorResource(id = R.color.payment_sdk_surface_color)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -86,7 +86,7 @@ internal fun AaniPayScreen(
         Row(
             verticalAlignment = Alignment.Bottom,
             modifier = Modifier
-                .background(Color.White)
+                .background(colorResource(id = R.color.payment_sdk_surface_color))
                 .fillMaxWidth(),
         ) {
             if (selectedInputType == AaniIDType.MOBILE_NUMBER) {
@@ -100,7 +100,7 @@ internal fun AaniPayScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(focusRequester)
-                    .background(Color.White),
+                    .background(colorResource(id = R.color.payment_sdk_surface_color)),
                 onValueChange = { text ->
                     if (selectedInputType.length >= text.length) {
                         inputValue =

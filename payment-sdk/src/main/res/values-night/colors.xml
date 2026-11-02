@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark-mode defaults. Only internal names live here: see values/colors.xml. -->
+<resources>
+    <color name="payment_sdk_default_label_color">#FFFFFF</color>
+    <color name="payment_sdk_default_page_background_color">#000000</color>
+    <color name="payment_sdk_default_placeholder_color">#98989F</color>
+    <color name="payment_sdk_default_divider_color">#38383A</color>
+    <color name="payment_sdk_card_title_bar_color">#1C1C1E</color>
+    <color name="payment_sdk_card_title_button_color">#0A84FF</color>
+
+    <color name="payment_sdk_secondary_label_color">#98989F</color>
+    <color name="payment_sdk_surface_color">#1C1C1E</color>
+    <color name="payment_sdk_screen_background_color">#000000</color>
+    <color name="payment_sdk_field_background_color">#2C2C2E</color>
+    <color name="payment_sdk_loader_background_color">#2C2C2E</color>
+    <color name="payment_sdk_disabled_color">#48484A</color>
+    <color name="payment_sdk_border_color">#636366</color>
+    <color name="payment_sdk_scrim_color">#80000000</color>
+    <color name="payment_sdk_accent_color">#7B8CFF</color>
+    <color name="payment_sdk_selected_background_color">#1A2340</color>
+    <color name="payment_sdk_heading_color">#A9C1FF</color>
+    <color name="payment_sdk_success_color">#5FBF8C</color>
+</resources>

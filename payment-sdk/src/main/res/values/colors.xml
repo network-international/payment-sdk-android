@@ -9,9 +9,9 @@
     <color name="blue">#4885ED</color>
     <color name="dark_blue">#315A9F</color>
     <color name="progress_green">#3A8377</color>
-    <color name="payment_sdk_toolbar_color">#000000</color>
-    <color name="payment_sdk_toolbar_text_color">#FFFFFF</color>
-    <color name="payment_sdk_toolbar_icon_color">#FFFFFF</color>
+    <color name="payment_sdk_toolbar_color">@color/payment_sdk_default_toolbar_color</color>
+    <color name="payment_sdk_toolbar_text_color">@color/payment_sdk_default_toolbar_text_color</color>
+    <color name="payment_sdk_toolbar_icon_color">@color/payment_sdk_default_toolbar_icon_color</color>
 
     <color name="payment_sdk_pay_button_background_color">#4885ED</color>
     <color name="payment_sdk_pay_button_text_color">#FFFFFF</color>
@@ -20,15 +20,46 @@
     <color name="payment_sdk_card_end_color">#020202</color>
     <color name="payment_sdk_card_start_color">#43474A</color>
 
-    <color name="payment_sdk_floating_hint_color">#000000</color>
+    <color name="payment_sdk_floating_hint_color">@color/payment_sdk_default_label_color</color>
     <color name="payment_sdk_progress_loader_color">@color/progress_green</color>
 
     <!-- Matching the iOS NISdkColors options. Defaults keep the existing look. -->
     <color name="payment_sdk_pay_button_text_color_highlighted">#99FFFFFF</color>
     <color name="payment_sdk_card_text_color">#FFFFFF</color>
-    <color name="payment_sdk_page_background_color">#FFFFFF</color>
+    <color name="payment_sdk_page_background_color">@color/payment_sdk_default_page_background_color</color>
     <!-- Transparent means "not set": typed text then uses the label colour, as on iOS. -->
     <color name="payment_sdk_text_field_text_color">#00000000</color>
-    <color name="payment_sdk_text_field_placeholder_color">#808080</color>
-    <color name="payment_sdk_divider_color">#DBDBDC</color>
+    <color name="payment_sdk_text_field_placeholder_color">@color/payment_sdk_default_placeholder_color</color>
+    <color name="payment_sdk_divider_color">@color/payment_sdk_default_divider_color</color>
+    <!-- Pay button while disabled. Transparent means "not set": the button keeps its previous look. -->
+    <color name="payment_sdk_pay_button_disabled_background_color">#00000000</color>
+    <color name="payment_sdk_pay_button_disabled_text_color">#00000000</color>
+
+    <!-- Light/dark defaults behind the options above; values-night holds the dark ones.
+         The public payment_sdk_* names only point here and have no night variant, so a
+         merchant who overrides one keeps that colour in dark mode too. -->
+    <color name="payment_sdk_default_label_color">#000000</color>
+    <color name="payment_sdk_default_page_background_color">#FFFFFF</color>
+    <color name="payment_sdk_default_placeholder_color">#808080</color>
+    <color name="payment_sdk_default_divider_color">#DBDBDC</color>
+    <color name="payment_sdk_default_toolbar_color">#000000</color>
+    <color name="payment_sdk_default_toolbar_text_color">#FFFFFF</color>
+    <color name="payment_sdk_default_toolbar_icon_color">#FFFFFF</color>
+    <!-- Card screen title bar when the app has not set payment_sdk_toolbar_*: the iOS look. -->
+    <color name="payment_sdk_card_title_bar_color">#FFFFFF</color>
+    <color name="payment_sdk_card_title_button_color">#007AFF</color>
+
+    <!-- SDK surfaces that are not merchant options. Light values are the previous hard-coded ones. -->
+    <color name="payment_sdk_secondary_label_color">#888888</color>
+    <color name="payment_sdk_surface_color">#FFFFFF</color>
+    <color name="payment_sdk_screen_background_color">#D6D6D6</color>
+    <color name="payment_sdk_field_background_color">#F1F1F1</color>
+    <color name="payment_sdk_loader_background_color">#F2F2F2</color>
+    <color name="payment_sdk_disabled_color">#888888</color>
+    <color name="payment_sdk_border_color">#888888</color>
+    <color name="payment_sdk_scrim_color">#4D000000</color>
+    <color name="payment_sdk_accent_color">#1D33C3</color>
+    <color name="payment_sdk_selected_background_color">#F0F4FE</color>
+    <color name="payment_sdk_heading_color">#00235D</color>
+    <color name="payment_sdk_success_color">#33845C</color>
 </resources>

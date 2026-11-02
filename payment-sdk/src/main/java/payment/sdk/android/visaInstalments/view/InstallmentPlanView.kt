@@ -13,7 +13,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.visaInstalments.model.InstallmentPlan
 import payment.sdk.android.visaInstalments.model.PlanFrequency
 import payment.sdk.android.payments.theme.SDKTheme
@@ -38,17 +39,17 @@ fun InstalmentPlanView(
     val isTermsExpanded = selectedPlan?.termsExpanded ?: false
     Card(
         modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        border = BorderStroke(1.dp, if (isSelected) Color(0xFF1D33C3) else Color(0xFF808080)),
+        border = BorderStroke(1.dp, if (isSelected) colorResource(id = R.color.payment_sdk_accent_color) else colorResource(id = R.color.payment_sdk_border_color)),
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
             modifier = Modifier
-                .background(Color.White)
+                .background(colorResource(id = R.color.payment_sdk_surface_color))
                 .fillMaxWidth()
         ) {
             Box(
                 modifier = Modifier
-                    .background(if (isSelected) Color(0xFFF0F4FE) else Color.White)
+                    .background(if (isSelected) colorResource(id = R.color.payment_sdk_selected_background_color) else colorResource(id = R.color.payment_sdk_surface_color))
                     .fillMaxWidth(),
             ) {
                 Column(
@@ -110,7 +111,7 @@ fun InstallmentFeeAndRateView(
         Column(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(
+            CurrencyAmountText(
                 text = stringResource(
                     id = R.string.visa_processing_fee,
                     totalUpFrontFees
@@ -130,7 +131,7 @@ fun InstallmentFeeAndRateView(
 @Composable
 fun InstallmentPlanAmount(frequency: PlanFrequency, amount: String) {
     if (frequency == PlanFrequency.PayInFull) {
-        Text(
+        CurrencyAmountText(
             modifier = Modifier.fillMaxWidth(),
             text = amount,
             style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 17.sp),
@@ -143,7 +144,7 @@ fun InstallmentPlanAmount(frequency: PlanFrequency, amount: String) {
             PlanFrequency.BI_MONTHLY -> R.string.visa_bi_weekly_instalment
             else -> -1
         }
-        Text(
+        CurrencyAmountText(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(
                 id = res, amount
@@ -162,7 +163,7 @@ fun InstalmentPlanHeader(frequency: PlanFrequency, numberOfInstallments: Int) {
             id = R.string.visa_pay_in_instalment, numberOfInstallments
         ).uppercase(),
         style = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = 18.sp),
-        color = Color(0xFF00235D)
+        color = colorResource(id = R.color.payment_sdk_heading_color)
     )
 }
 

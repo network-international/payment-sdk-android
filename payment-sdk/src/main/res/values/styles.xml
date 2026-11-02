@@ -2,7 +2,7 @@
 
     <style name="SdkTheme" />
 
-    <style name="SdkTheme.Translucent" parent="Theme.AppCompat.Light.Dialog">
+    <style name="SdkTheme.Translucent" parent="Theme.AppCompat.DayNight.Dialog">
         <item name="windowNoTitle">true</item>
         <item name="android:windowCloseOnTouchOutside">false</item>
         <item name="android:windowBackground">@drawable/bottom_sheet_background</item>
@@ -10,11 +10,11 @@
         <item name="colorAccent">@color/blue</item>
     </style>
 
-    <style name="OpaqueDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+    <style name="OpaqueDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
-    <style name="SdkTheme.ThreeDSecure" parent="Theme.AppCompat.Light.NoActionBar" >
+    <style name="SdkTheme.ThreeDSecure" parent="Theme.AppCompat.DayNight.NoActionBar" >
         <item name="colorAccent">@color/blue</item>
     </style>
 

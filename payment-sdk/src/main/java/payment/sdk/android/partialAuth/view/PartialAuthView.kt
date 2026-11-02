@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,6 +42,7 @@ import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.cardpayment.widget.CircularProgressDialog
 import payment.sdk.android.cardpayment.widget.LoadingMessage
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.sdk.R
 import java.util.Locale
 
@@ -65,7 +65,7 @@ fun PartialAuthView(
 
     Column(
         modifier = modifier
-            .background(Color.White)
+            .background(colorResource(id = R.color.payment_sdk_surface_color))
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -76,7 +76,7 @@ fun PartialAuthView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFD3d3d3))
+                .background(colorResource(id = R.color.payment_sdk_field_background_color))
         ) {
             Image(
                 modifier = Modifier
@@ -108,7 +108,7 @@ fun PartialAuthView(
                 fullAmount
             )
         }
-        Text(
+        CurrencyAmountText(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
             text = titleText,
             textAlign = TextAlign.Center,
@@ -137,7 +137,7 @@ fun PartialAuthView(
                 },
                 colors = ButtonDefaults.buttonColors(
                     backgroundColor = colorResource(id = R.color.payment_sdk_pay_button_background_color),
-                    contentColor = Color.White
+                    contentColor = colorResource(id = R.color.payment_sdk_pay_button_text_color)
                 )
             ) {
                 Text(stringResource(R.string.button_yes))
@@ -151,8 +151,8 @@ fun PartialAuthView(
                     viewModel.submitRequest(args.declineUrl, args.paymentCookie)
                 },
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.White,
-                    contentColor = Color.Black
+                    backgroundColor = colorResource(id = R.color.payment_sdk_surface_color),
+                    contentColor = colorResource(id = R.color.payment_sdk_default_label_color)
                 )
             ) {
                 Text(stringResource(R.string.cancel_alert))

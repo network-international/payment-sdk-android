@@ -21,7 +21,6 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.TextUtilsCompat
 import payment.sdk.android.payments.theme.SDKTheme
 import payment.sdk.android.core.OrderAmount
+import payment.sdk.android.payments.view.CurrencyAmountText
 import payment.sdk.android.sdk.R
 import java.util.Locale
 
@@ -46,7 +46,7 @@ internal fun SavedCardViewBottomBar(
             .bringIntoViewRequester(bringIntoViewRequester)
             .fillMaxWidth()
             .imePadding(),
-        backgroundColor = Color.White,
+        backgroundColor = colorResource(id = R.color.payment_sdk_surface_color),
         shape = RoundedCornerShape(
             topStart = 16.dp,
             topEnd = 16.dp
@@ -68,38 +68,13 @@ internal fun SavedCardViewBottomBar(
             },
             shape = RoundedCornerShape(percent = 15),
         ) {
-            if (!orderAmount.isRiyalCurrency()) {
-                Text(
-                    text = stringResource(
-                        id = R.string.pay_button_title,
-                        orderAmount.formattedCurrencyString2Decimal(isLTR)
-                    ),
-                    color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(R.string.pay_button),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Icon(
-                        painter = painterResource(id = R.drawable.btn_riyal),
-                        contentDescription = "Pay Icon",
-                        modifier = Modifier.size(14.dp),
-                        tint = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        text = orderAmount.getOrderValue(),
-                        color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
-                    )
-                }
-            }
+            CurrencyAmountText(
+                text = stringResource(
+                    id = R.string.pay_button_title,
+                    orderAmount.formattedCurrencyString2Decimal(isLTR)
+                ),
+                color = colorResource(id = R.color.payment_sdk_pay_button_text_color)
+            )
         }
     }
 }
