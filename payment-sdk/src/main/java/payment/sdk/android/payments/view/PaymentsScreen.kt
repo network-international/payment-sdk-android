@@ -79,6 +79,7 @@ import payment.sdk.android.cardpayment.theme.sdkColor
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.knet.KnetLauncher
 import payment.sdk.android.bnpl.BnplLauncher
 import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.CardMapping
@@ -122,6 +123,8 @@ fun UnifiedPaymentPageScreen(
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
     isBenefitUnavailable: Boolean = false,
+    knetConfig: KnetLauncher.Config? = null,
+    isKnetUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
     amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
@@ -141,6 +144,7 @@ fun UnifiedPaymentPageScreen(
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
     onClickQPay: (QPayLauncher.Config) -> Unit = {},
     onClickBenefit: (BenefitLauncher.Config) -> Unit = {},
+    onClickKnet: (KnetLauncher.Config) -> Unit = {},
     onClickBnpl: (BnplLauncher.Config) -> Unit = {},
     onClose: () -> Unit
 ) {
@@ -238,7 +242,7 @@ fun UnifiedPaymentPageScreen(
     val showAani = showWallets && aaniConfig != null
     val hasOtherOptions = showGooglePay || showSamsungPay || showAani ||
             clickToPayConfig != null || qpayConfig != null || benefitConfig != null ||
-            bnplConfigs.isNotEmpty()
+            knetConfig != null || bnplConfigs.isNotEmpty()
 
     val logoResId = if (SDKConfig.merchantLogoResId != 0) SDKConfig.merchantLogoResId
     else R.drawable.network_international_logo
@@ -318,6 +322,8 @@ fun UnifiedPaymentPageScreen(
                     qpayConfig = qpayConfig,
                     benefitConfig = benefitConfig,
                     isBenefitUnavailable = isBenefitUnavailable,
+                    knetConfig = knetConfig,
+                    isKnetUnavailable = isKnetUnavailable,
                     bnplConfigs = bnplConfigs,
                     unavailableBnplProviders = unavailableBnplProviders,
                     amountRefusedBnplProviders = amountRefusedBnplProviders,
@@ -398,7 +404,8 @@ fun UnifiedPaymentPageScreen(
                     onSamsungPay = onSamsungPay,
                     onClickAaniPay = onClickAaniPay,
                     onClickToPay = onClickToPay,
-                    onClickQPay = onClickQPay
+                    onClickQPay = onClickQPay,
+                    onClickKnet = onClickKnet
                 )
             }
         }
@@ -475,6 +482,8 @@ private fun PaymentSectionsContent(
     qpayConfig: QPayLauncher.Config? = null,
     benefitConfig: BenefitLauncher.Config? = null,
     isBenefitUnavailable: Boolean = false,
+    knetConfig: KnetLauncher.Config? = null,
+    isKnetUnavailable: Boolean = false,
     bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
     unavailableBnplProviders: Set<BnplProvider> = emptySet(),
     amountRefusedBnplProviders: Set<BnplProvider> = emptySet(),
@@ -512,7 +521,8 @@ private fun PaymentSectionsContent(
     onSamsungPay: () -> Unit,
     onClickAaniPay: (AaniPayLauncher.Config) -> Unit,
     onClickToPay: (ClickToPayLauncher.Config) -> Unit,
-    onClickQPay: (QPayLauncher.Config) -> Unit = {}
+    onClickQPay: (QPayLauncher.Config) -> Unit = {},
+    onClickKnet: (KnetLauncher.Config) -> Unit = {}
 ) {
     // ── Order summary ────────────────────────────────────────────────────────
     if (SDKConfig.showOrderAmount) {
@@ -528,6 +538,9 @@ private fun PaymentSectionsContent(
     // When QPay is enabled it takes the express slot at the very top, and the native
     // wallets (Google/Samsung Pay) drop below the card into the other-options group.
     val qpayExpress = qpayConfig != null
+    // KNET takes the same hero slot for Kuwait orders, as on the hosted paypage.
+    val knetExpress = knetConfig != null
+    val hasExpress = qpayExpress || knetExpress
 
     // ── QPay express button — above everything when enabled ───────────────────
     if (qpayConfig != null) {
@@ -537,8 +550,30 @@ private fun PaymentSectionsContent(
         TermsAgreementText(modifier = Modifier.padding(horizontal = Spacing.pageH))
     }
 
-    // ── Google Pay — first after order summary, unless QPay owns the top slot ──
-    if (showGooglePay && !qpayExpress) {
+    // ── KNET hero button — above everything when the order carries payment:knet ──
+    if (knetConfig != null) {
+        Spacer(Modifier.height(Spacing.sectionGap))
+        KnetExpressButton(
+            enabled = !isKnetUnavailable,
+            onClick = { onClickKnet(knetConfig) }
+        )
+        if (isKnetUnavailable) {
+            Spacer(Modifier.height(Spacing.rowGap))
+            Text(
+                text = stringResource(R.string.knet_unavailable),
+                style = PgType.bodyRowSubtitle,
+                color = PgColors.textSecondary,
+                modifier = Modifier
+                    .padding(horizontal = Spacing.pageH)
+                    .testId("sdk_paymentpage_label_knet_unavailable")
+            )
+        }
+        Spacer(Modifier.height(Spacing.rowGap))
+        TermsAgreementText(modifier = Modifier.padding(horizontal = Spacing.pageH))
+    }
+
+    // ── Google Pay — first after order summary, unless an express button owns the top slot ──
+    if (showGooglePay && !hasExpress) {
         Spacer(Modifier.height(Spacing.sectionGap))
         OtherPaymentOptionsSection(
             title = stringResource(R.string.pay_with_google_pay),
@@ -593,7 +628,7 @@ private fun PaymentSectionsContent(
 
     // ── Other payment options below the card ─────────────────────────────────
     //    With QPay express, Google Pay joins this group; QPay itself is the top button.
-    val belowGooglePay = showGooglePay && qpayExpress
+    val belowGooglePay = showGooglePay && hasExpress
     val hasRemainingOptions =
         belowGooglePay || showSamsungPay || showAani || clickToPayConfig != null ||
             benefitConfig != null || bnplConfigs.isNotEmpty() ||

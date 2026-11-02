@@ -78,6 +78,11 @@
             android:exported="false"
             android:theme="@style/SdkTheme.ThreeDSecure" />
         <activity
+            android:name="payment.sdk.android.knet.KnetActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/SdkTheme.ThreeDSecure" />
+        <activity
             android:name="payment.sdk.android.bnpl.BnplActivity"
             android:screenOrientation="portrait"
             android:exported="false"

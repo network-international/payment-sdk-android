@@ -72,3 +72,11 @@ data class BenefitInitErrorBody(
         }
     }
 }
+
+/**
+ * `POST .../knet` answers in exactly Benefit's shape — `paymentId`, `paymentUrl`,
+ * `status: "Initiated"` — and refuses with the same gateway envelope
+ * (`"Failed to encrypt KNET trandata" (invalidKnetPayment)`), so the types are shared.
+ */
+typealias KnetInitResponse = BenefitInitResponse
+typealias KnetInitErrorBody = BenefitInitErrorBody

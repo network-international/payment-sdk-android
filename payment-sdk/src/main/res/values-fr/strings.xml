@@ -91,6 +91,8 @@
     <string name="benefit">Payer avec Benefit</string>
     <string name="benefit_unavailable">Échec de la connexion à Benefit. Veuillez réessayer en choisissant un autre moyen de paiement.</string>
     <string name="benefit_payment_in_progress">Un paiement est en cours. Pour choisir un autre moyen de paiement, utilisez Annuler sur la page Benefit.</string>
+    <string name="knet">Payer avec KNET</string>
+    <string name="knet_unavailable">Échec de la connexion à KNET. Veuillez réessayer en choisissant un autre moyen de paiement.</string>
     <string name="pay_with_tamara">Payer avec Tamara</string>
     <string name="pay_with_tabby">Payer plus tard avec Tabby</string>
     <string name="tabby_description">Sans frais. Payez avec n\'importe quelle carte</string>

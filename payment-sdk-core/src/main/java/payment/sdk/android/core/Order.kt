@@ -126,6 +126,9 @@ class Order {
 
         @SerializedName(value = "payment:tabby")
         var tabby: Href? = null
+
+        @SerializedName(value = "payment:knet")
+        var knet: Href? = null
     }
 
     @Keep
@@ -205,6 +208,16 @@ fun Order.isBenefitSupported() =
     paymentMethods?.card?.any { it.equals("BENEFIT", ignoreCase = true) } == true &&
             action.equals("PURCHASE", ignoreCase = true) &&
             amount?.currencyCode.equals("BHD", ignoreCase = true)
+
+/** KNET initiation endpoint, `payment:knet`, exactly as the gateway hands it to the payment. */
+fun Order.getKnetUrl() = embedded?.payment?.firstOrNull()?.links?.knet?.href?.takeIf { it.isNotBlank() }
+
+/**
+ * KNET (Kuwait debit) is offered exactly when the gateway gives the payment a `payment:knet` link.
+ * It only does that for orders it will accept KNET on — a KWD purchase on a KNET-enabled outlet —
+ * so the SDK does not second-guess it with a currency rule of its own.
+ */
+fun Order.isKnetSupported() = getKnetUrl() != null
 
 /**
  * The buy-now-pay-later providers this order can be paid with, in the order they are offered.

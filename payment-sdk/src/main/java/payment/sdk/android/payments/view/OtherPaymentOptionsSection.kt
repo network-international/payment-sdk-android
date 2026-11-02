@@ -21,6 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -285,6 +288,52 @@ fun QPayExpressButton(
             modifier = Modifier
                 .height(16.dp)
                 .aspectRatio(2224f / 480f),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+
+/**
+ * Full-width "Pay with [KNET]" button at the top of the page, matching the hosted paypage: a white
+ * card with a hairline border and soft shadow. Colours are fixed rather than themed because the
+ * KNET mark is drawn for a white background.
+ */
+@Composable
+fun KnetExpressButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(Radius.row)
+    val label = stringResource(R.string.knet)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.pageH)
+            .alpha(if (enabled) 1f else 0.5f)
+            .shadow(elevation = 3.dp, shape = shape)
+            .clip(shape)
+            .background(Color.White)
+            .border(1.dp, Color(0xFFD9D9D9), shape)
+            .clickable(enabled = enabled, onClickLabel = label) { onClick() }
+            .semantics { contentDescription = label }
+            .padding(vertical = 12.dp)
+            .testId("sdk_paymentpage_knet_express"),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.qpay_express_pay_with),
+            style = PgType.buttonPrimary,
+            color = Color.Black
+        )
+        Spacer(Modifier.width(12.dp))
+        Image(
+            painter = painterResource(R.drawable.knet_logo),
+            contentDescription = null,
+            modifier = Modifier
+                .height(36.dp)
+                .aspectRatio(115f / 83f),
             contentScale = ContentScale.Fit
         )
     }

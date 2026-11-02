@@ -35,6 +35,7 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.knet.KnetLauncher
 import payment.sdk.android.bnpl.BnplLauncher
 import payment.sdk.android.partialAuth.model.PartialAuthActivityArgs
 import payment.sdk.android.partialAuth.view.PartialAuthView
@@ -190,6 +191,21 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
             // rather than ending the payment on their behalf.
             BenefitLauncher.Result.CanceledOnProvider -> {}
             BenefitLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid Benefit request"))
+        }
+    }
+
+    private val knetLauncher = KnetLauncher(this) { result ->
+        when (result) {
+            KnetLauncher.Result.Success -> finishWithData(UnifiedPaymentPageResult.Success)
+            KnetLauncher.Result.PostAuthReview -> finishWithData(UnifiedPaymentPageResult.PostAuthReview)
+            is KnetLauncher.Result.Failed -> finishWithData(UnifiedPaymentPageResult.Failed(result.error))
+            // KNET never opened: nothing is owed, so the payer stays with the button greyed out.
+            is KnetLauncher.Result.Unavailable -> viewModel.markKnetUnavailable()
+            // Cancelling, or backing out before KNET settled anything, leaves the order payable:
+            // the payer is back on the payment page and can try KNET again on the same order.
+            KnetLauncher.Result.Canceled -> {}
+            KnetLauncher.Result.CanceledOnProvider -> {}
+            KnetLauncher.Result.InvalidRequest -> finishWithData(UnifiedPaymentPageResult.Failed("Invalid KNET request"))
         }
     }
 
@@ -441,6 +457,8 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             qpayConfig = authState.qpayConfig,
                             benefitConfig = authState.benefitConfig,
                             isBenefitUnavailable = authState.isBenefitUnavailable,
+                            knetConfig = authState.knetConfig,
+                            isKnetUnavailable = authState.isKnetUnavailable,
                             bnplConfigs = authState.bnplConfigs,
                             unavailableBnplProviders = authState.unavailableBnplProviders,
                             amountRefusedBnplProviders = authState.amountRefusedBnplProviders,
@@ -460,6 +478,9 @@ class UnifiedPaymentPageActivity : AppCompatActivity() {
                             },
                             onClickBenefit = { config ->
                                 benefitLauncher.launch(config)
+                            },
+                            onClickKnet = { config ->
+                                knetLauncher.launch(config)
                             },
                             onClickBnpl = { config ->
                                 bnplLauncher.launch(config)

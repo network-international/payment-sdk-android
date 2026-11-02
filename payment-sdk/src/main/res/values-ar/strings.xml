@@ -107,6 +107,8 @@
     <string name="benefit">الدفع عبر بنفت</string>
     <string name="benefit_unavailable">تعذر الاتصال بخدمة Benefit. يرجى اختيار طريقة دفع اخرى و المحاولة مرة اخرى.</string>
     <string name="benefit_payment_in_progress">هناك عملية دفع قيد التنفيذ. لاختيار طريقة دفع أخرى، استخدم زر الإلغاء في صفحة بنفت.</string>
+    <string name="knet">الدفع عبر KNET</string>
+    <string name="knet_unavailable">تعذر الاتصال بخدمة KNET. يرجى اختيار طريقة دفع اخرى و المحاولة مرة اخرى.</string>
     <string name="pay_with_tamara">الدفع عبر تمارا</string>
     <string name="pay_with_tabby">ادفع لاحقاً مع تابي</string>
     <string name="tabby_description">بدون رسوم. ادفع بأي بطاقة</string>

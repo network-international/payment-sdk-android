@@ -26,6 +26,8 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.knet.KnetLauncher
+import payment.sdk.android.core.getKnetUrl
 import payment.sdk.android.core.getBenefitUrl
 import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.core.getBnplUrl
@@ -218,6 +220,16 @@ internal class UnifiedPaymentPageViewModel(
         }
     }
 
+    fun markKnetUnavailable() {
+        _uiState.update { state ->
+            if (state is UnifiedPaymentPageVMUiState.Authorized) {
+                state.copy(isKnetUnavailable = true)
+            } else {
+                state
+            }
+        }
+    }
+
     fun markBenefitUnavailable() {
         _uiState.update { state ->
             if (state is UnifiedPaymentPageVMUiState.Authorized) {
@@ -374,6 +386,16 @@ internal class UnifiedPaymentPageViewModel(
             )
         }
 
+        // KNET is offered exactly when the gateway gives the payment a payment:knet link (it only
+        // does for KWD purchases on a KNET-enabled outlet).
+        val knetConfig = order.getKnetUrl()?.let { knetUrl ->
+            KnetLauncher.Config(
+                knetUrl = knetUrl,
+                orderUrl = orderUrl,
+                accessToken = accessToken
+            )
+        }
+
         // Configure every buy-now-pay-later provider the order lists among its APMs. The return
         // URLs must be ones the provider will accept and redirect a browser to, and the hosted
         // paypage is the only such address the order carries — so the SDK reuses it exactly as the
@@ -440,6 +462,7 @@ internal class UnifiedPaymentPageViewModel(
                 clickToPayConfig = clickToPayConfig,
                 qpayConfig = qpayConfig,
                 benefitConfig = benefitConfig,
+                knetConfig = knetConfig,
                 bnplConfigs = bnplConfigs,
                 payerIp = payerIp,
                 orderReference = order.reference.orEmpty(),

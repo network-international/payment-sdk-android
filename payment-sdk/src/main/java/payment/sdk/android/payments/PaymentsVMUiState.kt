@@ -6,6 +6,7 @@ import payment.sdk.android.aaniPay.AaniPayLauncher
 import payment.sdk.android.clicktopay.ClickToPayLauncher
 import payment.sdk.android.qpay.QPayLauncher
 import payment.sdk.android.benefit.BenefitLauncher
+import payment.sdk.android.knet.KnetLauncher
 import payment.sdk.android.bnpl.BnplLauncher
 import payment.sdk.android.core.BnplProvider
 import payment.sdk.android.cardpayment.threedsecuretwo.ThreeDSecureDto
@@ -39,6 +40,10 @@ sealed class UnifiedPaymentPageVMUiState(val title: Int, val enableBackButton: B
         val benefitConfig: BenefitLauncher.Config? = null,
         /** Set when Benefit could not be started this session; its row says so. */
         val isBenefitUnavailable: Boolean = false,
+        /** Set when the order carries a `payment:knet` link; drives the KNET hero button. */
+        val knetConfig: KnetLauncher.Config? = null,
+        /** Set when KNET could not be started this session. A payer who cancels does not set it. */
+        val isKnetUnavailable: Boolean = false,
         /** One entry per buy-now-pay-later provider the order supports, in display order. */
         val bnplConfigs: Map<BnplProvider, BnplLauncher.Config> = emptyMap(),
         /** Providers whose checkout could not be opened this session; their rows say so. */
