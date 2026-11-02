@@ -7,5 +7,6 @@ enum class CardType {
     AmericanExpress,
     Discover,
     JCB,
-    DinersClubInternational
+    DinersClubInternational,
+    Jaywan // UAE domestic card scheme (NINGG-12979)
 }

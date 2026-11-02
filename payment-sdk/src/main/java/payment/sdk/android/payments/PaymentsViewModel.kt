@@ -534,7 +534,7 @@ internal class UnifiedPaymentPageViewModel(
                 }
 
                 val googlePayUrl = currentState.googlePayUiConfig.googlePayAcceptUrl
-                Log.d(TAG, "acceptGooglePay: calling accept API, url=$googlePayUrl")
+                Log.d(TAG, "acceptGooglePay: calling accept API")
                 val response =
                     googlePayAcceptInteractor.accept(googlePayUrl, currentState.accessToken, paymentDataJson)
                 Log.d(TAG, "acceptGooglePay: accept API response=${response::class.simpleName}")

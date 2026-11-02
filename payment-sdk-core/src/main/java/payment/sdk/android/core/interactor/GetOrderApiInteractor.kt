@@ -24,7 +24,6 @@ class GetOrderApiInteractor(private val httpClient: HttpClient) {
                 null
             }
             is SDKHttpResponse.Success -> {
-                Log.d(TAG, "GetOrder response: ${response.body}")
                 val order = Gson().fromJson(response.body, Order::class.java)
                 Log.d(TAG, "Parsed order - paymentMethods.wallet: ${order?.paymentMethods?.wallet?.toList()}")
                 Log.d(TAG, "Parsed order - paymentMethods.card: ${order?.paymentMethods?.card}")

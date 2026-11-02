@@ -20,12 +20,20 @@ class CardDetector(private val supportedCards: Set<CardType>) {
                 findMatchingCard = PaymentCard(CardType.Visa, firstSix, findMatchingCard.binRange,
                         findMatchingCard.cvv, findMatchingCard.certainty)
         }
+        // Jaywan shares its short 6690/9784 prefix with a wider space; only commit to
+        // it once 8 digits are entered so it isn't surfaced prematurely.
+        if (findMatchingCard?.type === CardType.Jaywan && bin.length < JAYWAN_MIN_DIGITS) {
+            return null
+        }
         return findMatchingCard
     }
 
     companion object {
 
         private const val LONGEST_AVAILABLE_BIN_DIGITS = 8
+
+        // Jaywan is only detected once this many digits have been entered.
+        private const val JAYWAN_MIN_DIGITS = 8
 
         private fun findMatchingCard(pan: String, acceptedCards: List<CardModel>): PaymentCard? {
             val binValue = pan.toBigInteger()
@@ -192,6 +200,18 @@ class CardDetector(private val supportedCards: Set<CardType>) {
                                 BinRange(start = 622126.toBigInteger(), end = 622925.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4)),
                                 BinRange(start = 644.toBigInteger(), end = 649.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4)),
                                 BinRange(start = 65.toBigInteger(), end = 65.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4))
+                        )
+
+                ),
+                // Jaywan — UAE domestic card scheme (NINGG-12979).
+                // Recognised by IINs 6690 and 9784. 16-digit PAN, 3-digit CVV on the
+                // back, grouped 4-4-4-4 like Visa/Mastercard.
+                CardModel(
+                        CardType.Jaywan,
+                        Cvv(3, CardFace.BACK),
+                        listOf(
+                                BinRange(start = 6690.toBigInteger(), end = 6690.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4)),
+                                BinRange(start = 9784.toBigInteger(), end = 9784.toBigInteger(), length = BinLength(value = 16, pattern = SpacingPatterns.Pattern_4_4_4_4))
                         )
 
                 )

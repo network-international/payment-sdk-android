@@ -1,6 +1,5 @@
 package payment.sdk.android.savedCard.view
 
-import android.util.Log
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -137,11 +136,9 @@ internal fun CreditCardView(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Log.d("CardNumberTextField", "cardholderName: $cardholderName")
                 val cardholderNameText = cardholderName.ifBlank {
                     stringResource(R.string.cardholder_field_hint)
                 }
-                Log.d("CardNumberTextField", "cardholderNameText: $cardholderNameText")
                 AndroidView(
                     modifier = Modifier.testId("sdk_cardpreview_label_name"),
                     factory = { context ->
@@ -172,6 +169,7 @@ fun getCardImage(type: CardType?, isWhiteBackground: Boolean = false): Painter {
 
             CardType.JCB -> R.drawable.ic_logo_jcb
             CardType.Discover -> R.drawable.ic_logo_discover
+            CardType.Jaywan -> R.drawable.jaywan
             CardType.Mada ->  if (isWhiteBackground) {
                 R.drawable.ic_logo_mada_dark
             } else {

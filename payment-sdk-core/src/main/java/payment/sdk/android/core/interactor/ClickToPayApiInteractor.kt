@@ -72,7 +72,6 @@ class ClickToPayApiInteractor(
 
             when (response) {
                 is SDKHttpResponse.Success -> {
-                    Log.d(TAG, "Click to Pay response: ${response.body}")
                     val jsonResponse = JSONObject(response.body)
                     val state = jsonResponse.optString("state", "")
 

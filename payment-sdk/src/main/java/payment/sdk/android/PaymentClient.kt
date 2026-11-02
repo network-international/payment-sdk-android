@@ -227,9 +227,7 @@ class PaymentClient(
                         requestCode
                     )
                 },
-                error = {
-                    println(it)
-                }
+                error = { }
             )
         } else {
             context.startActivityForResult(

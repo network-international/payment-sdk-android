@@ -7,7 +7,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import android.util.Log
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.net.HttpURLConnection
@@ -155,9 +154,6 @@ class CoroutinesGatewayHttpClient(
         var writer: BufferedWriter? = null
         var reader: BufferedReader? = null
 
-        val bodyStr = if (body.isNotEmpty()) body.encode() else null
-        logCurl(method, url, headers, bodyStr)
-
         try {
             connection = (URL(url).openConnection() as HttpURLConnection).apply {
                 initConnection(this, headers, doOutput).requestMethod = method
@@ -166,7 +162,7 @@ class CoroutinesGatewayHttpClient(
             // Write content body
             if (doOutput && body.isNotEmpty()) {
                 writer = connection.outputStream.bufferedWriter()
-                writer.write(bodyStr)
+                writer.write(body.encode())
                 writer.flush()
             }
 
@@ -177,13 +173,11 @@ class CoroutinesGatewayHttpClient(
                 HttpURLConnection.HTTP_OK, HttpURLConnection.HTTP_CREATED -> {
                     reader = connection.inputStream.bufferedReader()
                     val responseBody = reader.readText()
-                    logResponse(responseCode, url, connection.headerFields, responseBody)
                     SDKDiagnostics.record(method, url, responseCode, responseBody)
                     Pair(connection.headerFields, JSONObject(responseBody))
                 }
                 // No Content (common DELETE response)
                 HttpURLConnection.HTTP_NO_CONTENT -> {
-                    logResponse(responseCode, url, connection.headerFields, "")
                     SDKDiagnostics.record(method, url, responseCode, "")
                     Pair(connection.headerFields, JSONObject("{}"))
                 }
@@ -196,7 +190,6 @@ class CoroutinesGatewayHttpClient(
                     } catch (e: Exception) {
                         "Failed to read error body: ${e.message}"
                     }
-                    logResponse(responseCode, url, connection.headerFields, errorBody)
                     SDKDiagnostics.record(method, url, responseCode, errorBody)
                     val correlationId = findCorrelationId(connection.headerFields)
                     // Carries the status code so callers can tell an expired session from a
@@ -222,41 +215,6 @@ class CoroutinesGatewayHttpClient(
         }
     }
 
-    private fun logCurl(method: String, url: String, headers: Map<String, String>, body: String?) {
-        val parts = StringBuilder("curl -X $method")
-        headers.toSortedMap().forEach { (key, value) ->
-            parts.append(" \\\n  -H '${key}: ${value.replace("'", "'\\''")}'")
-        }
-        if (body != null) {
-            parts.append(" \\\n  -d '${body.replace("'", "'\\''")}'")
-        }
-        parts.append(" \\\n  '$url'")
-        Log.d(TAG, "🔗 cURL:\n$parts")
-    }
-
-    private fun logResponse(
-        code: Int,
-        url: String,
-        headers: Map<String, List<String>>?,
-        body: String
-    ) {
-        val prettyBody = try {
-            JSONObject(body).toString(2)
-        } catch (e: Exception) {
-            body
-        }
-        val headersBlock = formatHeaders(headers)
-        Log.d(TAG, "⬅️ RESPONSE: $code $url\nHeaders:\n$headersBlock\nBody:\n$prettyBody")
-    }
-
-    private fun formatHeaders(headers: Map<String, List<String>>?): String {
-        if (headers.isNullOrEmpty()) return "  (none)"
-        return headers.entries.joinToString("\n") { (key, values) ->
-            val name = key ?: "(status)"
-            "  $name: ${values.joinToString(", ")}"
-        }
-    }
-
     private fun findCorrelationId(headers: Map<String, List<String>>?): String? {
         if (headers == null) return null
         return headers.entries
@@ -265,8 +223,6 @@ class CoroutinesGatewayHttpClient(
     }
 
     companion object {
-        private const val TAG = "NI-SDK-HTTP"
-
         const val DEFAULT_TIMEOUT_MS = 30_000
     }
 
